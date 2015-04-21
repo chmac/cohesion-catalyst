@@ -8,3 +8,7 @@ meteor-platform
 autopublish
 insecure
 d3js:d3
+iron:router
+accounts-password
+twbs:bootstrap
+ian:accounts-ui-bootstrap-3
