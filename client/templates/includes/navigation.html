@@ -8,10 +8,10 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="{{pathFor 'home'}}">Cohesion Machine</a>
+        <!-- <a class="navbar-brand" href="{{pathFor 'home'}}">Cohesion Machine</a> -->
       </div>
       <div class="collapse navbar-collapse" id="navigation">
-        <ul class="nav navbar-nav">
+        <ul class="nav navbar-nav main-navigation">
           <li class="">
             <a href="{{pathFor 'intro'}}">intro</a>
           </li>
@@ -22,8 +22,11 @@
             <a href="{{pathFor 'idPool'}}">ID pool</a>
           </li>
           <li class="">
-            <a href="{{pathFor 'idNetwork'}}">ID newtwork</a>
+            <a href="{{pathFor 'idNetwork'}}">ID network</a>
           </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="#" class="navbar-link">Log out</a></li>
         </ul>
       </div>
     </div>
