@@ -1,0 +1,21 @@
+.container {
+  width: 960px;
+}
+
+/* Override the alignment rules in order to center the nav components */
+@media (min-width: 768px) {
+  .main-navigation {
+  /*.navbar .navbar-nav {*/
+      display: inline-block;
+      float: none;
+  }
+
+  .navbar .navbar-collapse {
+      text-align: center;
+  }
+
+  .main-navigation > li > a {
+    padding-left: 35px;
+    padding-right: 35px;
+  }
+}
