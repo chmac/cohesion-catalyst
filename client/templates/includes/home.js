@@ -1,8 +1,6 @@
 Template.home.onRendered(function () {
   var svg,
     circleAndTextGroup,
-    width,
-    height,
     radius,
     strokeWidth,
     spacer,
@@ -11,8 +9,6 @@ Template.home.onRendered(function () {
     w,
     h;
 
-  width = 930;
-  height = 1024;
   radius = 36;
   strokeWidth = 8;
   spacer = 20;
@@ -39,12 +35,9 @@ Template.home.onRendered(function () {
   }
 
   svg = d3.select("#welcome-vis")
-    .attr({
-      width: width,
-      height: height
-    })
     .append("g")
-    .attr("id", "welcome-circles");
+    .attr("id", "welcome-circles")
+    .attr("transform", "translate(" + (radius + strokeWidth) + "," + (radius + strokeWidth) + ")");
 
   circleAndTextGroup = svg.selectAll("g").data(circleData, function(d, i) {
     return d.color;
@@ -99,12 +92,5 @@ Template.home.onRendered(function () {
     .text(function(d) {
       return d.label;
     });
-
-  // Move the group containing the 3x3 grid of circles to the center 
-  welcomeGroup = d3.select("#welcome-circles");
-  w = welcomeGroup.node().getBBox().width / 2;
-  h = welcomeGroup.node().getBBox().height;
-  welcomeGroup
-    .attr("transform", "translate(" + (width / 2 - w + radius) + "," + (height / 2 - h) + ")");
 
 });
