@@ -15,3 +15,14 @@
     padding-right: 35px;
   }
 }
+
+.vis-container {
+  margin: 20% 25% 0 25%;
+  width: 50%;
+}
+
+#welcome-vis {
+  display: block;
+  margin: auto;
+  width: 50%;
+}
