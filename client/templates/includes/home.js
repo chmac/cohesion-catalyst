@@ -5,7 +5,7 @@ Template.home.onRendered(function () {
     strokeWidth,
     spacer,
     circleData,
-    welcomeGroup,
+    groupBBox,
     w,
     h;
 
@@ -93,4 +93,30 @@ Template.home.onRendered(function () {
       return d.label;
     });
 
+    w = svg.node().getBBox().width;
+    h = svg.node().getBBox().height;
+    groupBBox = svg.append("rect")
+      .attr("id", "b-box")
+      .attr({
+        x: - radius,
+        y: - radius,
+        width: w,
+        height: h
+      });
+
+});
+
+Template.loginForm.helpers({
+  loginForm: function() {
+    return true;
+  },
+  createAccount: function() {
+    return false;
+  }
+});
+
+Template.home.events({
+  "click #b-box": function(event, template) {
+    alert("Clicked!");
+  }
 });
