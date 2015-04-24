@@ -26,3 +26,9 @@
   margin: auto;
   width: 50%;
 }
+
+#b-box {
+  pointer-events: all;
+  fill: none;
+  cursor: pointer;
+}
