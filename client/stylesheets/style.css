@@ -16,6 +16,11 @@
   }
 }
 
+.centering {
+  width: 50%;
+  margin: auto;
+}
+
 .vis-container {
   margin: 20% 25% 0 25%;
   width: 50%;
@@ -23,12 +28,21 @@
 
 #welcome-vis {
   display: block;
-  margin: auto;
-  width: 50%;
 }
 
 #b-box {
   pointer-events: all;
   fill: none;
   cursor: pointer;
+}
+
+.register-form-container {
+  width: 50%;
+  margin: 3% 25% 0 25%;
+}
+
+
+#create-account {
+  display: inline-block;
+  margin-top: 15px;
 }
