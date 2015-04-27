@@ -106,14 +106,6 @@ Template.home.onRendered(function () {
 
 });
 
-Template.loginForm.helpers({
-  loginForm: function() {
-    return true;
-  },
-  createAccount: function() {
-    return false;
-  }
-});
 
 Template.home.events({
   "click #b-box": function(event, template) {
