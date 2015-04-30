@@ -16,6 +16,10 @@
   }
 }
 
+.logged-out {
+  visibility: hidden;
+}
+
 .centering {
   width: 50%;
   margin: auto;
