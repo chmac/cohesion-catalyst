@@ -26,7 +26,9 @@
           </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li><a href="#" class="navbar-link">Log out</a></li>
+          {{#if currentUser}}
+          <li><a href="#" class="navbar-link {{#if currentUser}} logout {{else}} logged-out {{/if}}">Log out</a></li>
+          {{/if}}
         </ul>
       </div>
     </div>
