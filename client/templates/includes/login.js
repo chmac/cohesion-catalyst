@@ -1,6 +1,6 @@
 Template.loginForm.helpers({
   loginForm: function() {
-    return true;
+    return Session.equals("formContainer", "loginForm");
   },
   createAccount: function() {
     return Session.equals("formContainer", "createAccountForm");
@@ -32,7 +32,7 @@ Template.loginForm.events({
   },
   "click #create-account-link": function(event, template) {
     event.preventDefault();
-    // Use the global Session object to specify the current form to display. 
+    // Use the global Session object to specify the current form to display.
     Session.set("formContainer", "createAccountForm");
 
   }

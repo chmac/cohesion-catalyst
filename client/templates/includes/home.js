@@ -109,6 +109,8 @@ Template.home.onRendered(function () {
 
 Template.home.events({
   "click #b-box": function(event, template) {
-    alert("Clicked!");
+    // Use the global Session object to specify the current form to display.
+    Session.set("formContainer", "loginForm");
+    console.log("Show login form!");
   }
 });
