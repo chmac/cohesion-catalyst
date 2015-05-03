@@ -1,6 +1,7 @@
 <template name="layout">
   <div class="container">
-    {{> navigation }}
+    {{> navigation}}
+    {{> errors}}
     <div id="main">
       <!-- "yield" is a special template helper provided by the Iron Router package.
         It lets us reuse this layout template since "yield" defines a dynamic region and
