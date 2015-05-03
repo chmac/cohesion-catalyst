@@ -25,8 +25,10 @@ Template.loginForm.events({
         if (error) {
           // Let the user know that the login failed, e.g. if a user could
           // not be found or if the user entered an incorrect password.
-          console.log(error.error);
+          console.log(error.reason);
+          return throwError("Login Error: " + error.reason);
         }
+        Router.go("intro");
       });
     }
   },
@@ -62,7 +64,8 @@ Template.createAccountForm.events({
         }, function(error) {
           if (error) {
             // Let the user know that the creation of an account failed.
-            console.log(error.error);
+            console.log(error.reason);
+            return throwError("Error while creating account: " + error.reason);
           }
         });
     }
