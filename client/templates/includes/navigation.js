@@ -3,6 +3,7 @@ Template.navigation.events({
     event.preventDefault();
     // The Meteor.logout() function is provided by the 'accounts-password' package.
     Meteor.logout();
+    Router.go("home");
   }
 
 });
