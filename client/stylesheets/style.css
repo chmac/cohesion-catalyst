@@ -2,12 +2,12 @@
 @media (min-width: 768px) {
   .main-navigation {
   /*.navbar .navbar-nav {*/
-      display: inline-block;
-      float: none;
+    display: inline-block;
+    float: none;
   }
 
   .navbar .navbar-collapse {
-      text-align: center;
+    text-align: center;
   }
 
   .main-navigation > li > a {
@@ -49,4 +49,38 @@
 #create-account-link {
   display: inline-block;
   margin-top: 15px;
+}
+
+@-webkit-keyframes fadeOut {
+  0% {opacity: 0;}
+  10% {opacity: 1;}
+  90% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+@keyframes fadeOut {
+  0% {opacity: 0;}
+  10% {opacity: 1;}
+  90% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+.errors {
+  position: fixed;
+  z-index: 10000;
+  padding: 10px;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  pointer-events: none;
+}
+
+.alert {
+  animation: fadeOut 3700ms ease-in 0s 1 forwards;
+  -webkit-animation: fadeOut 3700ms ease-in 0s 1 forwards;
+  -moz-animation: fadeOut 3700ms ease-in 0s 1 forwards;
+  width: 250px;
+  float: right;
+  clear: both; margin-bottom: 5px; pointer-events: auto;
 }
