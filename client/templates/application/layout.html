@@ -1,6 +1,8 @@
 <template name="layout">
   <div class="container">
-    {{> navigation}}
+    {{#if currentUser}}
+      {{> navigation}}
+    {{/if}}
     {{> errors}}
     <div id="main">
       <!-- "yield" is a special template helper provided by the Iron Router package.
