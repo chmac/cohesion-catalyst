@@ -1,13 +1,19 @@
 <template name="createAccountForm">
       <div class="register-form-container">
         <form class="centering" id="create-account-form">
-          <div class="form-group">
+          <div class="form-group {{errorClass 'username'}}">
             <label for="account-username" class="sr-only">Username</label>
-            <input type="text" class="form-control" id="account-username" placeholder="Type your name..."/>
+            <div class="controls">
+              <input type="text" class="form-control" id="account-username" placeholder="Type your name..."/>
+              <span class="help-block">{{errorMessage 'username'}}</span>
+            </div>
           </div>
-          <div class="form-group">
+          <div class="form-group {{errorClass 'password'}}">
             <label for="account-password" class="sr-only">Password</label>
-            <input type="password" class="form-control" id="account-password" placeholder="Type your password..." />
+            <div class="controls">
+              <input type="password" class="form-control" id="account-password" placeholder="Type your password..." />
+              <span class="help-block">{{errorMessage 'password'}}</span>
+            </div>
           </div>
           <input type="submit" class="btn btn-default" id="create-account-button" value="Create your account" />
         </form>
@@ -18,13 +24,19 @@
   {{#if loginForm}}
     <div class="register-form-container">
       <form  class="centering" id="login-form">
-        <div class="form-group">
+        <div class="form-group {{errorClass 'username'}}">
           <label class="sr-only" for="login-username">Username</label>
-          <input type="text" class="form-control" id="login-username" placeholder="Type your name..."/>
+          <div class="controls">
+            <input type="text" class="form-control" id="login-username" placeholder="Type your name..."/>
+            <span class="help-block">{{errorMessage 'username'}}</span>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group {{errorClass 'password'}}">
           <label class="sr-only" for="login-password">Password</label>
-          <input type="password" class="form-control" id="login-password" placeholder="Type your password..."/>
+          <div class="controls">
+            <input type="password" class="form-control" id="login-password" placeholder="Type your password..."/>
+            <span class="help-block">{{errorMessage 'password'}}</span>
+          </div>
         </div>
         <input type="submit" class="btn btn-default"  id="login-button" value="Sign in"/>
       </form>

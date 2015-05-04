@@ -1,9 +1,30 @@
+/**
+ * Forms for logging into or creating an account for the application.
+ *
+ * Helper functions and application logic to be executed within the templates.
+ *
+ * Adapted and modified from the following examples:
+ * - http://blog.benmcmahen.com/post/41741539120/building-a-customized-accounts-ui-for-meteor [as of 2015-05-04]
+ * - Greif S., Coleman T.: Discover Meteor.
+ */
+
+ 
+Template.loginForm.created = function() {
+  Session.set("displayErrorMessage", {});
+};
+
 Template.loginForm.helpers({
   loginForm: function() {
     return Session.equals("formContainer", "loginForm");
   },
   createAccount: function() {
     return Session.equals("formContainer", "createAccountForm");
+  },
+  errorMessage: function(field) {
+    return Session.get("displayErrorMessage")[field];
+  },
+  errorClass: function(field) {
+    return !!Session.get("displayErrorMessage")[field] ? "has-error" : "";
   }
 });
 
@@ -40,6 +61,20 @@ Template.loginForm.events({
   }
 });
 
+
+Template.createAccountForm.created = function() {
+  Session.set("displayErrorMessage", {});
+};
+
+Template.createAccountForm.helpers({
+  errorMessage: function(field) {
+    return Session.get("displayErrorMessage")[field];
+  },
+  errorClass: function(field) {
+    return !!Session.get("displayErrorMessage")[field] ? "has-error" : "";
+  }
+});
+
 Template.createAccountForm.events({
   // We want to listen for the 'submit' event of the <form> to enable a user
   // to submit the form via 'Enter' key besides using the 'Submit' button.
@@ -64,7 +99,6 @@ Template.createAccountForm.events({
         }, function(error) {
           if (error) {
             // Let the user know that the creation of an account failed.
-            console.log(error.reason);
             return throwError("Error while creating account: " + error.reason);
           }
         });
@@ -77,7 +111,9 @@ function isValidUsername(input) {
   if (input.length >= 3) {
     return true;
   } else {
-    console.log("Your name should be at least 3 characters long.");
+    Session.set("displayErrorMessage", {
+      username: "Your name should be at least 3 characters long."
+    });
     return false;
   }
 }
@@ -87,7 +123,9 @@ function isValidPassword(input) {
   if (input.length >= 6) {
     return true;
   } else {
-    console.log("Your password should be at least 6 characters long.");
+    Session.set("displayErrorMessage", {
+      password: "Your password should be at least 6 characters long."
+    });
     return false;
   }
 }
@@ -95,7 +133,10 @@ function isValidPassword(input) {
 // Helper function to check if the input value is empty.
 function isEmpty(input) {
   if (!input || input === "") {
-    console.log("Please do not leave any field empty.");
+    Session.set("displayErrorMessage", {
+      username: "Please do not leave this field empty.",
+      password: "Please do not leave this field empty."
+    });
     return true;
   } else {
     return false;
