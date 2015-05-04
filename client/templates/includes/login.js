@@ -8,10 +8,10 @@
  * - Greif S., Coleman T.: Discover Meteor.
  */
 
- 
-Template.loginForm.created = function() {
+
+Template.loginForm.onCreated(function() {
   Session.set("displayErrorMessage", {});
-};
+});
 
 Template.loginForm.helpers({
   loginForm: function() {
@@ -46,9 +46,9 @@ Template.loginForm.events({
         if (error) {
           // Let the user know that the login failed, e.g. if a user could
           // not be found or if the user entered an incorrect password.
-          console.log(error.reason);
           return throwError("Login Error: " + error.reason);
         }
+        Session.set("formContainer", null);
         Router.go("intro");
       });
     }
@@ -101,6 +101,8 @@ Template.createAccountForm.events({
             // Let the user know that the creation of an account failed.
             return throwError("Error while creating account: " + error.reason);
           }
+          Session.set("formContainer", null);
+          Router.go("intro");
         });
     }
   }
