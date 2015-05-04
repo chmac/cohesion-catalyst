@@ -16,6 +16,24 @@
   }
 }
 
+.navbar-dark {
+  background-color: #000;
+  border-color: #080808;
+}
+
+.navbar-dark .navbar-nav > li > a {
+  color: #9d9d9d;
+}
+
+.navbar-dark .navbar-nav > li > a:hover,
+.navbar-dark .navbar-nav > li > a:focus,
+.navbar-dark .navbar-nav > .active > a,
+.navbar-dark .navbar-nav > .active > a:hover,
+.navbar-dark .navbar-nav > .active > a:focus {
+  color: #fff;
+  background-color: #000;
+}
+
 .logged-out {
   visibility: hidden;
 }
