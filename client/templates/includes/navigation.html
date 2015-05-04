@@ -1,5 +1,5 @@
 <template name="navigation">
-  <nav class="navbar navbar-inverse" role="navigation">
+  <nav class="navbar navbar-dark" role="navigation">
     <div class="container-fluid">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navigation">
@@ -12,7 +12,7 @@
       </div>
       <div class="collapse navbar-collapse" id="navigation">
         <ul class="nav navbar-nav main-navigation">
-          <li class="">
+          <li class="{{activeRouteClass 'intro' }}">
             <a href="{{pathFor 'intro'}}">intro</a>
           </li>
           <li class="">
