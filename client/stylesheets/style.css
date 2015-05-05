@@ -53,7 +53,8 @@ body {
   width: 50%;
 }
 
-#welcome-vis {
+#welcome-vis,
+#smiley-selection {
   display: block;
 }
 
@@ -118,4 +119,8 @@ body {
   width: 250px;
   float: right;
   clear: both; margin-bottom: 5px; pointer-events: auto;
+}
+
+.vis-container > h5 {
+  padding: 0 0 10px 25px;
 }
