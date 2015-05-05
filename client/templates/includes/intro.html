@@ -1,5 +1,223 @@
 <template name="intro">
-  <div class="centering">
-    <h4>Choose a smiley...</h4>
+  <!-- Definition of the symbols - NOT to be drawn -->
+  <svg style="display:none">
+
+    <symbol id="smiley-wink" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Line to draw the winking eye -->
+      <line x1="20" y1="35" x2="32" y2="32" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <circle cx="57" cy="35" r="4" fill="#fff"/>
+      <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </symbol>
+
+    <symbol id="smiley-chuckle" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Two circles to draw the eyes -->
+      <circle cx="27" cy="35" r="4" fill="#fff"/>
+      <circle cx="57" cy="35" r="4" fill="#fff"/>
+      <!-- Path to draw the smile -->
+      <path d="M39 62 A 27 31, 0, 0, 0, 63 51 "
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </symbol>
+
+    <symbol id="smiley-smirk" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Two circles to draw the eyes -->
+      <circle cx="27" cy="35" r="4" fill="#fff"/>
+      <circle cx="57" cy="35" r="4" fill="#fff"/>
+      <!-- Path to draw the outstretched tongue -->
+      <path d="M42 64 Q 51 75 56 59 Z"
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="#fff"/>
+      <!-- Path to draw the smile -->
+      <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </symbol>
+
+    <symbol id="smiley-lol" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Two circles to draw the eyes -->
+      <circle cx="27" cy="35" r="4" fill="#fff"/>
+      <circle cx="57" cy="35" r="4" fill="#fff"/>
+      <!-- Path to draw the BIG smile -->
+      <path d="M22 49 A 18 18, 0, 0, 0, 62 49 Z"
+        stroke="#fff" stroke-width="2" stroke-linecap="round" fill="#fff"/>
+    </symbol>
+
+    <symbol id="smiley-smile" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Two circles to draw the eyes -->
+      <circle cx="27" cy="35" r="4" fill="#fff"/>
+      <circle cx="57" cy="35" r="4" fill="#fff"/>
+      <!-- Path to draw the smile -->
+      <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </symbol>
+
+    <symbol id="smiley-nerd" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Two circles to draw the eyes -->
+      <circle cx="27" cy="35" r="4" fill="#fff"/>
+      <circle cx="57" cy="35" r="4" fill="#fff"/>
+      <!-- Two none-filled circles and a line to draw the glasses -->
+      <circle cx="27" cy="35" r="9" stroke="#fff" stroke-width="3" fill="none" />
+      <circle cx="57" cy="35" r="9" stroke="#fff" stroke-width="3" fill="none" />
+      <line x1="36" y1="35" x2="48" y2="35" stroke="#fff" stroke-width="3" fill="none" />
+      <!-- Path to draw the smile -->
+      <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </symbol>
+
+    <symbol id="smiley-star" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Star shape group for the left eye -->
+      <g transform="translate(27, 35) scale(1.2)">
+        <polygon fill="#fff" stroke-width="2"
+          points="7,0
+          2.4270509831248424,1.7633557568774194
+          2.163118960624632,6.657395614066075
+          -0.927050983124842,2.853169548885461
+          -5.663118960624632,4.114496766047313
+          -3,3.6739403974420594e-16
+          -5.663118960624632,-4.114496766047311
+          -0.9270509831248427,-2.8531695488854605
+          2.1631189606246304,-6.6573956140660755
+          2.4270509831248415,-1.76335575687742" />
+      </g>
+      <!-- Star shape group for the right eye -->
+      <g transform="translate(57, 35) scale(1.2)">
+        <polygon fill="#fff" stroke-width="2"
+          points="7,0
+          2.4270509831248424,1.7633557568774194
+          2.163118960624632,6.657395614066075
+          -0.927050983124842,2.853169548885461
+          -5.663118960624632,4.114496766047313
+          -3,3.6739403974420594e-16
+          -5.663118960624632,-4.114496766047311
+          -0.9270509831248427,-2.8531695488854605
+          2.1631189606246304,-6.6573956140660755
+          2.4270509831248415,-1.76335575687742" />
+      </g>
+      <!-- Path to draw the smile -->
+      <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </symbol>
+
+    <symbol id="smiley-heart" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Heart shape group for the left eye -->
+      <g transform="translate(28,39) scale(0.5)">
+        <path d="M0,0
+          c0,0-14-7.926-14-17.046
+          c0-9.356,13.159-10.399,14-0.454
+          c1.011-9.938,14-8.903,14,0.454
+          C14,-7.926,0,0,0,0" fill="#fff"/>
+      </g>
+      <!-- Heart shape group for the right eye -->
+      <g transform="translate(58,39) scale(0.5)">
+        <path d="M0,0
+          c0,0-14-7.926-14-17.046
+          c0-9.356,13.159-10.399,14-0.454
+          c1.011-9.938,14-8.903,14,0.454
+          C14,-7.926,0,0,0,0" fill="#fff"/>
+      </g>
+      <!-- Path to draw the smile -->
+      <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </symbol>
+
+    <symbol id="smiley-cool" viewBox="0 0 400 400">
+      <!-- Foundation group forming a drop shape -->
+      <g transform="rotate(45 42 42)">
+        <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+        <circle cx="42" cy="42" r="42" fill="#fff" />
+        <circle cx="42" cy="42" r="36" fill="#000" />
+      </g>
+      <!-- Sunglasses group -->
+      <g transform="translate(27,35) scale(.9)">
+        <!-- Path to draw the spectacles on the left -->
+        <path d="
+          M10,0
+          q3,-9 2,-9
+          a9,2 0 0 0 -20,0
+          Q-14,7  -11,7
+          Q14,7 12,-9
+          Z"
+        stroke="#fff" stroke-width="1" stroke-linejoin="round" fill="#fff"/>
+        <!-- Path to draw the spectacles on the right using 'scale(-1,1)' as a
+          mirror function to mirror the shape of the left spectacles. -->
+        <path d="
+          M10,0
+          q3,-9 2,-9
+          a9,2 0 0 0 -20,0
+          Q-14,7  -11,7
+          Q14,7 12,-9
+          Z"
+          transform="translate(35, 0) scale(-1, 1) "
+        stroke="#fff" stroke-width="1" stroke-linejoin="round" fill="#fff"/>
+        <!-- Two lines to draw the temple stem -->
+        <line x1="12" y1="-8" x2="23" y2="-8" stroke="#fff" stroke-width="1" fill="none"/>
+        <line x1="11" y1="-2" x2="24" y2="-2" stroke="#fff" stroke-width="4" fill="none"/>
+      </g>
+      <!-- Path to draw the smile -->
+      <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
+        stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </symbol>
+  </svg>
+
+  <div class="vis-container">
+    <h5 class="centering">Choose a smiley...</h5>
+    <svg class ="centering" id="smiley-selection" viewBox="-32 -21 400 400">
+      <!-- Draw the symbols using the 'use' element -->
+      <use xlink:href="#smiley-wink" x="0" y="0" />
+      <use xlink:href="#smiley-chuckle" x="124" y="0" />
+      <use xlink:href="#smiley-smirk" x="248" y="0" />
+      <use xlink:href="#smiley-lol" x="0" y="130" />
+      <use xlink:href="#smiley-smile" x="124" y="130" />
+      <use xlink:href="#smiley-nerd" x="248" y="130" />
+      <use xlink:href="#smiley-star" x="0" y="260" />
+      <use xlink:href="#smiley-heart" x="124" y="260" />
+      <use xlink:href="#smiley-cool" x="248" y="260" />
+    </svg>
   </div>
 </template>
