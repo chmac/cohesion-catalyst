@@ -1,18 +1,36 @@
 <template name="intro">
-  <div class="vis-container">
-    <h5 class="centering">Choose a smiley...</h5>
-    <svg class ="centering" id="smiley-selection" viewBox="-32 -21 400 400">
+  <div class="avatar-container">
+    <h4 class="centering">Choose a smiley...</h4>
+    <svg class="centering" id="smiley-selection" viewBox="-50.206 -25.206 600 600">
       <!-- Reference the file 'avatars.svg' and draw the symbols using
         each of which id '#...' and the 'use' element. -->
-      <use xlink:href="/svg/avatars.svg#smiley-wink" x="0" y="0" />
-      <use xlink:href="/svg/avatars.svg#smiley-chuckle" x="124" y="0" />
-      <use xlink:href="/svg/avatars.svg#smiley-smirk" x="248" y="0" />
-      <use xlink:href="/svg/avatars.svg#smiley-lol" x="0" y="130" />
-      <use xlink:href="/svg/avatars.svg#smiley-smile" x="124" y="130" />
-      <use xlink:href="/svg/avatars.svg#smiley-nerd" x="248" y="130" />
-      <use xlink:href="/svg/avatars.svg#smiley-star" x="0" y="260" />
-      <use xlink:href="/svg/avatars.svg#smiley-heart" x="124" y="260" />
-      <use xlink:href="/svg/avatars.svg#smiley-cool" x="248" y="260" />
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use xlink:href="/svg/avatars.svg#smiley-wink" x="0" y="0" />
+      </a>
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use xlink:href="/svg/avatars.svg#smiley-chuckle" x="200" y="0" />
+      </a>
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use xlink:href="/svg/avatars.svg#smiley-smirk" x="400" y="0" />
+      </a>
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use xlink:href="/svg/avatars.svg#smiley-lol" x="0" y="200" />
+      </a>
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use id="test" xlink:href="/svg/avatars.svg#smiley-smile" x="200" y="200"/>
+      </a>
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use xlink:href="/svg/avatars.svg#smiley-nerd" x="400" y="200" />
+      </a>
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use xlink:href="/svg/avatars.svg#smiley-star" x="0" y="400" />
+      </a>
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use xlink:href="/svg/avatars.svg#smiley-heart" x="200" y="400" />
+      </a>
+      <a class="avatar" role="button" tabindex="0" xlink:href="" xlink:title="">
+        <use xlink:href="/svg/avatars.svg#smiley-cool" x="400" y="400" />
+      </a>
     </svg>
   </div>
 </template>
