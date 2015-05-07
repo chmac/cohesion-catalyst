@@ -5,7 +5,7 @@
 
 <!-- Definition of the symbols -->
 
-  <symbol id="smiley-wink" viewBox="0 0 400 400">
+  <symbol id="smiley-wink" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -19,7 +19,7 @@
       stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
 
-  <symbol id="smiley-chuckle" viewBox="0 0 400 400">
+  <symbol id="smiley-chuckle" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -34,7 +34,7 @@
       stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
 
-  <symbol id="smiley-smirk" viewBox="0 0 400 400">
+  <symbol id="smiley-smirk" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -52,7 +52,7 @@
       stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
 
-  <symbol id="smiley-lol" viewBox="0 0 400 400">
+  <symbol id="smiley-lol" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -67,7 +67,7 @@
       stroke="#fff" stroke-width="2" stroke-linecap="round" fill="#fff"/>
   </symbol>
 
-  <symbol id="smiley-smile" viewBox="0 0 400 400">
+  <symbol id="smiley-smile" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -82,7 +82,7 @@
       stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
 
-  <symbol id="smiley-nerd" viewBox="0 0 400 400">
+  <symbol id="smiley-nerd" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -101,7 +101,7 @@
       stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
 
-  <symbol id="smiley-star" viewBox="0 0 400 400">
+  <symbol id="smiley-star" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -111,37 +111,37 @@
     <!-- Star shape group for the left eye -->
     <g transform="translate(27, 35) scale(1.2)">
       <polygon fill="#fff" stroke-width="2"
-        points="7,0
-        2.4270509831248424,1.7633557568774194
-        2.163118960624632,6.657395614066075
-        -0.927050983124842,2.853169548885461
-        -5.663118960624632,4.114496766047313
-        -3,3.6739403974420594e-16
-        -5.663118960624632,-4.114496766047311
-        -0.9270509831248427,-2.8531695488854605
-        2.1631189606246304,-6.6573956140660755
-        2.4270509831248415,-1.76335575687742" />
+	points="7,0
+	2.4270509831248424,1.7633557568774194
+	2.163118960624632,6.657395614066075
+	-0.927050983124842,2.853169548885461
+	-5.663118960624632,4.114496766047313
+	-3,3.6739403974420594e-16
+	-5.663118960624632,-4.114496766047311
+	-0.9270509831248427,-2.8531695488854605
+	2.1631189606246304,-6.6573956140660755
+	2.4270509831248415,-1.76335575687742" />
     </g>
     <!-- Star shape group for the right eye -->
     <g transform="translate(57, 35) scale(1.2)">
       <polygon fill="#fff" stroke-width="2"
-        points="7,0
-        2.4270509831248424,1.7633557568774194
-        2.163118960624632,6.657395614066075
-        -0.927050983124842,2.853169548885461
-        -5.663118960624632,4.114496766047313
-        -3,3.6739403974420594e-16
-        -5.663118960624632,-4.114496766047311
-        -0.9270509831248427,-2.8531695488854605
-        2.1631189606246304,-6.6573956140660755
-        2.4270509831248415,-1.76335575687742" />
+	points="7,0
+	2.4270509831248424,1.7633557568774194
+	2.163118960624632,6.657395614066075
+	-0.927050983124842,2.853169548885461
+	-5.663118960624632,4.114496766047313
+	-3,3.6739403974420594e-16
+	-5.663118960624632,-4.114496766047311
+	-0.9270509831248427,-2.8531695488854605
+	2.1631189606246304,-6.6573956140660755
+	2.4270509831248415,-1.76335575687742" />
     </g>
     <!-- Path to draw the smile -->
     <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
       stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
 
-  <symbol id="smiley-heart" viewBox="0 0 400 400">
+  <symbol id="smiley-heart" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -151,25 +151,25 @@
     <!-- Heart shape group for the left eye -->
     <g transform="translate(28,39) scale(0.5)">
       <path d="M0,0
-        c0,0-14-7.926-14-17.046
-        c0-9.356,13.159-10.399,14-0.454
-        c1.011-9.938,14-8.903,14,0.454
-        C14,-7.926,0,0,0,0" fill="#fff"/>
+	c0,0-14-7.926-14-17.046
+	c0-9.356,13.159-10.399,14-0.454
+	c1.011-9.938,14-8.903,14,0.454
+	C14,-7.926,0,0,0,0" fill="#fff"/>
     </g>
     <!-- Heart shape group for the right eye -->
     <g transform="translate(58,39) scale(0.5)">
       <path d="M0,0
-        c0,0-14-7.926-14-17.046
-        c0-9.356,13.159-10.399,14-0.454
-        c1.011-9.938,14-8.903,14,0.454
-        C14,-7.926,0,0,0,0" fill="#fff"/>
+	c0,0-14-7.926-14-17.046
+	c0-9.356,13.159-10.399,14-0.454
+	c1.011-9.938,14-8.903,14,0.454
+	C14,-7.926,0,0,0,0" fill="#fff"/>
     </g>
     <!-- Path to draw the smile -->
     <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
       stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
 
-  <symbol id="smiley-cool" viewBox="0 0 400 400">
+  <symbol id="smiley-cool" viewBox="0 0 500 500">
     <!-- Foundation group forming a drop shape -->
     <g transform="rotate(45 42 42)">
       <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
@@ -180,23 +180,23 @@
     <g transform="translate(27,35) scale(.9)">
       <!-- Path to draw the spectacles on the left -->
       <path d="
-        M10,0
-        q3,-9 2,-9
-        a9,2 0 0 0 -20,0
-        Q-14,7  -11,7
-        Q14,7 12,-9
-        Z"
+	M10,0
+	q3,-9 2,-9
+	a9,2 0 0 0 -20,0
+	Q-14,7	-11,7
+	Q14,7 12,-9
+	Z"
       stroke="#fff" stroke-width="1" stroke-linejoin="round" fill="#fff"/>
       <!-- Path to draw the spectacles on the right using 'scale(-1,1)' as a
-        mirror function to mirror the shape of the left spectacles. -->
+	mirror function to mirror the shape of the left spectacles. -->
       <path d="
-        M10,0
-        q3,-9 2,-9
-        a9,2 0 0 0 -20,0
-        Q-14,7  -11,7
-        Q14,7 12,-9
-        Z"
-        transform="translate(35, 0) scale(-1, 1) "
+	M10,0
+	q3,-9 2,-9
+	a9,2 0 0 0 -20,0
+	Q-14,7	-11,7
+	Q14,7 12,-9
+	Z"
+	transform="translate(35, 0) scale(-1, 1) "
       stroke="#fff" stroke-width="1" stroke-linejoin="round" fill="#fff"/>
       <!-- Two lines to draw the temple stem -->
       <line x1="12" y1="-8" x2="23" y2="-8" stroke="#fff" stroke-width="1" fill="none"/>
