@@ -121,6 +121,16 @@ body {
   clear: both; margin-bottom: 5px; pointer-events: auto;
 }
 
-.vis-container > h5 {
-  padding: 0 0 10px 25px;
+.avatar-container {
+  margin: 20% auto 0 auto;
+  width: 75%;
+}
+
+.avatar-container > h4 {
+  padding: 0 0 15px 30px;
+}
+
+a.avatar {
+  cursor: pointer; /* Needs to explicitly set for SVG <a> elements */
+  outline: none;
 }
