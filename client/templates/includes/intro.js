@@ -11,14 +11,23 @@ Template.intro.events({
 
 function scaleElement(target, factor){
   var avatar,
+    dimensions,
     x,
-    y;
+    y,
+    transformOriginX,
+    transformOriginY;
 
   avatar = d3.select(target).select("use");
-  x = avatar.attr("x");
-  y = avatar.attr("y");
+  dimensions = avatar.node().getBoundingClientRect();
+  // Here D3's 'attr()' function returns the value of as 'string'
+  // so we need to type-convert string to number using the '+' operator.
+  x = +avatar.attr("x");
+  y = +avatar.attr("y");
+  transformOriginX = x + dimensions.width / 2;
+  transformOriginY = y + dimensions.height / 2;
   avatar.transition()
     .attr("transform",
-    "matrix(" + factor + ", 0, 0, " + factor + ", " +
-      (x - factor * x) + ", " + (y - factor * y) +")");
+    "translate(" + (transformOriginX) + "," + (transformOriginY) +
+    ") scale(" + factor +
+    ") translate(" + (-transformOriginX) + "," + (-transformOriginY) + ")" );
 }
