@@ -1,15 +1,42 @@
 Template.intro.events({
   "mouseenter .avatar": function(event) {
-    // var avatar = d3.select(event.target).select("use");
     scaleElement(event.target, 1.3);
   },
   "mouseleave .avatar": function(event) {
-    // var avatar = d3.select(event.target).select("use");
     scaleElement(event.target, 1);
+  },
+  "click .avatar": function(event) {
+    var userId,
+      avatar;
+
+    event.preventDefault();
+
+    userId = Meteor.userId();
+    avatar = selectAvatar(event.target);
+    if (avatar) {
+      Meteor.users.update({_id:userId},
+        {$set:{"profile.avatar": avatar}},
+        function(error, i) {
+          if (error) {
+            return throwError("Error: " + error.reason);
+          }
+          // TODO: go to myIDs page and show the selected avatar
+        });
+    }
+    return false;
   }
 });
 
-function scaleElement(target, factor){
+function selectAvatar(target) {
+  var pattern;
+
+  // RegExp to match text against a pattern starting with '#' character
+  // in order to extract the 'id' of the SVG symbol.
+  pattern = /#[a-z\d][\w-]*/ig;
+  return d3.select(target).attr("href").match(pattern)[0];
+}
+
+function scaleElement(target, factor) {
   var avatar,
     dimensions,
     x,
