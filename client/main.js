@@ -1,1 +1,2 @@
-Meteor.subscribe(["avatars", "trainings"]);
+Meteor.subscribe("avatars");
+Meteor.subscribe("trainings");
