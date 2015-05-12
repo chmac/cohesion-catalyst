@@ -1,39 +1,59 @@
+Template.intro.helpers({
+  avatars: function() {
+    return Avatars.find();
+  },
+  selectedAvatarClass: function() {
+    var avatarId = matchText(this.url);
+    return Meteor.user().profile.avatar === avatarId ? "selectedAvatar" : "";
+  }
+});
+
 Template.intro.events({
   "mouseenter .avatar": function(event) {
-    scaleElement(event.target, 1.3);
+    if (!d3.select(event.currentTarget).classed("selectedAvatar")) {
+      scaleElement(event.target, 1.3);
+    }
   },
   "mouseleave .avatar": function(event) {
-    scaleElement(event.target, 1);
+    if (!d3.select(event.currentTarget).classed("selectedAvatar")) {
+      scaleElement(event.target, 1);
+    }
   },
   "click .avatar": function(event) {
     var userId,
-      avatar;
+      avatarId;
 
     event.preventDefault();
 
     userId = Meteor.userId();
-    avatar = selectAvatar(event.target);
-    if (avatar) {
+    avatarId = selectAvatar(event.target);
+    if (avatarId) {
       Meteor.users.update({_id:userId},
-        {$set:{"profile.avatar": avatar}},
+        {$set:{"profile.avatar": avatarId}},
         function(error, i) {
           if (error) {
             return throwError("Error: " + error.reason);
           }
-          // TODO: go to myIDs page and show the selected avatar
+          // d3.select(event.currentTarget).classed("selectedAvatar", true);
+          scaleElement(event.currentTarget, 1.3);
+          // Router.go("myIds");
         });
     }
     return false;
   }
 });
 
-function selectAvatar(target) {
+function matchText(text) {
   var pattern;
 
   // RegExp to match text against a pattern starting with '#' character
   // in order to extract the 'id' of the SVG symbol.
   pattern = /#[a-z\d][\w-]*/ig;
-  return d3.select(target).attr("href").match(pattern)[0];
+  return text.match(pattern)[0];
+}
+
+function selectAvatar(target) {
+  return matchText( d3.select(target).attr("href"));
 }
 
 function scaleElement(target, factor) {
