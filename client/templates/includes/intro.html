@@ -5,8 +5,8 @@
       <!-- Within the <use> element reference the file 'avatars.svg' and draw the
         symbols using each of which id '#...'. -->
       {{#each avatars}}
-        <a class="avatar {{selectedAvatarClass}}" role="button" tabindex="0" xlink:href="#">
-          <use xlink:href="{{url}}" x={{xPos}} y={{yPos}} />
+        <a xlink:href="#" class="avatar {{selectedAvatarClass}}" role="button" tabindex="0">
+          <use xlink:href="{{url}}" x="{{xPos}}" y="{{yPos}}"/>
         </a>
       {{/each}}
     </svg>
