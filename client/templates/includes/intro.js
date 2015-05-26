@@ -1,5 +1,12 @@
 Template.intro.onRendered(function() {
   console.log("Template rendered");
+
+  if (!d3.select(".selected-avatar").empty()) {
+    Meteor.defer(function () {
+      scaleElement(d3.select(".selected-avatar").node(), 1.5);
+    });
+  }
+
   d3.selectAll(".avatar")
     .on("mouseover", function() {
       d3.event.stopPropagation();
