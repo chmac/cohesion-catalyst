@@ -3,7 +3,7 @@ Template.intro.onRendered(function() {
 
   if (!d3.select(".selected-avatar").empty()) {
     Meteor.defer(function () {
-      scaleElement(d3.select(".selected-avatar").node(), 1.5);
+      scaleElement(d3.select(".selected-avatar").node(), 1.5, 0);
     });
   }
 
@@ -11,12 +11,12 @@ Template.intro.onRendered(function() {
     .on("mouseover", function() {
       d3.event.stopPropagation();
       if (!d3.select(this).classed("selected-avatar")) {
-        scaleElement(d3.select(this).node(), 1.5);
+        scaleElement(d3.select(this).node(), 1.5, 250);
       }
     })
     .on("mouseout", function() {
       if (!d3.select(this).classed("selected-avatar")) {
-        scaleElement(d3.select(this).node(), 1);
+        scaleElement(d3.select(this).node(), 1, 250);
       }
     })
     .on("click", function() {
@@ -41,7 +41,7 @@ Template.intro.onRendered(function() {
               return throwError("Error: " + error.reason);
             }
             // On success: scale the element
-            scaleElement(d3.select(self).node(), 1.5);
+            scaleElement(d3.select(self).node(), 1.5, 250);
             // Router.go("myIds");
         });
       }
@@ -65,8 +65,9 @@ Template.intro.onRendered(function() {
      * The scaling is initiated from user interaction.
      * @param {object} target The target DOM node of the user interaction.
      * @param {number} factor The specified factor to scale the SVG element.
+     * @param {number} time The duration of the scaling transition.
      */
-    function scaleElement(target, factor) {
+    function scaleElement(target, factor, time) {
       var avatar,
         boundingBox,
         x,
@@ -92,6 +93,7 @@ Template.intro.onRendered(function() {
       // console.log("boundingBox: ", boundingBox);
       // console.log("transXx " + transformOriginX + ", transYy: "  + transformOriginY );
       avatar.transition()
+        .duration(time)
         .attr("transform",
         "translate(" + (transformOriginX) + "," + (transformOriginY) +
         ") scale(" + factor +
