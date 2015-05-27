@@ -40,7 +40,12 @@ Template.intro.onRendered(function() {
             if (error) {
               return throwError("Error: " + error.reason);
             }
-            // On success: scale the element
+            // On success:
+            // Scale-up the selected smiley while re-scaling the deselected one.
+            d3.select(self).classed("selectable", false);
+            d3.selectAll(".selectable").each(function() {
+              scaleElement(d3.select(this).node(), 1, 250);
+            });
             scaleElement(d3.select(self).node(), 1.5, 250);
             // Router.go("myIds");
         });
@@ -115,7 +120,7 @@ Template.intro.helpers({
     if (avatarSelected) {
       return "selected-avatar";
     } else {
-     return "";
+     return "selectable";
    }
   }
 });
