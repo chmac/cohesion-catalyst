@@ -25,6 +25,19 @@ Template.loginForm.helpers({
   },
   errorClass: function(field) {
     return !!Session.get("displayErrorMessage")[field] ? "has-error" : "";
+  },
+  trainings: function() {
+    var today;
+    today = new Date();
+    return Trainings.find({
+      endDate:{
+        $gt: today
+      }
+    });
+  },
+  trainingDate: function() {
+    return this.startDate.toDateString();
+
   }
 });
 
@@ -72,6 +85,19 @@ Template.createAccountForm.helpers({
   },
   errorClass: function(field) {
     return !!Session.get("displayErrorMessage")[field] ? "has-error" : "";
+  },
+  trainings: function() {
+    var today;
+    today = new Date();
+    return Trainings.find({
+      endDate:{
+        $gt: today
+      }
+    });
+  },
+  trainingDate: function() {
+    return this.startDate.toDateString();
+
   }
 });
 
