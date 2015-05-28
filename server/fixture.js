@@ -1,8 +1,21 @@
 // Fixture data
 if (Trainings.find().count() === 0) {
+  var today, tomorrow;
+  today = new Date();
+  tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
   Trainings.insert({
-    title: "Training Session X",
-    description: "Team building master class."
+    title: "Training Daimler",
+    description: "Team building master class.",
+    startDate: today,
+    endDate: tomorrow
+  });
+
+  Trainings.insert({
+    title: "Training ESMT",
+    description: "Team building master class.",
+    startDate: new Date(today.getTime() + 2 * 24 * 3600 * 1000),
+    endDate: new Date(tomorrow.getTime() + 2 * 24 * 3600 * 1000)
   });
 }
 
