@@ -121,7 +121,10 @@ Template.createAccountForm.events({
         // The Accounts.createUser() function is provided by the 'accounts-password' package.
         Accounts.createUser({
           username: username,
-          password: password
+          password: password,
+          profile: {
+            avatar: null
+          }
         }, function(error) {
           if (error) {
             // Let the user know that the creation of an account failed.
