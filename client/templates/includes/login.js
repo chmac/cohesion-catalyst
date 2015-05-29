@@ -96,6 +96,8 @@ Template.createAccountForm.helpers({
     });
   },
   trainingDate: function() {
+    // 'trainingDate' is used within the {{#each traingings}} block
+    // so 'this' is the currently evaluated training.
     return this.startDate.toDateString();
 
   }
