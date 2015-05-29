@@ -48,6 +48,21 @@ body {
   margin: auto;
 }
 
+.not-found {
+  text-align: center;
+  padding-top: 30px;
+}
+
+.not-found h2 {
+  font-size: 60px;
+  font-weight: 100;
+}
+
+.not-found p {
+  font-size: 21px;
+  font-weight: 200;
+}
+
 .vis-container {
   margin: 20% 25% 0 25%;
   width: 50%;

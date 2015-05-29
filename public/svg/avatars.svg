@@ -196,7 +196,7 @@
 	Q-14,7	-11,7
 	Q14,7 12,-9
 	Z"
-	transform="translate(35, 0) scale(-1, 1) "
+	transform="translate(35, 0) scale(-1, 1)"
       stroke="#fff" stroke-width="1" stroke-linejoin="round" fill="#fff"/>
       <!-- Two lines to draw the temple stem -->
       <line x1="12" y1="-8" x2="23" y2="-8" stroke="#fff" stroke-width="1" fill="none"/>
@@ -206,5 +206,24 @@
     <path d="M22 52 A 26 30, 0, 0, 0, 62 52"
       stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
+
+  <!-- =========================================== -->
+  <!-- Sad smiley for '404 Page not found' message -->
+  <symbol id="smiley-sad" viewBox="0 0 150 150">
+    <!-- Foundation group forming a drop shape -->
+    <g transform="rotate(45 42 42)">
+      <rect x="42" y="42" width="42" height="42"  fill="#fff"/>
+      <circle cx="42" cy="42" r="42" fill="#fff" />
+      <circle cx="42" cy="42" r="36" fill="#000" />
+    </g>
+    <!-- Two circles to draw the eyes -->
+    <circle cx="27" cy="35" r="4" fill="#fff"/>
+    <circle cx="57" cy="35" r="4" fill="#fff"/>
+    <!-- Path to draw the sad smile using 'scale()' for mirroring -->
+    <path d="M24 46 A 26 26, 0, 0, 0, 60 46"
+      transform="translate(0, 108) scale(1, -1)"
+      stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </symbol>
+
 
 </svg>
