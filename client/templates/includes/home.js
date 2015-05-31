@@ -1,4 +1,4 @@
-Template.home.onRendered(function () {
+Template.home.onRendered(function() {
   var svg,
     circleAndTextGroup,
     radius,
