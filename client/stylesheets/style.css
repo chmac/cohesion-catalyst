@@ -149,3 +149,12 @@ a.avatar {
   cursor: pointer; /* Needs to explicitly set for SVG <a> elements */
   outline: none;
 }
+
+.ids-container {
+  position: relative;
+}
+
+#ids-vis {
+  display: block;
+  width: 100%;
+}
