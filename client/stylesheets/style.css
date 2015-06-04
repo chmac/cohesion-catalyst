@@ -39,6 +39,10 @@ body {
   background-color: #000;
 }
 
+.navbar-dark .navbar-toggle .icon-bar {
+  background-color: #fff;
+}
+
 .logged-out {
   visibility: hidden;
 }
@@ -69,7 +73,8 @@ body {
 }
 
 #welcome-vis,
-#smiley-selection {
+#smiley-selection,
+#ids-vis {
   display: block;
 }
 
@@ -154,7 +159,178 @@ a.avatar {
   position: relative;
 }
 
+/*@media screen and (min-width: 768px) and (max-height: 800px) {
+  .ids-container {
+      height: 700px;
+    }
+}*/
+
 #ids-vis {
+  margin: auto;
+}
+
+.sticky-checkbox {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.sticky-checkbox text {
+  fill: #747272;
+  font-style: italic;
+}
+
+.sticky-checkbox circle {
+  fill: #747272;
+}
+
+.sticky-checkbox path {
+  fill:none;
+}
+
+.sticky-checkbox.checked text{
+  fill: #fff;
+  font-style:normal;
+}
+
+.sticky-checkbox.checked circle {
+  fill: #fff;
+}
+
+.sticky-checkbox.checked path {
+  stroke: #000;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.drawing-surface {
+  fill: #000;
+  stroke: rgba(157, 157, 157, 0.35);
+  pointer-events: all;
+}
+
+.node {
+  cursor: crosshair;
+  fill: #fff;
+}
+
+.root {
+  outline: none;
+}
+
+.root > circle.filled {
+  /*fill: #000;
+  stroke: #fff;
+  stroke-width: 4;*/
+  display:none;
+}
+
+.root > circle.dashed,
+.root > g.selected-controls {
+  display: none;
+}
+
+.root > text {
+  fill: #fff;
+  font-size: 18px;
+}
+
+.child {
+  outline: none;
+  display: table; /* This is needed for vertical positioning of the text within <p> */
+}
+
+.child > circle.filled {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2;
+}
+
+.child > circle.dashed,
+.child > g.selected-controls {
+  display: none;
+}
+
+.child.node-selected > circle.dashed,
+.child.node-selected > g.selected-controls {
   display: block;
-  width: 100%;
+}
+
+circle.dashed {
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  fill: #000;
+}
+
+.foreign-object {
+  display: table-row; /* This is needed for vertical positioning of the text within <p> */
+}
+
+p.txt-input {
+  color: #000;
+  display: table-cell; /* This is needed for vertical positioning */
+  vertical-align: middle;
+  width: inherit;
+  height: inherit;
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 1.2em;
+  text-align: center;
+  outline: none;
+  -webkit-border-radius: 32px;
+  -moz-border-radius: 32px;
+  border-radius: 32px;
+}
+
+p.txt-input:focus {
+  color: #a7aaae;
+}
+
+/* http://css-tricks.com/overriding-the-default-text-selection-color-with-css/ */
+p.txt-input::selection {
+  background: transparent;
+}
+
+p.txt-input::-moz-selection {
+  background: #fff;
+}
+
+.drag-line {
+  stroke: #fff;
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.drag-line-hidden {
+  stroke-width: 0;
+  pointer-events: none;
+}
+
+.link {
+  stroke: #fff;
+  stroke-width: 3;
+  cursor: crosshair;
+}
+
+.drag-icon {
+  cursor: pointer;
+}
+
+.delete-icon {
+  cursor: default;
+}
+
+.drag-icon > circle,
+.delete-icon > circle {
+  fill: #000;
+  stroke: #fff;
+  stroke-width: 1;
+}
+
+.drag-icon > path,
+.delete-icon > line {
+  fill: #fff;
+  stroke: #fff;
+  stroke-width: 1;
 }
