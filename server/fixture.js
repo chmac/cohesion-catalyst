@@ -21,63 +21,63 @@ if (Trainings.find().count() === 0) {
 
 if (Avatars.find().count() === 0) {
   Avatars.insert({
-    type: "Winking",
+    type: "#smiley-wink",
     url: "/svg/avatars.svg#smiley-wink",
     xPos: 0,
     yPos: 0
   });
 
   Avatars.insert({
-    type: "Chuckling",
+    type: "#smiley-chuckle",
     url: "/svg/avatars.svg#smiley-chuckle",
     xPos: 200,
     yPos: 0
   });
 
   Avatars.insert({
-    type: "Smirking",
+    type: "#smiley-smirk",
     url: "/svg/avatars.svg#smiley-smirk",
     xPos: 400,
     yPos: 0
   });
 
   Avatars.insert({
-    type: "LOL",
+    type: "#smiley-lol",
     url: "/svg/avatars.svg#smiley-lol",
     xPos: 0,
     yPos: 200
   });
 
   Avatars.insert({
-    type: "Smiling",
+    type: "#smiley-smile",
     url: "/svg/avatars.svg#smiley-smile",
     xPos: 200,
     yPos: 200
   });
 
   Avatars.insert({
-    type: "Nerd",
+    type: "#smiley-nerd",
     url: "/svg/avatars.svg#smiley-nerd",
     xPos: 400,
     yPos: 200
   });
 
   Avatars.insert({
-    type: "Star",
+    type: "#smiley-star",
     url: "/svg/avatars.svg#smiley-star",
     xPos: 0,
     yPos: 400
   });
 
   Avatars.insert({
-    type: "Heart",
+    type: "#smiley-heart",
     url: "/svg/avatars.svg#smiley-heart",
     xPos: 200,
     yPos: 400
   });
 
   Avatars.insert({
-    type: "Cool",
+    type: "#smiley-cool",
     url: "/svg/avatars.svg#smiley-cool",
     xPos: 400,
     yPos: 400
