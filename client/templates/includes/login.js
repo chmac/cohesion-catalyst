@@ -75,9 +75,9 @@ Template.loginForm.events({
 });
 
 
-Template.createAccountForm.created = function() {
+Template.createAccountForm.onCreated(function() {
   Session.set("displayErrorMessage", {});
-};
+});
 
 Template.createAccountForm.helpers({
   errorMessage: function(field) {
