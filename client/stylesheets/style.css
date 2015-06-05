@@ -1,7 +1,9 @@
 body {
+  font-size: 1.6em;
   background-color: #000;
   color: #fff;
 }
+
 
 /* Override the alignment rules in order to center the nav components */
 @media (min-width: 768px) {
@@ -58,12 +60,12 @@ body {
 }
 
 .not-found h2 {
-  font-size: 60px;
+  font-size: 3.75em;
   font-weight: 100;
 }
 
 .not-found p {
-  font-size: 21px;
+  font-size: 1.3125em;
   font-weight: 200;
 }
 
@@ -91,8 +93,8 @@ body {
   position: relative;
   min-height: 1px;
   padding-right: 15px;
-  padding-left: 15px;
-  font-size: 0.9em;
+  /*padding-left: 15px;*/
+  font-size: 0.7875em;
   color: #fff;
 }
 
@@ -232,7 +234,7 @@ a.avatar {
 
 .root > text {
   fill: #fff;
-  font-size: 18px;
+  font-size: 1.125em;
 }
 
 .child {
@@ -274,7 +276,7 @@ p.txt-input {
   width: inherit;
   height: inherit;
   font-family: sans-serif;
-  font-size: 12px;
+  font-size: 0.75em;
   line-height: 1.2em;
   text-align: center;
   outline: none;
