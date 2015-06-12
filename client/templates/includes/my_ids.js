@@ -53,16 +53,25 @@ Template.myIds.onRendered(function() {
   currentUser = Meteor.user();
   currentAvatar = Avatars.findOne({type: currentUser.profile.avatar});
 
-  rootNode = {
-    name: currentUser.username,
-    id: currentUser._id,
-    avatarUrl: currentAvatar.url,
-    identifications: [],
-    level: 0,
-    fixed: true,
-    x: width / 2,
-    y: height / 3 * 1.5
-  };
+  if (Identifications.find().count() === 0) {
+    var root;
+
+    root = {
+      level: 0,
+      fixed: true,
+      x: width / 2,
+      y: height / 3 * 1.5,
+      children: [],
+      createdBy: currentUser._id
+    };
+
+    // Meteor.call("insertIdentification", root, function(error, result) {
+    //   if (error) {
+    //     return throwError("Error: " + error.reason);
+    //   }
+    // });
+    Identifications.insert(root);
+  }
 
   dragstart = function(d) {
     console.log("dragstart event ", d3.event);
@@ -144,7 +153,7 @@ Template.myIds.onRendered(function() {
     var newNodePos,
       node,
       newNodeId,
-      newLink,
+      link,
       newEditableElem
       ;
 
@@ -155,65 +164,81 @@ Template.myIds.onRendered(function() {
       console.log("up == down");
       selectedNode = null;
       resetMouseVars();
-      updateLayout();
+      //updateLayout();
       return;
     }
 
     // Adds a new node object with the current mouse position coordinates.
     newNodePos = d3.mouse(this);
-    newNodeId = uniqueNodeId;
-    uniqueNodeId++;
+    //newNodeId = uniqueNodeId;
+    //uniqueNodeId++;
     node = {
+      level: mousedownNode.level + 1,
+      fixed: isFixed,
       x: newNodePos[0],
       y: newNodePos[1],
+      parentId: mousedownNode._id,
+      children: [],
       name: placeHolderTxt,
-      id: newNodeId,
-      fixed: isFixed,
-      level: mousedownNode.level + 1
+      createdBy: currentUser._id
+      //id: newNodeId,
     };
 
-    if (mousedownNode.identifications) {
-      mousedownNode.identifications.push(node);
-    } else {
-      mousedownNode.identifications = [node];
-    }
+    var nodeId = Identifications.insert(node);
+    Links.insert({
+      source: mousedownNode,
+      target: Identifications.findOne({"_id": nodeId})
+    });
+    // Meteor.call("insertIdentification", node, function(error, result) {
+    //   if (error) {
+    //     return throwError("Error: " + error.reason);
+    //   }
+    //   Session.set("selectedNodeId", result);
+    // });
+
+    // if (mousedownNode.children) {
+    //   mousedownNode.children.push(node);
+    // } else {
+    //   mousedownNode.children = [node];
+    // }
     console.log("mousedownNode, ", mousedownNode);
 
     // Adds a link object for the edge between mousedownNode and the newly created node.
-    links.push({
-      source: mousedownNode,
-      target: node
-    });
+    // links.push({
+    //   source: mousedownNode,
+    //   target: node
+    // });
 
-    nodes.push(node);
+    // nodes.push(node);
 
     // Sets the new node as selectedNode.
-    selectedNode = node;
+    //selectedNode = node;
+    selectedNode = Identifications.findOne({"_id": nodeId});
     console.log("selectedNode, ", selectedNode);
 
     resetMouseVars();
 
-    updateLayout();
+    // updateLayout();
 
-    // Selects the editable <p> element.
-    newEditableElem = d3.selectAll(".node.child").filter(function(d) {
-      return d && d.id === newNodeId;
-    }).selectAll("p.txt-input").node();
-
-    // Gives the <p> element instant focus.
-    newEditableElem.focus();
-
-    /**
-     * Selects all of the text content within the currently active editable element
-     * to allow for instant text entering. The default text selection color is customized
-     * via CSS pseudo-element ::selection (@see CSS file)
-     * cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
-     */
-    document.execCommand("selectAll", false, null);
+    // // Selects the editable <p> element.
+    // newEditableElem = d3.selectAll(".node.child").filter(function(d) {
+    //   return d && d._id === node._id;
+    // }).selectAll("p.txt-input").node();
+    //
+    // // Gives the <p> element instant focus.
+    // newEditableElem.focus();
+    //
+    // /**
+    //  * Selects all of the text content within the currently active editable element
+    //  * to allow for instant text entering. The default text selection color is customized
+    //  * via CSS pseudo-element ::selection (@see CSS file)
+    //  * cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
+    //  */
+    // document.execCommand("selectAll", false, null);
   }; // end mouseup()
 
 
-  updateLayout = function() {
+  updateLayout = function(myIds, myLinks) {
     console.log("updateLayout");
     var nodeEnterGroup,
         nodeControls,
@@ -225,13 +250,18 @@ Template.myIds.onRendered(function() {
     iconRadius = 15;
     dashedRadius = 40;
 
-    nodes = force.nodes();
-    links = force.links();
+    //nodes = force.nodes();
+    //links = force.links();
+    nodes = myIds;
+    links = myLinks;
+    console.log("nodes ", nodes);
+    console.log("links ", links);
 
-
+    console.log("BEFORE-linkElements", linkElements);
     linkElements = linkElements.data(links, function(d) {
-      return d.source.id + "-" + d.target.id;
+      return d.source._id + "-" + d.target._id;
     });
+    console.log("AFTER-linkElements", linkElements);
 
     linkElements.exit().remove();
 
@@ -252,7 +282,7 @@ Template.myIds.onRendered(function() {
 
     // Binds the data to the nodeElements selection and also returns the update selection.
     nodeElements = nodeElements.data(nodes, function(d, i) {
-      return d.id;
+      return d._id;
     });
 
     nodeElements.classed("node-selected", function(d) {
@@ -284,24 +314,30 @@ Template.myIds.onRendered(function() {
     //   .attr("r", 10)
     //   .style("fill", "green");
 
-    if (!nodeEnterGroup.empty() && nodeEnterGroup.classed("root")) {
+    // if (!nodeEnterGroup.empty() && nodeEnterGroup.classed("root")) {
       var avatarIcon,
         iconBBox;
 
-      avatarIcon = nodeEnterGroup.append("use");
+      // avatarIcon = nodeEnterGroup.append("use");
+      avatarIcon = d3.select("g.root").append("use");
       avatarIcon.attr({
-        "xlink:href": function(d) {
-          return d.avatarUrl;
-        }
-      });
-      Meteor.defer(function() {
-        iconBBox = avatarIcon.node().getBBox();
-        avatarIcon.attr({
-          x: -iconBBox.x - iconBBox.width/2,
-          y: -iconBBox.y - iconBBox.height/2
-        });
-      });
-    }
+        "xlink:href": currentAvatar.url
+      })
+      .attr({
+        width: "150",
+        height: "150",
+        transform: "translate(-75, -75)"
+      })
+      ;
+      // Meteor.defer(function() {
+      //   iconBBox = avatarIcon.node().getBBox();
+      //   avatarIcon.attr({
+      //     x: -iconBBox.x - iconBBox.width/2,
+      //     y: -iconBBox.y - iconBBox.height/2
+      //   });
+      // });
+
+    // }
 
     nodeEnterGroup.append("circle")
       .attr("r", radius)
@@ -314,50 +350,45 @@ Template.myIds.onRendered(function() {
 
 
 
-    nodeEnterGroup.append(function(d) {
-      var svgText,
-        svgForeignObject,
-        htmlParagraph
-        ;
-
-      if (d.level === 0) {
-        svgText = document.createElementNS(d3.ns.prefix.svg, "text");
-        svgText.setAttribute("text-anchor", "middle");
-        svgText.textContent = d.name;
-        Meteor.defer(function() {
-        svgText.setAttribute("transform", "translate(0, " + (d3.select("use").node().getBBox().height/2 + 22.5) + ")");
-      });
-        return svgText;
-      }
-      /**
-       * HEADS UP: Chrome will ignore the camelCase naming of SVG <foreignObject> elements
-       * and instead renders an lower case tagname <foreignobject>.
-       * So we apply a class "foreign-object" to be used as selector if needed.
-       * cf. http://bl.ocks.org/jebeck/10699411 [as of 2015-02-23]
-       */
-      svgForeignObject = document.createElementNS(d3.ns.prefix.svg, "foreignObject");
-      svgForeignObject.setAttribute("class", "foreign-object");
-      svgForeignObject.setAttribute("width", radius * 2);
-      svgForeignObject.setAttribute("height", radius * 2);
-      svgForeignObject.setAttribute("transform", "translate(" + (-radius) + ", " + (-radius) + ")");
-      htmlParagraph = document.createElementNS(d3.ns.prefix.xhtml, "p");
-      htmlParagraph.setAttribute("class", "txt-input");
-      htmlParagraph.setAttribute("contentEditable", true);
-      htmlParagraph.textContent = d.name;
-      svgForeignObject.appendChild(htmlParagraph);
-
-      return svgForeignObject;
-    });
+    // nodeEnterGroup.append(function(d) {
+    //   var svgText,
+    //     svgForeignObject,
+    //     htmlParagraph
+    //     ;
+    //
+    //   if (d.level === 0) {
+    //     svgText = document.createElementNS(d3.ns.prefix.svg, "text");
+    //     svgText.setAttribute("text-anchor", "middle");
+    //     svgText.textContent = currentUser.username;
+    //     Meteor.defer(function() {
+    //       svgText.setAttribute("transform", "translate(0, " + (d3.select("use").node().getBBox().height/2 + 22.5) + ")");
+    //     });
+    //     return svgText;
+    //   }
+    //   /**
+    //    * HEADS UP: Chrome will ignore the camelCase naming of SVG <foreignObject> elements
+    //    * and instead renders an lower case tagname <foreignobject>.
+    //    * So we apply a class "foreign-object" to be used as selector if needed.
+    //    * cf. http://bl.ocks.org/jebeck/10699411 [as of 2015-02-23]
+    //    */
+    //   svgForeignObject = document.createElementNS(d3.ns.prefix.svg, "foreignObject");
+    //   svgForeignObject.setAttribute("class", "foreign-object");
+    //   svgForeignObject.setAttribute("width", radius * 2);
+    //   svgForeignObject.setAttribute("height", radius * 2);
+    //   svgForeignObject.setAttribute("transform", "translate(" + (-radius) + ", " + (-radius) + ")");
+    //   htmlParagraph = document.createElementNS(d3.ns.prefix.xhtml, "p");
+    //   htmlParagraph.setAttribute("class", "txt-input");
+    //   htmlParagraph.setAttribute("contentEditable", true);
+    //   htmlParagraph.textContent = d.name;
+    //   svgForeignObject.appendChild(htmlParagraph);
+    //
+    //   return svgForeignObject;
+    // });
 
     nodeEnterGroup
       .on("mousedown", function(d) {
-        // if (d3.event.defaultPrevented) {
-        //   return;
-        // }
-        // console.log("g mousedown mit d: ", d);
         d3.event.stopPropagation();
         mousedownNode = d;
-        // console.log(mousedownNode.id + ", " + mousedownNode.name);
         if (mousedownNode === selectedNode) {
           console.log("mousedownNode === selectedNode");
           selectedNode = null;
@@ -371,7 +402,7 @@ Template.myIds.onRendered(function() {
           .attr("x2", mousedownNode.x)
           .attr("y2", mousedownNode.y);
 
-        updateLayout();
+        //updateLayout();
       })
       .on("mouseup", function(d) {
         // if (d3.event.defaultPrevented) {
@@ -384,7 +415,7 @@ Template.myIds.onRendered(function() {
           return;
         }
 
-        updateLayout();
+        //updateLayout();
       })
       .on("keydown", function(d) {
         d3.event.stopPropagation();
@@ -401,7 +432,7 @@ Template.myIds.onRendered(function() {
           if (d === selectedNode) {
             selectedNode = null;
           }
-          updateLayout();
+          //updateLayout();
         }
         return;
       })
@@ -466,6 +497,10 @@ Template.myIds.onRendered(function() {
   }; // end updateLayout() function
 
 
+  rootNode = Identifications.findOne({
+    level: 0,
+    createdBy: currentUser._id
+  });
   /**
    * Creates the force layout object and sets some configuration properties.
    * On initialization the layout's associated nodes will be set to the rood node while
@@ -473,8 +508,8 @@ Template.myIds.onRendered(function() {
    */
   force = d3.layout.force()
     .size([width, height])
-    .nodes([rootNode]) // Initializes the layout's nodes with the root node.
-    .links([]) // Initializes the layout's links with an empty array.
+    .nodes(Identifications.find().fetch()) // Initializes the layout's nodes with the root node.
+    .links(Links.find().fetch()) // Initializes the layout's links with an empty array.
     .linkDistance(function(d) {
       return 250 / (d.source.level + 1) + radius;
     })
@@ -549,8 +584,16 @@ Template.myIds.onRendered(function() {
     .attr("x2", 0)
     .attr("y2", 0);
 
-  nodeElements = svgGroup.selectAll(".node");
-  linkElements = svgGroup.selectAll(".link");
+  // window.setTimeout(function() {
+    nodeElements = svgGroup.selectAll(".node");
+    linkElements = svgGroup.selectAll(".link");
 
-  updateLayout();
+    Tracker.autorun(function() {
+      var ids = Identifications.find().fetch();
+      var links = Links.find().fetch();
+      updateLayout(ids, links);
+    });
+  // }, 500);
+
+
 });
