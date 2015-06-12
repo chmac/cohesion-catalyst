@@ -4,7 +4,6 @@ Template.myIds.onRendered(function() {
     height,
     radius,
     placeHolderTxt,
-    uniqueNodeId,
     selectedNode,
     mousedownNode,
     mouseupNode,
@@ -44,7 +43,6 @@ Template.myIds.onRendered(function() {
   height = 1024 - margin.top - margin.bottom;
   radius = 35;
   placeHolderTxt = "I identify with...";
-  uniqueNodeId=333;
   isFixed = false;
   selectedNode = null;
   mousedownNode = null;
@@ -54,23 +52,21 @@ Template.myIds.onRendered(function() {
   currentAvatar = Avatars.findOne({type: currentUser.profile.avatar});
 
   if (Identifications.find().count() === 0) {
-    var root;
-
-    root = {
+    rootNode = {
       level: 0,
       fixed: true,
       x: width / 2,
       y: height / 3 * 1.5,
       children: [],
-      createdBy: currentUser._id
+      createdBy: currentUser._id,
+      trainingId: Session.get("currentTraining")
     };
 
-    // Meteor.call("insertIdentification", root, function(error, result) {
-    //   if (error) {
-    //     return throwError("Error: " + error.reason);
-    //   }
-    // });
-    Identifications.insert(root);
+    Identifications.insert(rootNode, function(error, result) {
+      if (error) {
+        return throwError("Error: " + error.reason);
+      }
+    });
   }
 
   dragstart = function(d) {
@@ -121,7 +117,7 @@ Template.myIds.onRendered(function() {
     mouseupNode = null;
   };
 
-  // Handles the mousedown event for the outer svgGroup.
+  // Handle the mousedown event for the outer svgGroup.
   mousedown = function() {
     console.log("svg mousedown");
     if (!mousedownNode) {
@@ -130,7 +126,7 @@ Template.myIds.onRendered(function() {
     }
   };
 
-  // Handles the mousemove event for the outer svgGroup.
+  // Handle the mousemove event for the outer svgGroup.
   mousemove = function() {
     // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
     if (!mousedownNode) {
@@ -147,7 +143,7 @@ Template.myIds.onRendered(function() {
       .attr("y2", d3.mouse(this)[1]);
   }; // end mousemove()
 
-  // Handles the mouseup event for the outer svgGroup.
+  // Handle the mouseup event for the outer svgGroup.
   mouseup = function() {
     console.log("svg mouseup");
     var newNodePos,
@@ -157,7 +153,7 @@ Template.myIds.onRendered(function() {
       newEditableElem
       ;
 
-    // Hides the drag line when mousemove has finished.
+    // Hide the drag line when mousemove has finished.
     dragLine.attr("class", "drag-line-hidden");
 
     if (!mousedownNode || mouseupNode === mousedownNode) {
@@ -168,10 +164,8 @@ Template.myIds.onRendered(function() {
       return;
     }
 
-    // Adds a new node object with the current mouse position coordinates.
+    // Create a new node object with the current mouse position coordinates.
     newNodePos = d3.mouse(this);
-    //newNodeId = uniqueNodeId;
-    //uniqueNodeId++;
     node = {
       level: mousedownNode.level + 1,
       fixed: isFixed,
@@ -180,65 +174,67 @@ Template.myIds.onRendered(function() {
       parentId: mousedownNode._id,
       children: [],
       name: placeHolderTxt,
-      createdBy: currentUser._id
-      //id: newNodeId,
+      createdBy: currentUser._id,
+      trainingId: Session.get("currentTraining")
     };
 
-    var nodeId = Identifications.insert(node);
-    Links.insert({
-      source: mousedownNode,
-      target: Identifications.findOne({"_id": nodeId})
+    // Add the new node to our 'Identifications' collection and
+    // push the returned '_id' to its parent 'children' array.
+    newNodeId = Identifications.insert(node, function(error, result) {
+      if (error) {
+        return throwError("Error: " + error.reason);
+      }
     });
-    // Meteor.call("insertIdentification", node, function(error, result) {
-    //   if (error) {
-    //     return throwError("Error: " + error.reason);
-    //   }
-    //   Session.set("selectedNodeId", result);
-    // });
 
-    // if (mousedownNode.children) {
-    //   mousedownNode.children.push(node);
-    // } else {
-    //   mousedownNode.children = [node];
-    // }
+    Identifications.update(node.parentId, {
+      $push: {children: newNodeId}
+    }, function(error, result) {
+      if (error) {
+        return throwError("Error: " + error.reason);
+      }
+    });
+
+    // Create a new link object for the edge between the mousedownNode and
+    // the newly created node and add it to our 'Links' collection.
+    link = {
+      source: mousedownNode,
+      target: Identifications.findOne({"_id": newNodeId})
+    };
+    Links.insert(link, function(error, result) {
+      if (error) {
+        return throwError("Error: " + error.reason);
+      }
+    });
+
+    // Set the new node as selectedNode.
+    selectedNode = Identifications.findOne({"_id": newNodeId});
+
     console.log("mousedownNode, ", mousedownNode);
-
-    // Adds a link object for the edge between mousedownNode and the newly created node.
-    // links.push({
-    //   source: mousedownNode,
-    //   target: node
-    // });
-
-    // nodes.push(node);
-
-    // Sets the new node as selectedNode.
-    //selectedNode = node;
-    selectedNode = Identifications.findOne({"_id": nodeId});
     console.log("selectedNode, ", selectedNode);
 
     resetMouseVars();
 
-    // updateLayout();
+    updateLayout(Identifications.find().fetch(), Links.find().fetch());
 
-    // // Selects the editable <p> element.
-    // newEditableElem = d3.selectAll(".node.child").filter(function(d) {
-    //   return d && d._id === node._id;
-    // }).selectAll("p.txt-input").node();
-    //
-    // // Gives the <p> element instant focus.
-    // newEditableElem.focus();
-    //
-    // /**
-    //  * Selects all of the text content within the currently active editable element
-    //  * to allow for instant text entering. The default text selection color is customized
-    //  * via CSS pseudo-element ::selection (@see CSS file)
-    //  * cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
-    //  */
-    // document.execCommand("selectAll", false, null);
+    // Select the editable <p> element.
+    newEditableElem = d3.selectAll(".node.child").filter(function(d) {
+      return d && d._id === selectedNode._id;
+    }).select("p.txt-input").node();
+
+    // Give the <p> element instant focus.
+    newEditableElem.focus();
+
+    /**
+     * We want to select all of the text content within the currently active editable element
+     * to allow for instant text entering. The default text selection color is customized
+     * via CSS pseudo-element ::selection (@see CSS file)
+     * cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
+     */
+    document.execCommand("selectAll", false, null);
   }; // end mouseup()
 
 
-  updateLayout = function(myIds, myLinks) {
+  updateLayout = function(identifications, linksCollection) {
     console.log("updateLayout");
     var nodeEnterGroup,
         nodeControls,
@@ -250,18 +246,12 @@ Template.myIds.onRendered(function() {
     iconRadius = 15;
     dashedRadius = 40;
 
-    //nodes = force.nodes();
-    //links = force.links();
-    nodes = myIds;
-    links = myLinks;
-    console.log("nodes ", nodes);
-    console.log("links ", links);
+    nodes = identifications;
+    links = linksCollection;
 
-    console.log("BEFORE-linkElements", linkElements);
     linkElements = linkElements.data(links, function(d) {
       return d.source._id + "-" + d.target._id;
     });
-    console.log("AFTER-linkElements", linkElements);
 
     linkElements.exit().remove();
 
@@ -280,7 +270,7 @@ Template.myIds.onRendered(function() {
         return d.target.y;
       });
 
-    // Binds the data to the nodeElements selection and also returns the update selection.
+    // Bind the data to the nodeElements selection and also returns the update selection.
     nodeElements = nodeElements.data(nodes, function(d, i) {
       return d._id;
     });
@@ -289,7 +279,7 @@ Template.myIds.onRendered(function() {
       return d === selectedNode;
     });
 
-    // Removes any deleted elements
+    // Remove any deleted elements
     nodeElements.exit().remove();
 
     nodeEnterGroup = nodeElements.enter().append("g")
@@ -350,40 +340,40 @@ Template.myIds.onRendered(function() {
 
 
 
-    // nodeEnterGroup.append(function(d) {
-    //   var svgText,
-    //     svgForeignObject,
-    //     htmlParagraph
-    //     ;
-    //
-    //   if (d.level === 0) {
-    //     svgText = document.createElementNS(d3.ns.prefix.svg, "text");
-    //     svgText.setAttribute("text-anchor", "middle");
-    //     svgText.textContent = currentUser.username;
-    //     Meteor.defer(function() {
-    //       svgText.setAttribute("transform", "translate(0, " + (d3.select("use").node().getBBox().height/2 + 22.5) + ")");
-    //     });
-    //     return svgText;
-    //   }
-    //   /**
-    //    * HEADS UP: Chrome will ignore the camelCase naming of SVG <foreignObject> elements
-    //    * and instead renders an lower case tagname <foreignobject>.
-    //    * So we apply a class "foreign-object" to be used as selector if needed.
-    //    * cf. http://bl.ocks.org/jebeck/10699411 [as of 2015-02-23]
-    //    */
-    //   svgForeignObject = document.createElementNS(d3.ns.prefix.svg, "foreignObject");
-    //   svgForeignObject.setAttribute("class", "foreign-object");
-    //   svgForeignObject.setAttribute("width", radius * 2);
-    //   svgForeignObject.setAttribute("height", radius * 2);
-    //   svgForeignObject.setAttribute("transform", "translate(" + (-radius) + ", " + (-radius) + ")");
-    //   htmlParagraph = document.createElementNS(d3.ns.prefix.xhtml, "p");
-    //   htmlParagraph.setAttribute("class", "txt-input");
-    //   htmlParagraph.setAttribute("contentEditable", true);
-    //   htmlParagraph.textContent = d.name;
-    //   svgForeignObject.appendChild(htmlParagraph);
-    //
-    //   return svgForeignObject;
-    // });
+    nodeEnterGroup.append(function(d) {
+      var svgText,
+        svgForeignObject,
+        htmlParagraph
+        ;
+
+      if (d.level === 0) {
+        svgText = document.createElementNS(d3.ns.prefix.svg, "text");
+        svgText.setAttribute("text-anchor", "middle");
+        svgText.textContent = currentUser.username;
+        Meteor.defer(function() {
+          svgText.setAttribute("transform", "translate(0, " + (d3.select("use").node().getBBox().height/2 + 22.5) + ")");
+        });
+        return svgText;
+      }
+      /**
+       * HEADS UP: Chrome will ignore the camelCase naming of SVG <foreignObject> elements
+       * and instead renders an lower case tagname <foreignobject>.
+       * So we apply a class "foreign-object" to be used as selector if needed.
+       * cf. http://bl.ocks.org/jebeck/10699411 [as of 2015-02-23]
+       */
+      svgForeignObject = document.createElementNS(d3.ns.prefix.svg, "foreignObject");
+      svgForeignObject.setAttribute("class", "foreign-object");
+      svgForeignObject.setAttribute("width", radius * 2);
+      svgForeignObject.setAttribute("height", radius * 2);
+      svgForeignObject.setAttribute("transform", "translate(" + (-radius) + ", " + (-radius) + ")");
+      htmlParagraph = document.createElementNS(d3.ns.prefix.xhtml, "p");
+      htmlParagraph.setAttribute("class", "txt-input");
+      htmlParagraph.setAttribute("contentEditable", true);
+      htmlParagraph.textContent = d.name;
+      svgForeignObject.appendChild(htmlParagraph);
+
+      return svgForeignObject;
+    });
 
     nodeEnterGroup
       .on("mousedown", function(d) {
@@ -395,7 +385,7 @@ Template.myIds.onRendered(function() {
         } else {
           selectedNode = mousedownNode;
         }
-        // Positions the drag line coordinates
+        // Position the drag line coordinates
         dragLine.attr("class", "link")
           .attr("x1", mousedownNode.x)
           .attr("y1", mousedownNode.y)
@@ -497,10 +487,6 @@ Template.myIds.onRendered(function() {
   }; // end updateLayout() function
 
 
-  rootNode = Identifications.findOne({
-    level: 0,
-    createdBy: currentUser._id
-  });
   /**
    * Creates the force layout object and sets some configuration properties.
    * On initialization the layout's associated nodes will be set to the rood node while
@@ -508,8 +494,8 @@ Template.myIds.onRendered(function() {
    */
   force = d3.layout.force()
     .size([width, height])
-    .nodes(Identifications.find().fetch()) // Initializes the layout's nodes with the root node.
-    .links(Links.find().fetch()) // Initializes the layout's links with an empty array.
+    .nodes(Identifications.find().fetch())
+    .links(Links.find().fetch())
     .linkDistance(function(d) {
       return 250 / (d.source.level + 1) + radius;
     })
@@ -584,16 +570,20 @@ Template.myIds.onRendered(function() {
     .attr("x2", 0)
     .attr("y2", 0);
 
-  // window.setTimeout(function() {
-    nodeElements = svgGroup.selectAll(".node");
-    linkElements = svgGroup.selectAll(".link");
+  nodeElements = svgGroup.selectAll(".node");
+  linkElements = svgGroup.selectAll(".link");
 
-    Tracker.autorun(function() {
-      var ids = Identifications.find().fetch();
-      var links = Links.find().fetch();
-      updateLayout(ids, links);
-    });
-  // }, 500);
+  // We declare a 'Tracker.autorun' block to monitor the reactive data sources
+  // represented by the cursors resulting from querying our Mongo collections.
+  // If the result of our collection query changes, the function will re-run.
+  Tracker.autorun(function() {
+    var identifications,
+      fromTo;
 
+    identifications = Identifications.find().fetch();
+    fromTo = Links.find().fetch();
+
+    updateLayout(identifications, fromTo);
+  });
 
 });
