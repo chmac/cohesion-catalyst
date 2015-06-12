@@ -46,12 +46,14 @@ Template.loginForm.events({
   // to submit the form via 'Enter' key besides using the 'Submit' button.
   "submit #login-form": function(event, template) {
     var username,
-      password;
+      password,
+      trainingId;
 
     event.preventDefault();
 
     username = trimInput(template.find("#login-username").value);
     password = template.find("#login-password").value;
+    trainingId = template.find("#login-training-select option").id;
 
     if (!isEmpty(username) && !isEmpty(password)) {
       // The Meteor.loginWithPassword() function is provided by the 'accounts-password' package.
@@ -62,6 +64,7 @@ Template.loginForm.events({
           return throwError("Login Error: " + error.reason);
         }
         Session.set("formContainer", null);
+        Session.set("currentTraining", trainingId);
         Router.go("intro");
       });
     }
@@ -110,6 +113,7 @@ Template.createAccountForm.events({
     var username,
       password,
       training,
+      trainingId,
       trainings = []
       ;
 
@@ -118,7 +122,11 @@ Template.createAccountForm.events({
     username = trimInput(template.find("#account-username").value);
     password = template.find("#account-password").value;
     training = template.find("#account-training-select option").value;
-    trainings.push(training);
+    trainingId = template.find("#account-training-select option").id;
+    trainings.push({
+      trainingId: trainingId,
+      titleDate: training
+    });
 
     if (!isEmpty(username) &&
       !isEmpty(password) &&
@@ -138,6 +146,7 @@ Template.createAccountForm.events({
             return throwError("Error while creating account: " + error.reason);
           }
           Session.set("formContainer", null);
+          Session.set("currentTraining", trainingId);
           Router.go("intro");
         });
     }

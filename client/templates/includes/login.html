@@ -6,7 +6,7 @@
             <div class="controls">
               <select class="form-control" id="account-training-select">
                 {{#each trainings}}
-                <option>{{title}} - {{trainingDate}}</option>
+                <option id="{{_id}}">{{title}} - {{trainingDate}}</option>
                 {{/each}}
               </select>
             </div>
@@ -39,7 +39,7 @@
           <div class="controls">
             <select class="form-control" id="login-training-select">
               {{#each trainings}}
-              <option>{{title}} - {{trainingDate}}</option>
+              <option id="{{_id}}">{{title}} - {{trainingDate}}</option>
               {{/each}}
             </select>
           </div>
