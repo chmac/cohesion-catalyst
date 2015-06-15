@@ -63,6 +63,16 @@ Template.loginForm.events({
           // not be found or if the user entered an incorrect password.
           return throwError("Login Error: " + error.reason);
         }
+        // Update the user's profile with the currently selected training.
+        // We will use that field to define publications and subscriptions, respectively.
+        var userId = Meteor.userId();
+        Meteor.users.update({_id:userId},
+          {$set:{"profile.currentTraining": trainingId}},
+          function(error, i) {
+            if (error) {
+              return throwError("Error: " + error.reason);
+            }
+        });
         Session.set("formContainer", null);
         Session.set("currentTraining", trainingId);
         Router.go("intro");
@@ -137,7 +147,8 @@ Template.createAccountForm.events({
           username: username,
           password: password,
           profile: {
-            avatar: null
+            avatar: null,
+            currentTraining: trainingId
           },
           trainings: trainings
         }, function(error) {
