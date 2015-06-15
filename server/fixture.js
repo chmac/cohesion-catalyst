@@ -8,14 +8,16 @@ if (Trainings.find().count() === 0) {
     title: "Training Daimler",
     description: "Team building master class.",
     startDate: today,
-    endDate: tomorrow
+    endDate: tomorrow,
+    attendees: []
   });
 
   Trainings.insert({
     title: "Training ESMT",
     description: "Team building master class.",
     startDate: new Date(today.getTime() + 2 * 24 * 3600 * 1000),
-    endDate: new Date(tomorrow.getTime() + 2 * 24 * 3600 * 1000)
+    endDate: new Date(tomorrow.getTime() + 2 * 24 * 3600 * 1000),
+    attendees: []
   });
 }
 
