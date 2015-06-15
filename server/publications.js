@@ -9,16 +9,26 @@ Meteor.publish("trainings", function() {
 
 // We want to retrieve documents which were created by the currently logged-in user
 // in order to only publish data from the server that belongs to the current user.
-Meteor.publish("ownIdentifications", function() {
+// Since we also want to constrain the transmitted the documents to data of the current
+// training the user is attending, we pick the data depending on the 'currentTraining'
+// parameter which is specified when we subscribe to this publication client-side.
+// The id of 'currentTraining' is stored in the user's profile on account creation or
+// login, respectively.
+Meteor.publish("ownIdentifications", function(currentTraining) {
   var currentUserId = this.userId;
-  // TODO Add condition to show only identification documents of the current training
-  return Identifications.find({createdBy: currentUserId});
+
+  return Identifications.find({
+    createdBy: currentUserId,
+    trainingId : currentTraining});
 });
 
 Meteor.publish("otherIdentifications", function() {
-  //TODO
+  // TODO
 });
 
-Meteor.publish("links", function() {
-  return Links.find();
+Meteor.publish("links", function(currentTraining) {
+  var currentUserId = this.userId;
+  return Links.find({
+    // TODO
+  });
 });
