@@ -1,4 +1,31 @@
+// Template.myIds.onCreated(function() {
+//   var templateInstance,
+//     templateSubscription,
+//     currentTraining;
+//
+//   templateInstance = this;
+//
+//   // Use an 'autorun()' block that will re-run anytime the 'currentTraining' changes.
+//   // We set the reactive computation (i.e. the 'autorun()'' block) up on the template instance.
+//   // In doing this, we ensure stopping the 'autorun()' block when the template is destroyed.
+//   // We also call the 'subscribe()' function on the template instance, thus using a special
+//   // version of 'Meteor.subscribe()' that is automatically stopped when the template is destroyed.
+//   // cf. the template-level subscription pattern at
+//   // https://www.discovermeteor.com/blog/template-level-subscriptions/ [as of 2015-06-14]
+//   templateInstance.autorun(function() {
+//     currentTraining = Session.get("currentTraining");
+//     templateSubscription = templateInstance.subscribe("ownIdentifications", currentTraining);
+//
+//     if (templateSubscription.ready()) {
+//       console.log("Subscription is ready!");
+//     } else {
+//       console.log("Subscription is not ready yet!");
+//     }
+//   });
+// });
+
 Template.myIds.onRendered(function() {
+
   var margin,
     width,
     height,
@@ -29,6 +56,7 @@ Template.myIds.onRendered(function() {
     dragmove,
     dragend,
     currentUser,
+    currentTrainingId,
     currentAvatar
     ;
 
@@ -49,9 +77,12 @@ Template.myIds.onRendered(function() {
   mouseupNode = null;
 
   currentUser = Meteor.user();
+  currentTrainingId = currentUser.profile.currentTraining;
+  console.log("Template onRendered - current trainingId is: " + currentTrainingId);
   currentAvatar = Avatars.findOne({type: currentUser.profile.avatar});
 
-  if (Identifications.find().count() === 0) {
+  if (currentTrainingId && Identifications.find().count() === 0) {
+    console.log("find count");
     rootNode = {
       level: 0,
       fixed: true,
@@ -59,7 +90,7 @@ Template.myIds.onRendered(function() {
       y: height / 3 * 1.5,
       children: [],
       createdBy: currentUser._id,
-      trainingId: Session.get("currentTraining")
+      trainingId: currentTrainingId
     };
 
     Identifications.insert(rootNode, function(error, result) {
@@ -234,7 +265,7 @@ Template.myIds.onRendered(function() {
   }; // end mouseup()
 
 
-  updateLayout = function(identifications, linksCollection) {
+  updateLayout = function(idsCollection, linksCollection) {
     console.log("updateLayout");
     var nodeEnterGroup,
         nodeControls,
@@ -246,7 +277,7 @@ Template.myIds.onRendered(function() {
     iconRadius = 15;
     dashedRadius = 40;
 
-    nodes = identifications;
+    nodes = idsCollection;
     links = linksCollection;
 
     linkElements = linkElements.data(links, function(d) {
@@ -275,9 +306,9 @@ Template.myIds.onRendered(function() {
       return d._id;
     });
 
-    nodeElements.classed("node-selected", function(d) {
-      return d === selectedNode;
-    });
+    // nodeElements.classed("node-selected", function(d) {
+    //   return d._id === selectedNode._id;
+    // });
 
     // Remove any deleted elements
     nodeElements.exit().remove();
@@ -289,14 +320,14 @@ Template.myIds.onRendered(function() {
       })
       .classed({
         "root": function(d) {
-          return d.level === 0;
+          return d._id && d.level === 0;
         },
         "child": function(d) {
-          return d.level > 0;
-        },
+          return d._id && d.level > 0;
+        }/*,
         "node-selected": function(d) {
-          return d === selectedNode;
-        }
+          return d._id === selectedNode._id;
+        }*/
       });
 
     // TEST circle for checking transfoms
@@ -304,40 +335,71 @@ Template.myIds.onRendered(function() {
     //   .attr("r", 10)
     //   .style("fill", "green");
 
-    // if (!nodeEnterGroup.empty() && nodeEnterGroup.classed("root")) {
-      var avatarIcon,
-        iconBBox;
 
-      // avatarIcon = nodeEnterGroup.append("use");
-      avatarIcon = d3.select("g.root").append("use");
-      avatarIcon.attr({
-        "xlink:href": currentAvatar.url
-      })
-      .attr({
-        width: "150",
-        height: "150",
-        transform: "translate(-75, -75)"
-      })
-      ;
-      // Meteor.defer(function() {
-      //   iconBBox = avatarIcon.node().getBBox();
-      //   avatarIcon.attr({
-      //     x: -iconBBox.x - iconBBox.width/2,
-      //     y: -iconBBox.y - iconBBox.height/2
-      //   });
-      // });
-
+    // if (!nodeEnterGroup.empty()) {
+    //
+    //         if (nodeEnterGroup.classed("node child")) {
+    //
+    //           nodeEnterGroup.append("circle")
+    //           .attr("r", radius)
+    //           .attr("class", "filled");
+    //
+    //
+    //           nodeEnterGroup.insert("circle", ".filled")
+    //           .attr("r", dashedRadius)
+    //           .attr("class", "dashed");
+    //         }
+    //
+    //   if (nodeEnterGroup.classed("node root")) {
+    //     var avatarIcon,
+    //       iconBBox;
+    //
+    //     avatarIcon = nodeEnterGroup.append("use");
+    //     // avatarIcon = d3.select("g.root").append("use");
+    //     avatarIcon.attr({
+    //       "xlink:href": currentAvatar.url
+    //     })
+    //     .attr({
+    //       width: "150",
+    //       height: "150",
+    //       transform: "translate(-75, -75)"
+    //     })
+    //     ;
+    //     // Meteor.defer(function() {
+    //     //   iconBBox = avatarIcon.node().getBBox();
+    //     //   avatarIcon.attr({
+    //     //     x: -iconBBox.x - iconBBox.width/2,
+    //     //     y: -iconBBox.y - iconBBox.height/2
+    //     //   });
+    //     // });
+    //   }
     // }
 
-    nodeEnterGroup.append("circle")
-      .attr("r", radius)
-      .attr("class", "filled");
+    nodeEnterGroup.append(function(d) {
+      var avatarIcon,
+        filledCircle
+        ;
+
+      if (d.level === 0) {
+        avatarIcon = document.createElementNS(d3.ns.prefix.svg, "use");
+        avatarIcon.setAttributeNS(d3.ns.prefix.xlink, "xlink:href", currentAvatar.url);
+        avatarIcon.setAttribute("width", 150);
+        avatarIcon.setAttribute("height", 150);
+        avatarIcon.setAttribute("transform", "translate(-75, -75)");
+        return avatarIcon;
+      }
+
+
+      filledCircle = document.createElementNS(d3.ns.prefix.svg, "circle");
+      filledCircle.setAttribute("r", radius);
+      filledCircle.setAttribute("class", "filled");
+      return filledCircle;
+    });
 
 
     nodeEnterGroup.insert("circle", ".filled")
       .attr("r", dashedRadius)
       .attr("class", "dashed");
-
 
 
     nodeEnterGroup.append(function(d) {
@@ -570,8 +632,8 @@ Template.myIds.onRendered(function() {
     .attr("x2", 0)
     .attr("y2", 0);
 
-  nodeElements = svgGroup.selectAll(".node");
-  linkElements = svgGroup.selectAll(".link");
+  // nodeElements = svgGroup.selectAll(".node");
+  // linkElements = svgGroup.selectAll(".link");
 
   // We declare a 'Tracker.autorun' block to monitor the reactive data sources
   // represented by the cursors resulting from querying our Mongo collections.
@@ -582,7 +644,8 @@ Template.myIds.onRendered(function() {
 
     identifications = Identifications.find().fetch();
     fromTo = Links.find().fetch();
-
+    nodeElements = svgGroup.selectAll(".node");
+    linkElements = svgGroup.selectAll(".link");
     updateLayout(identifications, fromTo);
   });
 
