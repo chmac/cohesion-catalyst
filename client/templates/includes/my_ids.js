@@ -1,29 +1,3 @@
-// Template.myIds.onCreated(function() {
-//   var templateInstance,
-//     templateSubscription,
-//     currentTraining;
-//
-//   templateInstance = this;
-//
-//   // Use an 'autorun()' block that will re-run anytime the 'currentTraining' changes.
-//   // We set the reactive computation (i.e. the 'autorun()'' block) up on the template instance.
-//   // In doing this, we ensure stopping the 'autorun()' block when the template is destroyed.
-//   // We also call the 'subscribe()' function on the template instance, thus using a special
-//   // version of 'Meteor.subscribe()' that is automatically stopped when the template is destroyed.
-//   // cf. the template-level subscription pattern at
-//   // https://www.discovermeteor.com/blog/template-level-subscriptions/ [as of 2015-06-14]
-//   templateInstance.autorun(function() {
-//     currentTraining = Session.get("currentTraining");
-//     templateSubscription = templateInstance.subscribe("ownIdentifications", currentTraining);
-//
-//     if (templateSubscription.ready()) {
-//       console.log("Subscription is ready!");
-//     } else {
-//       console.log("Subscription is not ready yet!");
-//     }
-//   });
-// });
-
 Template.myIds.onRendered(function() {
 
   var margin,
@@ -167,7 +141,7 @@ Template.myIds.onRendered(function() {
     // We update the coordinates of the dragLine during mousemove to draw a line
     // from the mousedownNode to the current mouse position.
     dragLine
-      .attr("class", "link")
+      .attr("class", "drag-line")
       .attr("x1", mousedownNode.x)
       .attr("y1", mousedownNode.y)
       .attr("x2", d3.mouse(this)[0])
@@ -206,7 +180,7 @@ Template.myIds.onRendered(function() {
       children: [],
       name: placeHolderTxt,
       createdBy: currentUser._id,
-      trainingId: Session.get("currentTraining")
+      trainingId: currentTrainingId
     };
 
     // Add the new node to our 'Identifications' collection and
@@ -306,14 +280,17 @@ Template.myIds.onRendered(function() {
       return d._id;
     });
 
-    // nodeElements.classed("node-selected", function(d) {
-    //   return d._id === selectedNode._id;
-    // });
+    nodeElements.classed("node-selected", function(d) {
+      return selectedNode && d._id === selectedNode._id;
+    });
 
     // Remove any deleted elements
     nodeElements.exit().remove();
 
     nodeEnterGroup = nodeElements.enter().append("g")
+      .attr("data-id", function(d) {
+        return d._id;
+      })
       .attr("class", "node")
       .attr("transform", function(d) {
         return "translate(" + d.x + ", " + d.y + ")";
@@ -324,56 +301,16 @@ Template.myIds.onRendered(function() {
         },
         "child": function(d) {
           return d._id && d.level > 0;
-        }/*,
+        },
         "node-selected": function(d) {
-          return d._id === selectedNode._id;
-        }*/
+          return selectedNode && d._id === selectedNode._id;
+        }
       });
 
     // TEST circle for checking transfoms
     // nodeEnterGroup.append("circle")
     //   .attr("r", 10)
     //   .style("fill", "green");
-
-
-    // if (!nodeEnterGroup.empty()) {
-    //
-    //         if (nodeEnterGroup.classed("node child")) {
-    //
-    //           nodeEnterGroup.append("circle")
-    //           .attr("r", radius)
-    //           .attr("class", "filled");
-    //
-    //
-    //           nodeEnterGroup.insert("circle", ".filled")
-    //           .attr("r", dashedRadius)
-    //           .attr("class", "dashed");
-    //         }
-    //
-    //   if (nodeEnterGroup.classed("node root")) {
-    //     var avatarIcon,
-    //       iconBBox;
-    //
-    //     avatarIcon = nodeEnterGroup.append("use");
-    //     // avatarIcon = d3.select("g.root").append("use");
-    //     avatarIcon.attr({
-    //       "xlink:href": currentAvatar.url
-    //     })
-    //     .attr({
-    //       width: "150",
-    //       height: "150",
-    //       transform: "translate(-75, -75)"
-    //     })
-    //     ;
-    //     // Meteor.defer(function() {
-    //     //   iconBBox = avatarIcon.node().getBBox();
-    //     //   avatarIcon.attr({
-    //     //     x: -iconBBox.x - iconBBox.width/2,
-    //     //     y: -iconBBox.y - iconBBox.height/2
-    //     //   });
-    //     // });
-    //   }
-    // }
 
     nodeEnterGroup.append(function(d) {
       var avatarIcon,
@@ -386,9 +323,15 @@ Template.myIds.onRendered(function() {
         avatarIcon.setAttribute("width", 150);
         avatarIcon.setAttribute("height", 150);
         avatarIcon.setAttribute("transform", "translate(-75, -75)");
+        //     // Meteor.defer(function() {
+        //     //   iconBBox = avatarIcon.node().getBBox();
+        //     //   avatarIcon.attr({
+        //     //     x: -iconBBox.x - iconBBox.width/2,
+        //     //     y: -iconBBox.y - iconBBox.height/2
+        //     //   });
+        //     // });
         return avatarIcon;
       }
-
 
       filledCircle = document.createElementNS(d3.ns.prefix.svg, "circle");
       filledCircle.setAttribute("r", radius);
@@ -448,7 +391,8 @@ Template.myIds.onRendered(function() {
           selectedNode = mousedownNode;
         }
         // Position the drag line coordinates
-        dragLine.attr("class", "link")
+        dragLine
+          .attr("class", "drag-line")
           .attr("x1", mousedownNode.x)
           .attr("y1", mousedownNode.y)
           .attr("x2", mousedownNode.x)
@@ -478,9 +422,17 @@ Template.myIds.onRendered(function() {
       })
       .on("focusout", function(d) {
         if (d.level > 0) {
-          var inputTxt = d3.select(this).select("p.txt-input");
-          d.name = inputTxt.text() === placeHolderTxt ? "" : inputTxt.text();
-          inputTxt.text(d.name);
+          var newName,
+            inputTxt = d3.select(this).select("p.txt-input");
+
+          newName = inputTxt.text();
+          if (newName === placeHolderTxt || newName === "") {
+            Session.set("emptyNodeWarning", d._id);
+          }
+          Identifications.update(d._id, {
+            $set: {name: newName}
+          });
+
           if (d === selectedNode) {
             selectedNode = null;
           }
@@ -649,4 +601,35 @@ Template.myIds.onRendered(function() {
     updateLayout(identifications, fromTo);
   });
 
+});
+
+Template.myIds.onDestroyed(function() {
+  // TODO stop autorun
+});
+
+Template.myIds.helpers({
+  warningDialog: function() {
+    return Session.get("emptyNodeWarning");
+  }
+});
+
+Template.warning.events({
+  "click #remove -btn": function(event, template) {
+    event.preventDefault();
+    var targetId = Session.get("emptyNodeWarning");
+    Identifications.remove(targetId);
+    Links.remove(Links.findOne({"target._id": targetId})._id, function(error, result){
+      if (error) {
+        return throwError("Error: " + error.reason);
+      }
+      Session.set("emptyNodeWarning", null);
+    });
+  },
+  "click #enter-btn, close.bs.alert #info-dialog": function(event, template) {
+    event.preventDefault();
+    var targetId = Session.get("emptyNodeWarning");
+    d3.select("[data-id=" + targetId + "]").select("p.txt-input").node().focus();
+    document.execCommand("selectAll", false, null);
+    Session.set("emptyNodeWarning", null);
+  }
 });
