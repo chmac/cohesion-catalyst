@@ -451,45 +451,19 @@ Template.myIds.onRendered(function() {
         .attr("class", "selected-controls");
 
       dragIcon = nodeControls.append("g")
-        .attr("transform", "translate(" + (-dashedRadius - 12.5) + "," + (-dashedRadius + 10) + ")")
+        .attr("transform", "translate(" + (-dashedRadius - 30) + "," + (-dashedRadius) + ")")
         .attr("class", "drag-icon")
         .call(drag);
 
-      dragIcon.append("circle")
-        .attr("r", iconRadius);
-
-      dragIcon.append("path")
-        .attr("d", function(d) {
-          return "M0 12" +
-                 "l4-4 h-4 v-16 h4 l-4-4 l-4 4 h4 v16 h-4 z" +
-                 "M-12 0" +
-                 "l4-4 v4 h16 v-4 l4 4 l-4 4 v-4 h-16 v4 z";
-        });
+      dragIcon.append("use")
+        .attr("xlink:href", "svg/icons.svg#drag-icon");
 
       deleteIcon = nodeControls.append("g")
-        .attr("transform", "translate(" + (dashedRadius + 12.5) + "," + (-dashedRadius + 10) + ")")
+        .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
         .attr("class", "delete-icon");
 
-      deleteIcon.append("circle")
-        .attr("r", iconRadius);
-
-      deleteIcon.append("line")
-        .attr({
-          x1: 0,
-          y1: -10,
-          x2: 0,
-          y2: 10,
-          transform: "rotate(45 0 0)"
-        });
-
-      deleteIcon.append("line")
-        .attr({
-          x1: 0,
-          y1: -10,
-          x2: 0,
-          y2: 10,
-          transform: "rotate(-45 0 0)"
-        });
+      deleteIcon.append("use")
+        .attr("xlink:href", "svg/icons.svg#delete-icon");
 
     if (d3.event) {
       // Prevent browser's default behavior
