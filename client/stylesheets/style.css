@@ -330,17 +330,3 @@ p.txt-input::-moz-selection {
 .delete-icon {
   cursor: default;
 }
-
-.drag-icon > circle,
-.delete-icon > circle {
-  fill: #000;
-  stroke: #fff;
-  stroke-width: 1;
-}
-
-.drag-icon > path,
-.delete-icon > line {
-  fill: #fff;
-  stroke: #fff;
-  stroke-width: 1;
-}
