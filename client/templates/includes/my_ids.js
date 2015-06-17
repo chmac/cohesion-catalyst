@@ -138,6 +138,8 @@ Template.myIds.onRendered(function() {
       return;
     }
 
+    deselectElement();
+
     // We update the coordinates of the dragLine during mousemove to draw a line
     // from the mousedownNode to the current mouse position.
     dragLine
@@ -164,6 +166,7 @@ Template.myIds.onRendered(function() {
     if (!mousedownNode || mouseupNode === mousedownNode) {
       console.log("up == down");
       selectedNode = null;
+      deselectElement();
       resetMouseVars();
       //updateLayout();
       return;
@@ -213,6 +216,7 @@ Template.myIds.onRendered(function() {
 
     // Set the new node as selectedNode.
     selectedNode = Identifications.findOne({"_id": newNodeId});
+    Session.set("selectedElement", selectedNode._id);
 
     console.log("mousedownNode, ", mousedownNode);
     console.log("selectedNode, ", selectedNode);
@@ -288,8 +292,12 @@ Template.myIds.onRendered(function() {
     nodeElements.exit().remove();
 
     nodeEnterGroup = nodeElements.enter().append("g")
-      .attr("data-id", function(d) {
-        return d._id;
+      .attr("id", function(d) {
+        // We need to prefix the value that is assigned to the 'id' attribute
+        // in order to prevent an invalid 'querySelector' which will be the case
+        // if the value happens to start with a numeric character.
+        // So we use the prefix 'gid' ('gid' as in 'group identifier').
+        return "gid" + d._id;
       })
       .attr("class", "node")
       .attr("transform", function(d) {
@@ -384,12 +392,16 @@ Template.myIds.onRendered(function() {
       .on("mousedown", function(d) {
         d3.event.stopPropagation();
         mousedownNode = d;
-        if (mousedownNode === selectedNode) {
-          console.log("mousedownNode === selectedNode");
-          selectedNode = null;
-        } else {
-          selectedNode = mousedownNode;
-        }
+        // if (mousedownNode === selectedNode) {
+        //   console.log("mousedownNode === selectedNode");
+        //   selectedNode = null;
+        // } else {
+        //   selectedNode = mousedownNode;
+        // }
+
+        deselectElement();
+        selectElement(mousedownNode._id);
+
         // Position the drag line coordinates
         dragLine
           .attr("class", "drag-line")
@@ -427,15 +439,17 @@ Template.myIds.onRendered(function() {
 
           newName = inputTxt.text();
           if (newName === placeHolderTxt || newName === "") {
-            Session.set("emptyNodeWarning", d._id);
+            Session.set("emptyNode", d._id);
           }
           Identifications.update(d._id, {
             $set: {name: newName}
           });
 
-          if (d === selectedNode) {
-            selectedNode = null;
-          }
+          // deselectElement();
+
+          // if (d === selectedNode) {
+          //   selectedNode = null;
+          // }
           //updateLayout();
         }
         return;
@@ -460,7 +474,12 @@ Template.myIds.onRendered(function() {
 
       deleteIcon = nodeControls.append("g")
         .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
-        .attr("class", "delete-icon");
+        .attr("class", "delete-icon")
+        .attr("id", "delete-icon")
+        .on("mousedown", function(d) {
+          d3.event.stopPropagation();
+          deleteNodeAndLink("selectedElement");
+        });
 
       deleteIcon.append("use")
         .attr("xlink:href", "svg/icons.svg#delete-icon");
@@ -558,8 +577,6 @@ Template.myIds.onRendered(function() {
     .attr("x2", 0)
     .attr("y2", 0);
 
-  // nodeElements = svgGroup.selectAll(".node");
-  // linkElements = svgGroup.selectAll(".link");
 
   // We declare a 'Tracker.autorun' block to monitor the reactive data sources
   // represented by the cursors resulting from querying our Mongo collections.
@@ -583,27 +600,61 @@ Template.myIds.onDestroyed(function() {
 
 Template.myIds.helpers({
   warningDialog: function() {
-    return Session.get("emptyNodeWarning");
+    return Session.get("emptyNode");
   }
 });
 
 Template.warning.events({
-  "click #remove -btn": function(event, template) {
+  "click #remove-btn": function(event, template) {
     event.preventDefault();
-    var targetId = Session.get("emptyNodeWarning");
-    Identifications.remove(targetId);
-    Links.remove(Links.findOne({"target._id": targetId})._id, function(error, result){
+    deleteNodeAndLink("emptyNode");
+  },
+  "click #enter-btn": function(event, template) {
+    event.preventDefault();
+    var targetId = Session.get("emptyNode");
+    if (targetId) {
+      d3.select("#gid" + targetId).select("p.txt-input").node().focus();
+      document.execCommand("selectAll", false, null);
+      Session.set("emptyNode", null);
+    }
+  }
+});
+
+
+function deselectElement() {
+  console.log("deselect");
+  console.log("event ", d3.event.type);
+  console.log("eventTarget ", d3.event.target);
+  console.log("eventCurrenTarget ", d3.event.currentTarget);
+  var selectedElement = Session.get("selectedElement");
+  if (selectedElement) {
+    d3.select("#gid" + selectedElement).classed("node-selected", false);
+  }
+  Session.set("selectedElement", null);
+}
+
+function selectElement(elementId) {
+  console.log("select");
+  console.log("event ", d3.event.type);
+  console.log("eventTarget ", d3.event.target);
+  console.log("eventCurrenTarget ", d3.event.currentTarget);
+  d3.select("#gid" + elementId).classed("node-selected", true);
+  Session.set("selectedElement", elementId);
+}
+
+function deleteNodeAndLink(sessionKey) {
+  var nodeId = Session.get(sessionKey);
+  if (nodeId) {
+    Links.remove(Links.findOne({"target._id": nodeId})._id, function(error, result){
       if (error) {
         return throwError("Error: " + error.reason);
       }
-      Session.set("emptyNodeWarning", null);
     });
-  },
-  "click #enter-btn, close.bs.alert #info-dialog": function(event, template) {
-    event.preventDefault();
-    var targetId = Session.get("emptyNodeWarning");
-    d3.select("[data-id=" + targetId + "]").select("p.txt-input").node().focus();
-    document.execCommand("selectAll", false, null);
-    Session.set("emptyNodeWarning", null);
+    Identifications.remove(nodeId, function(error, result){
+      if (error) {
+        return throwError("Error: " + error.reason);
+      }
+    });
+    Session.set(sessionKey, null);
   }
-});
+}
