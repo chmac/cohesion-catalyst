@@ -395,6 +395,10 @@ Template.myIds.onRendered(function() {
       .on("mousedown", function(d) {
         d3.event.stopPropagation();
         mousedownNode = d;
+        // if (mousedownNode.name === placeHolderTxt || mousedownNode.name === "") {
+        //   Session.set("emptyNode", mousedownNode._id);
+        //   return;
+        // }
         selectNodeElement(mousedownNode._id);
       })
       .on("mouseup", function(d) { // mouseup on a Böbbel
@@ -408,20 +412,21 @@ Template.myIds.onRendered(function() {
       .on("keydown", function(d) {
         d3.event.stopPropagation();
 
-        if (d3.event.keyCode === 13) {
-          d3.event.preventDefault();
-          d3.select(this).select("p.txt-input").node().blur();
-        }
-
         if (d.level > 0) {
           var newName,
-            inputTxt = d3.select(this).select("p.txt-input");
+            inputTxt;
 
+          inputTxt = d3.select(this).select("p.txt-input");
           newName = inputTxt.text();
 
-          if (newName === placeHolderTxt || newName === "") {
-            Session.set("emptyNode", d._id);
+          if (d3.event.keyCode === 13) {
+            d3.event.preventDefault();
+            inputTxt.node().blur();
           }
+
+          // if (newName === placeHolderTxt || newName === "") {
+          //   Session.set("emptyNode", d._id);
+          // }
 
           Identifications.update(d._id, {
             $set: {name: newName}
@@ -431,6 +436,8 @@ Template.myIds.onRendered(function() {
             selectNodeElement(null);
           }
         }
+        // We use 'return' here to abort listening to this event on root level
+        return;
       })
       .on("dblclick", function(d) {
         if (d.level > 0) {
@@ -464,7 +471,7 @@ Template.myIds.onRendered(function() {
 
     if (d3.event) {
       // Prevent browser's default behavior
-      console.log("d3 event ", d3.event);
+      console.log("d3.event >> " , d3.event.type , " || target: " , d3.event.target , " || currentTarget: " , d3.event.currentTarget);
       d3.event.preventDefault();
     }
 
@@ -576,27 +583,27 @@ Template.myIds.onDestroyed(function() {
   // TODO stop autorun
 });
 
-// Template.myIds.helpers({
-//   warningDialog: function() {
-//     return Session.get("emptyNode");
-//   }
-// });
-//
-// Template.warning.events({
-//   "click #remove-btn": function(event, template) {
-//     event.preventDefault();
-//     deleteNodeAndLink("emptyNode");
-//   },
-//   "click #enter-btn": function(event, template) {
-//     event.preventDefault();
-//     var targetId = Session.get("emptyNode");
-//     if (targetId) {
-//       d3.select("#gid" + targetId).select("p.txt-input").node().focus();
-//       document.execCommand("selectAll", false, null);
-//       Session.set("emptyNode", null);
-//     }
-//   }
-// });
+Template.myIds.helpers({
+  warningDialog: function() {
+    return Session.get("emptyNode");
+  }
+});
+
+Template.warning.events({
+  "click #remove-btn": function(event, template) {
+    event.preventDefault();
+    deleteNodeAndLink("emptyNode");
+  },
+  "click #enter-btn": function(event, template) {
+    event.preventDefault();
+    var targetId = Session.get("emptyNode");
+    if (targetId) {
+      d3.select("#gid" + targetId).select("p.txt-input").node().focus();
+      document.execCommand("selectAll", false, null);
+      Session.set("emptyNode", null);
+    }
+  }
+});
 
 
 
