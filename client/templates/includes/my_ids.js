@@ -166,7 +166,8 @@ Template.myIds.onRendered(function() {
     // Hide the drag line when mousemove has finished.
     dragLine.attr("class", "drag-line-hidden");
 
-    if (!mousedownNode || mouseupNode === mousedownNode) {
+    // We are not on a node but on the drawing-surface
+    if (!mousedownNode) {
       selectNodeElement(null);
       resetMouseVars();
       return;
@@ -404,7 +405,7 @@ Template.myIds.onRendered(function() {
       .on("mouseup", function(d) { // mouseup on a Böbbel
         d3.event.stopPropagation();
         mouseupNode = d;
-        if (mouseupNode._id === mousedownNode._id) {
+        if (!mousedownNode || mouseupNode._id === mousedownNode._id) {
           resetMouseVars();
           return;
         }
@@ -639,12 +640,15 @@ function selectNodeElement(elementId) {
  */
 function deleteNodeAndLink(sessionKey) {
   var nodeId,
-    parentId;
+    nodeDoc;
 
   nodeId = Session.get(sessionKey);
-  parentId = Identifications.findOne(nodeId).parentId;
 
   if (nodeId) {
+    nodeDoc = Identifications.findOne(nodeId);
+    if (nodeDoc.children.length) {
+      return throwError("Sorry! You can not remove an identification bubble with attached child-bubbles.");
+    }
     Links.remove(Links.findOne({"target._id": nodeId})._id, function(error, result){
       if (error) {
         return throwError("Error: " + error.reason);
@@ -655,7 +659,7 @@ function deleteNodeAndLink(sessionKey) {
         return throwError("Error: " + error.reason);
       }
     });
-    Identifications.update(parentId, {
+    Identifications.update(nodeDoc.parentId, {
       $pull: {children: nodeId}
     }, function(error, result) {
       if (error) {
