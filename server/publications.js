@@ -17,6 +17,10 @@ Meteor.publish("trainings", function() {
 Meteor.publish("ownIdentifications", function(currentTraining) {
   var currentUserId = this.userId;
 
+  if (!currentUserId) {
+    return this.ready();
+  }
+
   return Identifications.find({
     createdBy: currentUserId,
     trainingId : currentTraining});
