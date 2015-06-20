@@ -636,7 +636,8 @@ Template.warning.events({
  * If the node is a newly created identification circle it gets selected immediately.
  * All the other nodes are selectable by user interaction.
  * We use a Session variable to detect selected or deselected state, respectively.
- * Depending on that we apply a CSS class, which in turn toggles the control handles for
+ * Depending on that, we update the current document's 'editCompleted' field and we
+ * also apply a CSS class, which in turn toggles the control handles for
  * dragging or deleting a circle.
  * @param {string} elementId The (database document) id of the node.
  */
