@@ -132,6 +132,8 @@ Template.myIds.onRendered(function() {
   // Handle the mousedown event for the outer svgGroup.
   mousedown = function() {
     if (!mousedownNode) {
+      selectNodeElement(null);
+      resetMouseVars();
       // TODO(nz): Implement Zoom+Pan behavior
       return;
     }
@@ -142,6 +144,14 @@ Template.myIds.onRendered(function() {
     // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
     if (!mousedownNode) {
       return;
+    }
+
+    if (Session.equals("selectedElement", mousedownNode._id)) {
+      selectNodeElement(null);
+    }
+
+    if (mousedownNode.name === placeHolderTxt || mousedownNode.name === "") {
+      return Session.set("emptyNode", mousedownNode._id);
     }
 
     // We update the coordinates of the dragLine during mousemove to draw a line
@@ -163,15 +173,21 @@ Template.myIds.onRendered(function() {
       newEditableElem
       ;
 
-    // Hide the drag line when mousemove has finished.
-    dragLine.attr("class", "drag-line-hidden");
 
-    // We are not on a node but on the drawing-surface
+    if (Session.get("emptyNode")) {
+      return;
+    }
+
+    // We are not on a node but on the drawing-surface so we want to
+    // deselect the currently selected node and reset.
     if (!mousedownNode) {
       selectNodeElement(null);
       resetMouseVars();
       return;
     }
+
+    // Hide the drag line when mousemove has finished.
+    dragLine.attr("class", "drag-line-hidden");
 
     // Create a new node object with the current mouse position coordinates.
     newNodePos = d3.mouse(this);
@@ -186,7 +202,8 @@ Template.myIds.onRendered(function() {
       children: [],
       name: placeHolderTxt,
       createdBy: currentUser._id,
-      trainingId: currentTrainingId
+      trainingId: currentTrainingId,
+      editCompleted: false
     };
 
     // Add the new node to our 'Identifications' collection and
@@ -396,10 +413,6 @@ Template.myIds.onRendered(function() {
       .on("mousedown", function(d) {
         d3.event.stopPropagation();
         mousedownNode = d;
-        // if (mousedownNode.name === placeHolderTxt || mousedownNode.name === "") {
-        //   Session.set("emptyNode", mousedownNode._id);
-        //   return;
-        // }
         selectNodeElement(mousedownNode._id);
       })
       .on("mouseup", function(d) { // mouseup on a Böbbel
@@ -420,21 +433,31 @@ Template.myIds.onRendered(function() {
           inputTxt = d3.select(this).select("p.txt-input");
           newName = inputTxt.text();
 
+          // When the user hits 'ENTER' we need to ensure that the user did not
+          // leave the input empty and if so, we will display a message to the user
+          // and stop executing the event handling. Otherwise, we update the
+          // 'editCompleted' field of the current document in the 'Identifications'
+          // collection and deselect the node element.
+          // The 'editCompleted' field allows for database queries only for documents
+          // that a user has finished editing.
           if (d3.event.keyCode === 13) {
             d3.event.preventDefault();
+            if (newName === placeHolderTxt || newName === "") {
+              return Session.set("emptyNode", d._id);
+            }
+            Identifications.update(d._id, {
+              $set: {editCompleted: true}
+            });
             inputTxt.node().blur();
-          }
-
-          // if (newName === placeHolderTxt || newName === "") {
-          //   Session.set("emptyNode", d._id);
-          // }
-
-          Identifications.update(d._id, {
-            $set: {name: newName}
-          });
-
-          if (Session.equals("selectedElement", d._id)) {
             selectNodeElement(null);
+          } else {
+            // While the user types, we update the current document.
+            Identifications.update(d._id, {
+              $set: {
+                name: newName,
+                editCompleted: false
+              }
+            });
           }
         }
         // We use 'return' here to abort listening to this event on root level
@@ -623,9 +646,15 @@ function selectNodeElement(elementId) {
     return;
   }
   if (selectedElement) {
+    Identifications.update(selectedElement, {
+      $set: {editCompleted: true}
+    });
     d3.select("#gid" + selectedElement).classed("node-selected", false);
   }
   if (elementId) {
+    Identifications.update(elementId, {
+      $set: {editCompleted: false}
+    });
     d3.select("#gid" + elementId).classed("node-selected", true);
   }
   Session.set("selectedElement", elementId);
