@@ -640,6 +640,7 @@ function selectNodeElement(elementId) {
   if (selectedElement) {
     nodeName = Identifications.findOne(selectedElement).name;
     if (nodeName === PLACEHOLDER_TXT || nodeName === "") {
+      // TODO unbind event listener  
       return throwError(EMPTY_NODE_MESSAGE);
     }
     Identifications.update(selectedElement, {
