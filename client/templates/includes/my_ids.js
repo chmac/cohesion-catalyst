@@ -1,3 +1,9 @@
+var PLACEHOLDER_TXT,
+  EMPTY_NODE_MESSAGE;
+
+  PLACEHOLDER_TXT= "I identify with...";
+  EMPTY_NODE_MESSAGE  = "You need to enter some text before you can go on.";
+
 Template.myIds.onRendered(function() {
 
   var margin,
@@ -10,6 +16,7 @@ Template.myIds.onRendered(function() {
     selectedNode,
     mousedownNode,
     mouseupNode,
+    emptyNodeMessage,
     rootNode,
     force,
     drag,
@@ -48,11 +55,12 @@ Template.myIds.onRendered(function() {
   xPos = width / 2;
   yPos = height / 3 * 1.5;
   radius = 35;
-  placeHolderTxt = "I identify with...";
+  placeHolderTxt = PLACEHOLDER_TXT;
   isFixed = false;
   selectedNode = null;
   mousedownNode = null;
   mouseupNode = null;
+  emptyNodeMessage = EMPTY_NODE_MESSAGE;
 
   currentUser = Meteor.user();
   currentTrainingId = currentUser.profile.currentTraining;
@@ -150,10 +158,6 @@ Template.myIds.onRendered(function() {
       selectNodeElement(null);
     }
 
-    if (mousedownNode.name === placeHolderTxt || mousedownNode.name === "") {
-      return Session.set("emptyNode", mousedownNode._id);
-    }
-
     // We update the coordinates of the dragLine during mousemove to draw a line
     // from the mousedownNode to the current mouse position.
     dragLine
@@ -172,11 +176,6 @@ Template.myIds.onRendered(function() {
       link,
       newEditableElem
       ;
-
-
-    if (Session.get("emptyNode")) {
-      return;
-    }
 
     // We are not on a node but on the drawing-surface so we want to
     // deselect the currently selected node and reset.
@@ -210,7 +209,7 @@ Template.myIds.onRendered(function() {
     // push the returned '_id' to its parent 'children' array.
     newNodeId = Identifications.insert(node, function(error, result) {
       if (error) {
-        return throwError("Error: " + error.reason);
+        return throwError(error.reason);
       }
     });
 
@@ -218,7 +217,7 @@ Template.myIds.onRendered(function() {
       $push: {children: newNodeId}
     }, function(error, result) {
       if (error) {
-        return throwError("Error: " + error.reason);
+        return throwError(error.reason);
       }
     });
 
@@ -230,7 +229,7 @@ Template.myIds.onRendered(function() {
     };
     Links.insert(link, function(error, result) {
       if (error) {
-        return throwError("Error: " + error.reason);
+        return throwError(error.reason);
       }
     });
 
@@ -413,6 +412,18 @@ Template.myIds.onRendered(function() {
       .on("mousedown", function(d) {
         d3.event.stopPropagation();
         mousedownNode = d;
+        // We need to ensure that the user enters some text before he or she may
+        // continue to create other identification bubbles.
+        if (mousedownNode.name === placeHolderTxt || mousedownNode.name === "") {
+          d3.select("#ids-vis g")
+            .on("mousemove", null)
+            .on("mouseup", null);
+          return throwError(emptyNodeMessage);
+        } else {
+          d3.select("#ids-vis g")
+            .on("mousemove", mousemove)
+            .on("mouseup", mouseup);
+        }
         selectNodeElement(mousedownNode._id);
       })
       .on("mouseup", function(d) { // mouseup on a Böbbel
@@ -443,10 +454,12 @@ Template.myIds.onRendered(function() {
           if (d3.event.keyCode === 13) {
             d3.event.preventDefault();
             if (newName === placeHolderTxt || newName === "") {
-              return Session.set("emptyNode", d._id);
+              return throwError(emptyNodeMessage);
             }
             Identifications.update(d._id, {
-              $set: {editCompleted: true}
+              $set: {
+                name: newName,
+                editCompleted: true}
             });
             inputTxt.node().blur();
             selectNodeElement(null);
@@ -607,29 +620,6 @@ Template.myIds.onDestroyed(function() {
   // TODO stop autorun
 });
 
-Template.myIds.helpers({
-  warningDialog: function() {
-    return Session.get("emptyNode");
-  }
-});
-
-Template.warning.events({
-  "click #remove-btn": function(event, template) {
-    event.preventDefault();
-    deleteNodeAndLink("emptyNode");
-  },
-  "click #enter-btn": function(event, template) {
-    event.preventDefault();
-    var targetId = Session.get("emptyNode");
-    if (targetId) {
-      d3.select("#gid" + targetId).select("p.txt-input").node().focus();
-      document.execCommand("selectAll", false, null);
-      Session.set("emptyNode", null);
-    }
-  }
-});
-
-
 
 /**
  * Selects (or deselects) a node element (i.e. an identification circle).
@@ -642,11 +632,16 @@ Template.warning.events({
  * @param {string} elementId The (database document) id of the node.
  */
 function selectNodeElement(elementId) {
-  var selectedElement = Session.get("selectedElement");
+  var selectedElement = Session.get("selectedElement"),
+    nodeName;
   if (elementId === selectedElement) {
     return;
   }
   if (selectedElement) {
+    nodeName = Identifications.findOne(selectedElement).name;
+    if (nodeName === PLACEHOLDER_TXT || nodeName === "") {
+      return throwError(EMPTY_NODE_MESSAGE);
+    }
     Identifications.update(selectedElement, {
       $set: {editCompleted: true}
     });
@@ -677,23 +672,23 @@ function deleteNodeAndLink(sessionKey) {
   if (nodeId) {
     nodeDoc = Identifications.findOne(nodeId);
     if (nodeDoc.children.length) {
-      return throwError("Sorry! You can not remove an identification bubble with attached child-bubbles.");
+      return throwError("You can not remove an identification bubble with attached child-bubbles.");
     }
     Links.remove(Links.findOne({"target._id": nodeId})._id, function(error, result){
       if (error) {
-        return throwError("Error: " + error.reason);
+        return throwError(error.reason);
       }
     });
     Identifications.remove(nodeId, function(error, result){
       if (error) {
-        return throwError("Error: " + error.reason);
+        return throwError(error.reason);
       }
     });
     Identifications.update(nodeDoc.parentId, {
       $pull: {children: nodeId}
     }, function(error, result) {
       if (error) {
-        return throwError("Error: " + error.reason);
+        return throwError(error.reason);
       }
     });
     Session.set(sessionKey, null);
