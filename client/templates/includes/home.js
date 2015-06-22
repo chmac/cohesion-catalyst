@@ -20,7 +20,7 @@ Template.home.onRendered(function() {
     {label: "e", color: "#9467bd"}, // purple
     {label: "s", color: "#2ca02c"}, // green
     {label: "i", color: "#e377c2"}, // pink
-    {label: "o", color: "#aec7e8"}, // lightblue
+    {label: "o", color: "#60bce9"}, // lightblue
     {label: "n", color: "#ff7f0e"}, // orange
     {label: "machine", color: "#fff"} // white
   ];
