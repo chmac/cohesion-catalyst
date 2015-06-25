@@ -58,7 +58,7 @@ Template.loginForm.events({
 
     username = trimInput(template.find("#login-username").value);
     password = template.find("#login-password").value;
-    trainingId = template.find("#login-training-select option").id;
+    trainingId = template.find("#login-training-select option:selected").id;
 
     if (!isEmpty(username) && !isEmpty(password)) {
       // The Meteor.loginWithPassword() function is provided by the 'accounts-password' package.
@@ -142,7 +142,7 @@ Template.createAccountForm.events({
     username = trimInput(template.find("#account-username").value);
     password = template.find("#account-password").value;
     training = template.find("#account-training-select option").value;
-    trainingId = template.find("#account-training-select option").id;
+    trainingId = template.find("#account-training-select option:selected").id;
     trainings.push({
       trainingId: trainingId,
       titleDate: training
