@@ -382,7 +382,7 @@ Template.myIds.onRendered(function() {
       if (d.level === 0) {
         svgText = document.createElementNS(d3.ns.prefix.svg, "text");
         svgText.setAttribute("text-anchor", "middle");
-        svgText.textContent = currentUser.username;
+        svgText.textContent = currentUser.profile.name;
         Meteor.defer(function() {
           svgText.setAttribute("transform", "translate(0, " + (d3.select("use").node().getBBox().height/2 + 22.5) + ")");
         });
@@ -640,7 +640,7 @@ function selectNodeElement(elementId) {
   if (selectedElement) {
     nodeName = Identifications.findOne(selectedElement).name;
     if (nodeName === PLACEHOLDER_TXT || nodeName === "") {
-      // TODO unbind event listener  
+      // TODO unbind event listener
       return throwError(EMPTY_NODE_MESSAGE);
     }
     Identifications.update(selectedElement, {
