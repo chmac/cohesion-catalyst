@@ -14,16 +14,22 @@ Meteor.publish("trainings", function() {
 // parameter which is specified when we subscribe to this publication client-side.
 // The id of 'currentTraining' is stored in the user's profile on account creation or
 // login, respectively.
-Meteor.publish("ownIdentifications", function(currentTraining) {
+Meteor.publish("ownIdentificationsAndLinks", function(currentTraining) {
   var currentUserId = this.userId;
 
   if (!currentUserId) {
     return this.ready();
   }
 
-  return Identifications.find({
-    createdBy: currentUserId,
-    trainingId : currentTraining});
+  return [
+    Identifications.find({createdBy: currentUserId, trainingId: currentTraining}),
+    Links.find({
+      "source.createdBy": currentUserId,
+      "source.trainingId": currentTraining,
+      "target.createdBy": currentUserId,
+      "target.trainingId": currentTraining
+    })
+  ];
 });
 
 Meteor.publish("otherIdentifications", function() {
