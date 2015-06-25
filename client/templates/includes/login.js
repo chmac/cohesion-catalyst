@@ -30,9 +30,14 @@ Template.loginForm.helpers({
     var today;
     today = new Date();
     return Trainings.find({
-      endDate:{
+      endDate: {
         $gt: today
       }
+    },
+    {
+      // Use Mongo's 'sort' operator to sort by the specified keys, the value of which indicates
+      // the sort order (- 1 specifies descending order and 1 indicates ascending order).
+      sort: {startDate: 1}
     });
   },
   trainingDate: function() {
@@ -57,7 +62,7 @@ Template.loginForm.events({
 
     if (!isEmpty(username) && !isEmpty(password)) {
       // The Meteor.loginWithPassword() function is provided by the 'accounts-password' package.
-      Meteor.loginWithPassword(username, password, function(error) {
+      Meteor.loginWithPassword(username + "_" + trainingId, password, function(error) {
         if (error) {
           // Let the user know that the login failed, e.g. if a user could
           // not be found or if the user entered an incorrect password.
@@ -103,9 +108,14 @@ Template.createAccountForm.helpers({
     var today;
     today = new Date();
     return Trainings.find({
-      endDate:{
+      endDate: {
         $gt: today
       }
+    },
+    {
+      // Use Mongo's 'sort' operator to sort by the specified keys, the value of which indicates
+      // the sort order (- 1 specifies descending order and 1 indicates ascending order).
+      sort: {startDate: 1}
     });
   },
   trainingDate: function() {
@@ -144,9 +154,10 @@ Template.createAccountForm.events({
       isValidPassword(password)) {
         // The Accounts.createUser() function is provided by the 'accounts-password' package.
         Accounts.createUser({
-          username: username,
+          username: username + "_" + trainingId,
           password: password,
           profile: {
+            name: username,
             avatar: null,
             currentTraining: trainingId
           },
