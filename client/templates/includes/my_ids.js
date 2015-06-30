@@ -1,8 +1,4 @@
-var PLACEHOLDER_TXT,
-  EMPTY_NODE_MESSAGE;
-
-  PLACEHOLDER_TXT= "I identify with...";
-  EMPTY_NODE_MESSAGE  = "You need to enter some text before you can go on.";
+var PLACEHOLDER_TXT = "I identify with...";
 
 Template.myIds.onRendered(function() {
 
@@ -16,7 +12,6 @@ Template.myIds.onRendered(function() {
     selectedNode,
     mousedownNode,
     mouseupNode,
-    emptyNodeMessage,
     rootNode,
     force,
     drag,
@@ -60,7 +55,6 @@ Template.myIds.onRendered(function() {
   selectedNode = null;
   mousedownNode = null;
   mouseupNode = null;
-  emptyNodeMessage = EMPTY_NODE_MESSAGE;
 
   currentUser = Meteor.user();
   currentTrainingId = currentUser.profile.currentTraining;
@@ -418,7 +412,7 @@ Template.myIds.onRendered(function() {
           d3.select("#ids-vis g")
             .on("mousemove", null)
             .on("mouseup", null);
-          return throwError(emptyNodeMessage);
+          return d3.select(this).classed("node-empty", true);
         } else {
           d3.select("#ids-vis g")
             .on("mousemove", mousemove)
@@ -454,7 +448,7 @@ Template.myIds.onRendered(function() {
           if (d3.event.keyCode === 13) {
             d3.event.preventDefault();
             if (newName === placeHolderTxt || newName === "") {
-              return throwError(emptyNodeMessage);
+              return d3.select(this).classed("node-empty", true);
             }
             Identifications.update(d._id, {
               $set: {
@@ -497,7 +491,6 @@ Template.myIds.onRendered(function() {
       deleteIcon = nodeControls.append("g")
         .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
         .attr("class", "delete-icon")
-        .attr("id", "delete-icon")
         .on("mousedown", function(d) {
           d3.event.stopPropagation();
           deleteNodeAndLink("selectedElement");
@@ -640,13 +633,18 @@ function selectNodeElement(elementId) {
   if (selectedElement) {
     nodeName = Identifications.findOne(selectedElement).name;
     if (nodeName === PLACEHOLDER_TXT || nodeName === "") {
-      // TODO unbind event listener
-      return throwError(EMPTY_NODE_MESSAGE);
+      d3.select("#ids-vis g")
+        .on("mousemove", null)
+        .on("mouseup", null);
+      return d3.select("#gid" + selectedElement).classed("node-empty", true);
     }
     Identifications.update(selectedElement, {
       $set: {editCompleted: true}
     });
-    d3.select("#gid" + selectedElement).classed("node-selected", false);
+    d3.select("#gid" + selectedElement).classed({
+      "node-selected": false,
+      "node-empty": false
+    });
   }
   if (elementId) {
     Identifications.update(elementId, {
