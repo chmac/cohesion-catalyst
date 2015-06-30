@@ -274,6 +274,14 @@ circle.dashed {
   fill: #000;
 }
 
+.child.node-selected.node-empty > circle.dashed,
+.child.node-selected.node-empty > g.selected-controls .drag-icon,
+.child.node-selected.node-empty > g.selected-controls .delete-icon,
+.child.node-selected.node-empty p.txt-input {
+  stroke: #a94442;
+  color: #a94442;
+}
+
 .foreign-object {
   display: table-row; /* This is needed for vertical positioning of the text within <p> */
 }
@@ -324,10 +332,16 @@ p.txt-input::-moz-selection {
   cursor: crosshair;
 }
 
-.drag-icon {
-  cursor: pointer;
-}
-
+/* HEADS UP: The CSS 'color' property is not applicable to SVG elements.
+ * We use it here to customize the 'fill' color value of the icon's <path> and <line>
+ * elements which use the CSS variable 'currenColor' within the original symbol definition
+ * in the file icons.svg.
+ */
+.drag-icon,
 .delete-icon {
   cursor: pointer;
+  fill: #000;
+  color: #fff;
+  stroke: #fff;
+  stroke-width: 1;
 }
