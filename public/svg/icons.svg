@@ -6,18 +6,18 @@
 <!-- Definition of the symbols -->
 
   <symbol id="drag-icon" >
-    <circle r="15" cx="15.5" cy="15.5" style="fill: #000; stroke: #fff; stroke-width: 1"/>
+    <circle r="15" cx="15.5" cy="15.5" />
     <path d="M15.5 27.5
       l4-4 h-4 v-16 h4 l-4-4 l-4 4 h4 v16 h-4 z
       M3.5 15.5
       l4-4 v4 h16 v-4 l4 4 l-4 4 v-4 h-16 v4 z"
-      style="fill: #fff; stroke: #fff; stroke-width: 1"/>
+    style="fill: currentColor;" />
   </symbol>
 
   <symbol id="delete-icon" >
-    <circle r="15" cx="15.5" cy="15.5" style="fill: #000; stroke: #fff; stroke-width: 1"/>
-    <line x1="15.5" y1="5.5" x2="15.5" y2="25.5" transform="rotate(45 15.5 15.5)" style="fill: #fff; stroke: #fff; stroke-width: 1"/>
-    <line x1="15.5" y1="5.5" x2="15.5" y2="25.5" transform="rotate(-45 15.5 15.5)" style="fill: #fff; stroke: #fff; stroke-width: 1"/>
+    <circle r="15" cx="15.5" cy="15.5" />
+    <line x1="15.5" y1="5.5" x2="15.5" y2="25.5" transform="rotate(45 15.5 15.5)" style="fill: currentColor;" />
+    <line x1="15.5" y1="5.5" x2="15.5" y2="25.5" transform="rotate(-45 15.5 15.5)" style="fill: currentColor;" />
   </symbol>
 
 </svg>
