@@ -92,11 +92,34 @@ Template.myIds.onRendered(function() {
   dragmove = function(d) {
     // console.log("dragmove event ", d3.event);
     console.log("DRAGMOVE item with data: ", d);
-    d.px += d3.event.dx;
-    d.py += d3.event.dy;
-    d.x += d3.event.dx;
-    d.y += d3.event.dy;
-    updateDOM();
+    Identifications.update(d._id, {
+      $inc: {
+        px: d3.event.dx,
+        py: d3.event.dy,
+        x: d3.event.dx,
+        y: d3.event.dy}
+    });
+    Links.find({"source._id": d._id}).forEach(function(link) {
+      Links.update(link._id,
+        {$inc: {
+          "source.px": d3.event.dx,
+          "source.py": d3.event.dy,
+          "source.x": d3.event.dx,
+          "source.y": d3.event.dy
+        }}, {multi: true}
+      );
+    });
+
+    Links.find({"target._id": d._id}).forEach(function(link) {
+      Links.update(link._id,
+        {$inc: {
+          "target.px": d3.event.dx,
+          "target.py": d3.event.dy,
+          "target.x": d3.event.dx,
+          "target.y": d3.event.dy
+        }}, {multi: true}
+      );
+    });
   };
 
   dragend = function(d) {
