@@ -293,12 +293,21 @@ Template.myIds.onRendered(function() {
     nodes = idsCollection;
     links = linksCollection;
 
+    // We produce our D3 'update selection' (i.e. the result of the 'data()' operator).
+    // 'linkElements' represents all the selected DOM elements (here: <g.link>) bound to the
+    // specified data elements (i.e. the 'links' array).
     linkElements = linkElements.data(links, function(d) {
       return d.source._id + "-" + d.target._id;
     });
 
+    // We operate on our 'update selection' to determine the exiting elements, i.e. all the
+    // present DOM elements (here: <g.link>) for which no new data point was found in our
+    // 'links' array.
     linkElements.exit().remove();
 
+    // We operate on our 'update selection' to determine the entering elements, i.e. the
+    // elements that we want to insert into the DOM according to each data point in our
+    // 'links' array for which no corresponding DOM element was found in our current selection.
     linkElements.enter().insert("line", ".node")
       .attr("class", "link")
       .attr("x1", function(d) {
@@ -314,7 +323,9 @@ Template.myIds.onRendered(function() {
         return d.target.y;
       });
 
-    // Bind the data to the nodeElements selection and also returns the update selection.
+    // We produce our D3 'update selection' (i.e. the result of the 'data()' operator).
+    // 'nodeElements' represents all the selected DOM elements (here: <g.node>) bound to the
+    // specified data elements (i.e. the 'nodes' array).
     nodeElements = nodeElements.data(nodes, function(d, i) {
       return d._id;
     });
@@ -324,9 +335,15 @@ Template.myIds.onRendered(function() {
       return Session.equals("selectedElement", d._id);
     });
 
-    // Remove any deleted elements
+    // We operate on our 'update selection' to determine the exiting elements, i.e. all the
+    // present DOM elements (here: <g.node>) for which no new data point was found in our
+    // 'nodes' array.
     nodeElements.exit().remove();
 
+    // We produce our D3 'enter selection'.
+    // 'nodeEnterGroup' represents the entering elements, i.e. the elements that we want to
+    // append to the DOM according to each data point in our 'nodes' array for which no
+    // corresponding DOM element was found in our current selection.
     nodeEnterGroup = nodeElements.enter().append("g")
       .attr("id", function(d) {
         // We need to prefix the value that is assigned to the 'id' attribute
