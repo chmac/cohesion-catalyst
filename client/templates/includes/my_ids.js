@@ -51,7 +51,7 @@ Template.myIds.onRendered(function() {
   yPos = height / 3 * 1.5;
   radius = 35;
   placeHolderTxt = PLACEHOLDER_TXT;
-  isFixed = false;
+  isFixed = true;
   selectedNode = null;
   mousedownNode = null;
   mouseupNode = null;
@@ -91,19 +91,20 @@ Template.myIds.onRendered(function() {
 
   dragmove = function(d) {
     // console.log("dragmove event ", d3.event);
-    console.log("DRAGMOVE item with data: ", d);
+    console.log("DRAGMOVE item this: ", d3.select(this));
+    console.log("DRAGMOVE item this.node: ", d3.select(this).node());
     Identifications.update(d._id, {
       $inc: {
-        px: d3.event.dx,
-        py: d3.event.dy,
+        // px: d3.event.dx,
+        // py: d3.event.dy,
         x: d3.event.dx,
         y: d3.event.dy}
     });
     Links.find({"source._id": d._id}).forEach(function(link) {
       Links.update(link._id,
         {$inc: {
-          "source.px": d3.event.dx,
-          "source.py": d3.event.dy,
+          // "source.px": d3.event.dx,
+          // "source.py": d3.event.dy,
           "source.x": d3.event.dx,
           "source.y": d3.event.dy
         }}, {multi: true}
@@ -113,9 +114,9 @@ Template.myIds.onRendered(function() {
     Links.find({"target._id": d._id}).forEach(function(link) {
       Links.update(link._id,
         {$inc: {
-          "target.px": d3.event.dx,
-          "target.py": d3.event.dy,
-          "target.x": d3.event.dx,
+          // "target.px": d3.event.dx,
+          // "target.py": d3.event.dy,
+          "target.x": d3.event.dx ,
           "target.y": d3.event.dy
         }}, {multi: true}
       );
@@ -123,10 +124,11 @@ Template.myIds.onRendered(function() {
   };
 
   dragend = function(d) {
-    //console.log("dragend event ", d3.event);
-    d.fixed = true;
-    updateDOM();
-    force.resume();
+    console.log("dragend event ", d3.event);
+    d3.select(this).classed("dragging", false);
+    // d.fixed = true;
+    // updateDOM();
+    // force.resume();
   };
 
   updateDOM = function () {
@@ -281,6 +283,7 @@ Template.myIds.onRendered(function() {
 
   updateLayout = function(idsCollection, linksCollection) {
     var nodeEnterGroup,
+        avatarSize,
         nodeControls,
         dragIcon,
         deleteIcon,
@@ -289,6 +292,7 @@ Template.myIds.onRendered(function() {
 
     iconRadius = 15;
     dashedRadius = 40;
+    avatarSize = 150;
 
     nodes = idsCollection;
     links = linksCollection;
@@ -382,16 +386,9 @@ Template.myIds.onRendered(function() {
       if (d.level === 0) {
         avatarIcon = document.createElementNS(d3.ns.prefix.svg, "use");
         avatarIcon.setAttributeNS(d3.ns.prefix.xlink, "xlink:href", currentAvatar.url);
-        avatarIcon.setAttribute("width", 150);
-        avatarIcon.setAttribute("height", 150);
-        avatarIcon.setAttribute("transform", "translate(-75, -75)");
-        //     // Meteor.defer(function() {
-        //     //   iconBBox = avatarIcon.node().getBBox();
-        //     //   avatarIcon.attr({
-        //     //     x: -iconBBox.x - iconBBox.width/2,
-        //     //     y: -iconBBox.y - iconBBox.height/2
-        //     //   });
-        //     // });
+        avatarIcon.setAttribute("width", avatarSize);
+        avatarIcon.setAttribute("height", avatarSize);
+        avatarIcon.setAttribute("transform", "translate(" + (-avatarSize/2) + ","  +(-avatarSize/2) + ")");
         return avatarIcon;
       }
 
@@ -417,9 +414,7 @@ Template.myIds.onRendered(function() {
         svgText = document.createElementNS(d3.ns.prefix.svg, "text");
         svgText.setAttribute("text-anchor", "middle");
         svgText.textContent = currentUser.profile.name;
-        Meteor.defer(function() {
-          svgText.setAttribute("transform", "translate(0, " + (d3.select("use").node().getBBox().height/2 + 22.5) + ")");
-        });
+        svgText.setAttribute("transform", "translate(0," + (avatarSize/2 + 5) +")");
         return svgText;
       }
       /**
@@ -523,7 +518,25 @@ Template.myIds.onRendered(function() {
       dragIcon = nodeControls.append("g")
         .attr("transform", "translate(" + (-dashedRadius - 30) + "," + (-dashedRadius) + ")")
         .attr("class", "drag-icon")
-        .call(drag);
+        // .call(drag);
+        .on("mousedown", function(d) {
+          console.log("MDOWN d3.event", d3.event, "__" ,d3.event.x );
+          d3.select(this).call(drag);
+          d3.select("#gid" + d._id)
+            .classed("dragging", true)
+            .call(drag);
+        })
+        .on("mousemove", function(d) {
+          // console.log("MMOVEd3.event", d3.event, "__" ,d3.event.x );
+          // if (d3.select("#gid" + d._id).classed("dragging")) {
+          //   d3.select("#gid" + d._id).call(drag);
+          // } else {
+          //   return;
+          // }
+        })
+        .on("mouseup", function(d) {
+          d3.select("#gid" + d._id).on(".drag", null);
+        });
 
       dragIcon.append("use")
         .attr("xlink:href", "svg/icons.svg#drag-icon");
@@ -568,6 +581,7 @@ Template.myIds.onRendered(function() {
     .on("tick", updateDOM); // Calls the updateDOM() function on each iteration step.
 
   drag = d3.behavior.drag()
+    .origin(function(d) { return {x:0, y:0};  })
     .on("dragstart", dragstart)
     .on("drag", dragmove)
     .on("dragend", dragend);
