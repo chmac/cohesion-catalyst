@@ -25,9 +25,9 @@ Template.myIds.onRendered(function() {
     svgGroup,
     dragLine,
     resetMouseVars,
-    mousemove,
-    mouseup,
-    mousedown,
+    drawLineToMousePosition,
+    createNodeAtMousePosition,
+    deselectCurrentNode,
     updateLayout,
     updateDOM,
     dragstart,
@@ -83,30 +83,28 @@ Template.myIds.onRendered(function() {
   }
 
   dragstart = function(d) {
-    //console.log("dragstart event ", d3.event);
+    console.log("dragstart event ", d3.event);
+    d3.select(this).classed("dragging", true);
     d3.event.sourceEvent.stopPropagation();
-    d3.event.sourceEvent.preventDefault();
     force.stop();
   };
 
   dragmove = function(d) {
-    // console.log("dragmove event ", d3.event);
-    console.log("DRAGMOVE item this: ", d3.select(this));
-    console.log("DRAGMOVE item this.node: ", d3.select(this).node());
+    console.log("dragmove event ", d3.event);
+    console.log("d3.select(this) ", d3.select(this));
+    console.log("d3.mouse(this) ", d3.mouse(this));
+    var deltaX = d3.mouse(this)[0];
+    var deltaY = d3.mouse(this)[1];
     Identifications.update(d._id, {
       $inc: {
-        // px: d3.event.dx,
-        // py: d3.event.dy,
-        x: d3.event.dx,
-        y: d3.event.dy}
+        x: deltaX,
+        y: deltaY}
     });
     Links.find({"source._id": d._id}).forEach(function(link) {
       Links.update(link._id,
         {$inc: {
-          // "source.px": d3.event.dx,
-          // "source.py": d3.event.dy,
-          "source.x": d3.event.dx,
-          "source.y": d3.event.dy
+          "source.x": deltaX,
+          "source.y": deltaY
         }}, {multi: true}
       );
     });
@@ -114,13 +112,14 @@ Template.myIds.onRendered(function() {
     Links.find({"target._id": d._id}).forEach(function(link) {
       Links.update(link._id,
         {$inc: {
-          // "target.px": d3.event.dx,
-          // "target.py": d3.event.dy,
-          "target.x": d3.event.dx ,
-          "target.y": d3.event.dy
+          "target.x": deltaX,
+          "target.y": deltaY
         }}, {multi: true}
       );
     });
+
+    // We handled this event here. No one else should see it no more.
+    // d3.event.sourceEvent.stopPropagation();
   };
 
   dragend = function(d) {
@@ -157,7 +156,7 @@ Template.myIds.onRendered(function() {
   };
 
   // Handle the mousedown event for the outer svgGroup.
-  mousedown = function() {
+  deselectCurrentNode = function() {
     if (!mousedownNode) {
       selectNodeElement(null);
       resetMouseVars();
@@ -167,7 +166,7 @@ Template.myIds.onRendered(function() {
   };
 
   // Handle the mousemove event for the outer svgGroup.
-  mousemove = function() {
+  drawLineToMousePosition = function() {
     // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
     if (!mousedownNode) {
       return;
@@ -185,10 +184,10 @@ Template.myIds.onRendered(function() {
       .attr("y1", mousedownNode.y)
       .attr("x2", d3.mouse(this)[0])
       .attr("y2", d3.mouse(this)[1]);
-  }; // end mousemove()
+  }; // end drawLineToMousePosition()
 
   // Handle the mouseup event for the outer svgGroup.
-  mouseup = function() {
+  createNodeAtMousePosition = function() {
     var newNodePos,
       node,
       newNodeId,
@@ -204,7 +203,7 @@ Template.myIds.onRendered(function() {
       return;
     }
 
-    // Hide the drag line when mousemove has finished.
+    // Hide the drag line since mousemove has finished.
     dragLine.attr("class", "drag-line-hidden");
 
     // Create a new node object with the current mouse position coordinates.
@@ -278,7 +277,7 @@ Template.myIds.onRendered(function() {
      * cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
      */
     document.execCommand("selectAll", false, null);
-  }; // end mouseup()
+  }; // end createNodeAtMousePosition()
 
 
   updateLayout = function(idsCollection, linksCollection) {
@@ -335,7 +334,6 @@ Template.myIds.onRendered(function() {
     });
 
     nodeElements.classed("node-selected", function(d) {
-      // return selectedNode && d._id === selectedNode._id;
       return Session.equals("selectedElement", d._id);
     });
 
@@ -368,7 +366,6 @@ Template.myIds.onRendered(function() {
           return d._id && d.level > 0;
         },
         "node-selected": function(d) {
-          // return selectedNode && d._id === selectedNode._id;
           return Session.equals("selectedElement", d._id);
         }
       });
@@ -441,26 +438,46 @@ Template.myIds.onRendered(function() {
       .on("mousedown", function(d) {
         d3.event.stopPropagation();
         mousedownNode = d;
-        // We need to ensure that the user enters some text before he or she may
-        // continue to create other identification bubbles.
-        if (mousedownNode.name === placeHolderTxt || mousedownNode.name === "") {
-          d3.select("#ids-vis g")
-            .on("mousemove", null)
-            .on("mouseup", null);
-          return d3.select(this).classed("node-empty", true);
+
+        if (d3.event.shiftKey) {
+
+          // TODO implement custom drag behaviour using shiftKey or longclick to discriminate
+          // between regular mousedown and the creatiion of new nodes
+          d3.select(this)
+            .on("mousemove", dragmove);
+
         } else {
-          d3.select("#ids-vis g")
-            .on("mousemove", mousemove)
-            .on("mouseup", mouseup);
+
+          // We need to ensure that the user enters some text before he or she may
+          // continue to create other identification bubbles.
+          if (mousedownNode.name === placeHolderTxt || mousedownNode.name === "") {
+            d3.select("#ids-vis g")
+              .on("mousemove", null)
+              .on("mouseup", null);
+            return d3.select(this).classed("node-empty", true);
+          } else {
+            d3.select("#ids-vis g")
+              .on("mousemove", drawLineToMousePosition)
+              .on("mouseup", createNodeAtMousePosition);
+          }
         }
         selectNodeElement(mousedownNode._id);
       })
       .on("mouseup", function(d) { // mouseup on a Böbbel
         d3.event.stopPropagation();
         mouseupNode = d;
-        if (!mousedownNode || mouseupNode._id === mousedownNode._id) {
-          resetMouseVars();
-          return;
+
+        // TODO implement custom drag behaviour using shiftKey or longclick
+        if (d3.event.shiftKey) {
+          console.log("mouseup shiftKey");
+
+        } else {
+
+            if (!mousedownNode || mouseupNode._id === mousedownNode._id) {
+              resetMouseVars();
+              return;
+            }
+
         }
       })
       .on("keydown", function(d) {
@@ -517,26 +534,7 @@ Template.myIds.onRendered(function() {
 
       dragIcon = nodeControls.append("g")
         .attr("transform", "translate(" + (-dashedRadius - 30) + "," + (-dashedRadius) + ")")
-        .attr("class", "drag-icon")
-        // .call(drag);
-        .on("mousedown", function(d) {
-          console.log("MDOWN d3.event", d3.event, "__" ,d3.event.x );
-          d3.select(this).call(drag);
-          d3.select("#gid" + d._id)
-            .classed("dragging", true)
-            .call(drag);
-        })
-        .on("mousemove", function(d) {
-          // console.log("MMOVEd3.event", d3.event, "__" ,d3.event.x );
-          // if (d3.select("#gid" + d._id).classed("dragging")) {
-          //   d3.select("#gid" + d._id).call(drag);
-          // } else {
-          //   return;
-          // }
-        })
-        .on("mouseup", function(d) {
-          d3.select("#gid" + d._id).on(".drag", null);
-        });
+        .attr("class", "drag-icon");
 
       dragIcon.append("use")
         .attr("xlink:href", "svg/icons.svg#drag-icon");
@@ -554,7 +552,7 @@ Template.myIds.onRendered(function() {
 
     if (d3.event) {
       // Prevent browser's default behavior
-      console.log("d3.event >> " , d3.event.type , " || target: " , d3.event.target , " || currentTarget: " , d3.event.currentTarget);
+      console.log("d3.event >> " , d3.event);
       d3.event.preventDefault();
     }
 
@@ -580,11 +578,11 @@ Template.myIds.onRendered(function() {
     .friction(0.01) // Slows the layout down at eacht iteration.
     .on("tick", updateDOM); // Calls the updateDOM() function on each iteration step.
 
-  drag = d3.behavior.drag()
-    .origin(function(d) { return {x:0, y:0};  })
-    .on("dragstart", dragstart)
-    .on("drag", dragmove)
-    .on("dragend", dragend);
+  // drag = d3.behavior.drag()
+  //   .origin(function(d) { return {x: 0, y: 0};  })
+  //   .on("dragstart", dragstart)
+  //   .on("drag", dragmove)
+  //   .on("dragend", dragend);
 
   // Create the SVG element
   svgViewport = d3.select("#ids-graph").append("svg")
@@ -592,46 +590,9 @@ Template.myIds.onRendered(function() {
     .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
     .attr("preserveAspectRatio", "xMidYMid meet");
 
-  // svgCheckbox = svgViewport.append("g")
-  //   .attr("transform", "translate(" + (margin.left) + ", 0)")
-  //   .attr("class", "sticky-checkbox")
-  //   .on("click", function() {
-  //     var that = d3.select(this);
-  //     if (that.classed("checked")) {
-  //       isFixed = false;
-  //       that.classed("checked", false);
-  //     } else {
-  //       isFixed = true;
-  //       that.classed("checked", true);
-  //     }
-  //     nodes.forEach(function(n) {
-  //       if (n.level && n.level !== 0) {
-  //         n.fixed = isFixed;
-  //       }
-  //     });
-  //     updateLayout();
-  //   });
-
-  // svgCheckbox.append("text")
-  //   .attr("x", margin.left + 15)
-  //   .attr("y", 18)
-  //   .attr("text-anchor", "start")
-  //   .text("Sticky");
-  //
-  // svgCheckbox.append("circle")
-  //   .attr("r", 6)
-  //   .attr("cx", margin.left + 5)
-  //   .attr("cy", 12);
-  //
-  // svgCheckbox.append("path")
-  //   .attr("d", "M 13 12 L 15 15 L 18 9");
-
-
   svgGroup = svgViewport.append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-    .on("mousemove", mousemove)
-    .on("mousedown", mousedown)
-    .on("mouseup", mouseup);
+    .on("mousedown", deselectCurrentNode);
 
   svgGroup.append("rect")
     .attr("width", width)
