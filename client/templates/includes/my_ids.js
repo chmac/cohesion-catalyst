@@ -27,12 +27,13 @@ Template.myIds.onRendered(function() {
     resetMouseVars,
     drawLineToMousePosition,
     createNodeAtMousePosition,
+    dragNodeToMousePosition,
     deselectCurrentNode,
     updateLayout,
     updateDOM,
     dragstart,
     dragmove,
-    dragend,
+    //dragend,
     currentUser,
     currentTrainingId,
     currentAvatar
@@ -93,16 +94,16 @@ Template.myIds.onRendered(function() {
     console.log("dragmove event ", d3.event);
     console.log("d3.select(this) ", d3.select(this));
     console.log("d3.mouse(this) ", d3.mouse(this));
-    var deltaX = d3.mouse(this)[0];
-    var deltaY = d3.mouse(this)[1];
+    var deltaX = d3.mouse(d3.select("#ids-vis g").node())[0];
+    var deltaY = d3.mouse(d3.select("#ids-vis g").node())[1];
     Identifications.update(d._id, {
-      $inc: {
+      $set: {
         x: deltaX,
         y: deltaY}
     });
     Links.find({"source._id": d._id}).forEach(function(link) {
       Links.update(link._id,
-        {$inc: {
+        {$set: {
           "source.x": deltaX,
           "source.y": deltaY
         }}, {multi: true}
@@ -111,7 +112,7 @@ Template.myIds.onRendered(function() {
 
     Links.find({"target._id": d._id}).forEach(function(link) {
       Links.update(link._id,
-        {$inc: {
+        {$set: {
           "target.x": deltaX,
           "target.y": deltaY
         }}, {multi: true}
@@ -122,12 +123,45 @@ Template.myIds.onRendered(function() {
     // d3.event.sourceEvent.stopPropagation();
   };
 
-  dragend = function(d) {
-    console.log("dragend event ", d3.event);
-    d3.select(this).classed("dragging", false);
-    // d.fixed = true;
-    // updateDOM();
-    // force.resume();
+
+  dragNodeToMousePosition = function(nodeDataObject) {
+    console.log("dragNodeToMousePosition nodeObject", nodeDataObject);
+    var mouseX,
+      mouseY
+      ;
+
+    d3.select("#gid" + nodeDataObject._id)
+      .on("mousemove", moveNode);
+
+    d3.select("#ids-vis g")
+      .on("mousemove", moveNode);
+
+    function moveNode() {
+      mouseX = d3.mouse(d3.select("#ids-vis g").node())[0];
+      mouseY = d3.mouse(d3.select("#ids-vis g").node())[1];
+      Identifications.update(nodeDataObject._id, {
+        $set: {
+          x: mouseX,
+          y: mouseY}
+      });
+      Links.find({"source._id": nodeDataObject._id}).forEach(function(link) {
+        Links.update(link._id,
+          {$set: {
+            "source.x": mouseX,
+            "source.y": mouseY
+          }}, {multi: true}
+        );
+      });
+
+      Links.find({"target._id": nodeDataObject._id}).forEach(function(link) {
+        Links.update(link._id,
+          {$set: {
+            "target.x": mouseX,
+            "target.y": mouseY
+          }}, {multi: true}
+        );
+      });
+    }
   };
 
   updateDOM = function () {
@@ -172,6 +206,11 @@ Template.myIds.onRendered(function() {
       return;
     }
 
+    // We do not want the dragLine to be drawn when we drag a node.
+    if (d3.event.shiftKey) {
+      return;
+    }
+
     if (Session.equals("selectedElement", mousedownNode._id)) {
       selectNodeElement(null);
     }
@@ -203,7 +242,13 @@ Template.myIds.onRendered(function() {
       return;
     }
 
-    // Hide the drag line since mousemove has finished.
+    if (d3.event.shiftKey) {
+      return;
+    }
+
+    // Since moving the mouse has finished, we hide the line drawn during dragging.
+    // It will be replaced with a newly created 'linkElement', i.e. an SVG <line> which
+    // represents the link between nodes.
     dragLine.attr("class", "drag-line-hidden");
 
     // Create a new node object with the current mouse position coordinates.
@@ -416,7 +461,7 @@ Template.myIds.onRendered(function() {
       }
       /**
        * HEADS UP: Chrome will ignore the camelCase naming of SVG <foreignObject> elements
-       * and instead renders an lower case tagname <foreignobject>.
+       * and instead renders a lower case tagname <foreignobject>.
        * So we apply a class "foreign-object" to be used as selector if needed.
        * cf. http://bl.ocks.org/jebeck/10699411 [as of 2015-02-23]
        */
@@ -437,14 +482,17 @@ Template.myIds.onRendered(function() {
     nodeEnterGroup
       .on("mousedown", function(d) {
         d3.event.stopPropagation();
+        // d3.event.preventDefault();
         mousedownNode = d;
 
         if (d3.event.shiftKey) {
-
+          console.log("shift_ ", this);
           // TODO implement custom drag behaviour using shiftKey or longclick to discriminate
-          // between regular mousedown and the creatiion of new nodes
-          d3.select(this)
-            .on("mousemove", dragmove);
+          // between regular mousedown and the creatiion of new
+          d3.select(this).classed("dragging", true);
+          dragNodeToMousePosition(mousedownNode);
+          // d3.select(this).on("mousemove", dragmove);
+          // d3.select("#ids-vis g").on("mousemove", dragmove);
 
         } else {
 
@@ -468,8 +516,14 @@ Template.myIds.onRendered(function() {
         mouseupNode = d;
 
         // TODO implement custom drag behaviour using shiftKey or longclick
-        if (d3.event.shiftKey) {
+        if (d3.event.shiftKey || d3.select(this).classed("dragging")) {
           console.log("mouseup shiftKey");
+          d3.select(this)
+            .on("mousemove", null)
+            .classed("dragging", false);
+          d3.select("#ids-vis g").on("mousemove", null);
+          selectNodeElement(null);
+          resetMouseVars();
 
         } else {
 
