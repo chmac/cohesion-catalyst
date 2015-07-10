@@ -46,7 +46,9 @@ Template.intro.onRendered(function() {
               scaleElement(d3.select(this).node(), 1, 250);
             });
             scaleElement(d3.select(self).node(), 1.5, 250);
-            // Router.go("myIds");
+            // After successful smiley selection, redirect to the 'my IDs' view.
+            // TODO Improve redirection and make it a smooth and nicely animated view transition 
+            Router.go("myIds");
         });
       }
       return false;
