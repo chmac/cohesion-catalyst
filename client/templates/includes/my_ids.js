@@ -31,9 +31,6 @@ Template.myIds.onRendered(function() {
     deselectCurrentNode,
     updateLayout,
     updateDOM,
-    dragstart,
-    dragmove,
-    //dragend,
     currentUser,
     currentTrainingId,
     currentAvatar
@@ -83,58 +80,20 @@ Template.myIds.onRendered(function() {
     });
   }
 
-  dragstart = function(d) {
-    console.log("dragstart event ", d3.event);
-    d3.select(this).classed("dragging", true);
-    d3.event.sourceEvent.stopPropagation();
-    force.stop();
-  };
-
-  dragmove = function(d) {
-    console.log("dragmove event ", d3.event);
-    console.log("d3.select(this) ", d3.select(this));
-    console.log("d3.mouse(this) ", d3.mouse(this));
-    var deltaX = d3.mouse(d3.select("#ids-vis g").node())[0];
-    var deltaY = d3.mouse(d3.select("#ids-vis g").node())[1];
-    Identifications.update(d._id, {
-      $set: {
-        x: deltaX,
-        y: deltaY}
-    });
-    Links.find({"source._id": d._id}).forEach(function(link) {
-      Links.update(link._id,
-        {$set: {
-          "source.x": deltaX,
-          "source.y": deltaY
-        }}, {multi: true}
-      );
-    });
-
-    Links.find({"target._id": d._id}).forEach(function(link) {
-      Links.update(link._id,
-        {$set: {
-          "target.x": deltaX,
-          "target.y": deltaY
-        }}, {multi: true}
-      );
-    });
-
-    // We handled this event here. No one else should see it no more.
-    // d3.event.sourceEvent.stopPropagation();
-  };
-
 
   dragNodeToMousePosition = function(nodeDataObject) {
-    console.log("dragNodeToMousePosition nodeObject", nodeDataObject);
     var mouseX,
       mouseY
       ;
 
     d3.select("#gid" + nodeDataObject._id)
-      .on("mousemove", moveNode);
+      //.on("mousemove", moveNode)
+      .on("mouseup", dragend);
 
     d3.select("#ids-vis g")
-      .on("mousemove", moveNode);
+    .on("mousemove", moveNode)
+    .on("mouseup", dragend);
+
 
     function moveNode() {
       mouseX = d3.mouse(d3.select("#ids-vis g").node())[0];
@@ -161,6 +120,16 @@ Template.myIds.onRendered(function() {
           }}, {multi: true}
         );
       });
+    }
+
+    function dragend() {
+      console.log("mouseup shiftKey");
+      d3.select(this)
+        //.on("mousemove", null)
+        .classed("dragging", false);
+      d3.select("#ids-vis g").on("mousemove", null);
+      selectNodeElement(null);
+      resetMouseVars();
     }
   };
 
@@ -485,14 +454,12 @@ Template.myIds.onRendered(function() {
         // d3.event.preventDefault();
         mousedownNode = d;
 
+        // We enable the dragging of a node when the holds down the 'SHIFT' key.
         if (d3.event.shiftKey) {
-          console.log("shift_ ", this);
-          // TODO implement custom drag behaviour using shiftKey or longclick to discriminate
-          // between regular mousedown and the creatiion of new
-          d3.select(this).classed("dragging", true);
-          dragNodeToMousePosition(mousedownNode);
-          // d3.select(this).on("mousemove", dragmove);
-          // d3.select("#ids-vis g").on("mousemove", dragmove);
+          if (d.level > 0) {
+            d3.select(this).classed("dragging", true);
+            dragNodeToMousePosition(mousedownNode);
+          }
 
         } else {
 
@@ -507,34 +474,32 @@ Template.myIds.onRendered(function() {
             d3.select("#ids-vis g")
               .on("mousemove", drawLineToMousePosition)
               .on("mouseup", createNodeAtMousePosition);
+
+            d3.select(this)
+              .on("mouseup", function(d) {
+                d3.event.stopPropagation();
+                mouseupNode = d;
+
+                if (!mousedownNode || mouseupNode._id === mousedownNode._id) {
+                  resetMouseVars();
+                  return;
+                }
+              });
           }
         }
         selectNodeElement(mousedownNode._id);
       })
-      .on("mouseup", function(d) { // mouseup on a Böbbel
-        d3.event.stopPropagation();
-        mouseupNode = d;
-
-        // TODO implement custom drag behaviour using shiftKey or longclick
-        if (d3.event.shiftKey || d3.select(this).classed("dragging")) {
-          console.log("mouseup shiftKey");
-          d3.select(this)
-            .on("mousemove", null)
-            .classed("dragging", false);
-          d3.select("#ids-vis g").on("mousemove", null);
-          selectNodeElement(null);
-          resetMouseVars();
-
-        } else {
-
-            if (!mousedownNode || mouseupNode._id === mousedownNode._id) {
-              resetMouseVars();
-              return;
-            }
-
+      .on("keydown", function(d) {
+        // For the 'keydown' event we need to prevent that the return character is
+        // appended to the input text.
+        if (d3.event.keyCode === 13) {
+          d3.event.preventDefault();
         }
       })
-      .on("keydown", function(d) {
+      .on("keyup", function(d) {
+        // Here, we process the user input:
+        // Using "keyup" instead of 'keydown' is necessary because 'keydown' event is fired
+        // before the editable content inside the <p> element has changed and is processed, respectively.
         d3.event.stopPropagation();
 
         if (d.level > 0) {
@@ -544,18 +509,14 @@ Template.myIds.onRendered(function() {
           inputTxt = d3.select(this).select("p.txt-input");
           newName = inputTxt.text();
 
-          // When the user hits 'ENTER' we need to ensure that the user did not
-          // leave the input empty and if so, we will display a message to the user
-          // and stop executing the event handling. Otherwise, we update the
+          // When the user hits 'ENTER' (i.e. keycode 13) we update the 'name' field and the
           // 'editCompleted' field of the current document in the 'Identifications'
           // collection and deselect the node element.
           // The 'editCompleted' field allows for database queries only for documents
-          // that a user has finished editing.
+          // that a user has finished editing. Therefore, on 'ENTER' it will be set to 'true'.
+          // In any other case, i.e. all along while the user is still typing, the 'editCompleted'
+          // field remains 'false'.
           if (d3.event.keyCode === 13) {
-            d3.event.preventDefault();
-            if (newName === placeHolderTxt || newName === "") {
-              return d3.select(this).classed("node-empty", true);
-            }
             Identifications.update(d._id, {
               $set: {
                 name: newName,
@@ -564,7 +525,6 @@ Template.myIds.onRendered(function() {
             inputTxt.node().blur();
             selectNodeElement(null);
           } else {
-            // While the user types, we update the current document.
             Identifications.update(d._id, {
               $set: {
                 name: newName,
@@ -572,6 +532,16 @@ Template.myIds.onRendered(function() {
               }
             });
           }
+
+          // We need to ensure that the placeholder text gets replaced by user input or that user
+          // does not leave the input empty, respectively.
+          // Therefore, we show whether the input text is valid or not.
+          if (newName === placeHolderTxt || newName === "") {
+            d3.select(this).classed("node-empty", true);
+          } else {
+            d3.select(this).classed("node-empty", false);
+          }
+
         }
         // We use 'return' here to abort listening to this event on root level
         return;
@@ -585,13 +555,6 @@ Template.myIds.onRendered(function() {
 
       nodeControls = nodeEnterGroup.append("g")
         .attr("class", "selected-controls");
-
-      dragIcon = nodeControls.append("g")
-        .attr("transform", "translate(" + (-dashedRadius - 30) + "," + (-dashedRadius) + ")")
-        .attr("class", "drag-icon");
-
-      dragIcon.append("use")
-        .attr("xlink:href", "svg/icons.svg#drag-icon");
 
       deleteIcon = nodeControls.append("g")
         .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
@@ -631,12 +594,6 @@ Template.myIds.onRendered(function() {
     .gravity(0) // A value of 0 disables gravity.
     .friction(0.01) // Slows the layout down at eacht iteration.
     .on("tick", updateDOM); // Calls the updateDOM() function on each iteration step.
-
-  // drag = d3.behavior.drag()
-  //   .origin(function(d) { return {x: 0, y: 0};  })
-  //   .on("dragstart", dragstart)
-  //   .on("drag", dragmove)
-  //   .on("dragend", dragend);
 
   // Create the SVG element
   svgViewport = d3.select("#ids-graph").append("svg")
@@ -712,7 +669,8 @@ function selectNodeElement(elementId) {
     });
     d3.select("#gid" + selectedElement).classed({
       "node-selected": false,
-      "node-empty": false
+      "node-empty": false,
+      "dragging": false
     });
   }
   if (elementId) {
