@@ -225,6 +225,10 @@ a.avatar {
   fill: #fff;
 }
 
+.node.dragging {
+  cursor: move;
+}
+
 .root {
   outline: none;
 }
@@ -275,15 +279,20 @@ circle.dashed {
 }
 
 .child.node-selected.node-empty > circle.dashed,
-.child.node-selected.node-empty > g.selected-controls .drag-icon,
-.child.node-selected.node-empty > g.selected-controls .delete-icon,
-.child.node-selected.node-empty p.txt-input {
+.child.node-selected.node-empty > g.selected-controls .delete-icon {
   stroke: #a94442;
-  color: #a94442;
 }
 
-.foreign-object {
-  display: table-row; /* This is needed for vertical positioning of the text within <p> */
+.child.node-selected .foreign-object {
+  /*display: table-row;*/ /* This is needed for vertical positioning of the text within <p> */
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+  background: #a7aaae;
+}
+
+.child.node-selected.node-empty .foreign-object {
+  background: #a94442;
 }
 
 p.txt-input {
@@ -297,13 +306,11 @@ p.txt-input {
   line-height: 1.2em;
   text-align: center;
   outline: none;
-  -webkit-border-radius: 32px;
-  -moz-border-radius: 32px;
-  border-radius: 32px;
 }
 
-p.txt-input:focus {
-  color: #a7aaae;
+.child.node-selected p.txt-input,
+.child.node-selected.node-empty p.txt-input {
+  color: #fff;
 }
 
 /* http://css-tricks.com/overriding-the-default-text-selection-color-with-css/ */
