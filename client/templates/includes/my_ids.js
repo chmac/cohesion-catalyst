@@ -1,5 +1,18 @@
+/**
+ * my_ids.js
+ *
+ * TODO provide overview description of this file
+ */
+
 var PLACEHOLDER_TXT = "I identify with...";
 
+/**
+ * Adds a callback to this template so that it is called when an instance of this template
+ * is rendered and inserted into the DOM.
+ * All of the {@code D3} code goes inside this callback to allow for accessing the DOM elements and
+ * interact with them.
+ * (cf. <a href="http://docs.meteor.com/#/full/template_onRendered">Meteor onRendered()</a>)
+ */
 Template.myIds.onRendered(function() {
 
   var margin,
@@ -80,12 +93,24 @@ Template.myIds.onRendered(function() {
     });
   }
 
-
+  /**
+   * Handles the dragging (i.e. re-positioning) of an existing node element (an identification bubble).
+   * It is called from a {@code mousedown} event if the {@code Shift} key was active and registers
+   * the handlers for the {@mousemove} and {@mouseup} events that follow the {@mousedown} event.
+   * These handlers are defined within the function.
+   *
+   * @param {Object} nodeDataObject The joined data of the HTML/SVG element that received
+   * the {@code mousedown} event.
+   */
   dragNodeToMousePosition = function(nodeDataObject) {
     var mouseX,
       mouseY
       ;
 
+    // We register the event handlers that will respond to the mousemove events
+    // and to the mouseup events subsequent to this mousedown event.
+    // Note that we are registering to both the individual node <g> elements and
+    // the encompassing <g> element (i.e. the drawing surface).
     d3.select("#gid" + nodeDataObject._id)
       //.on("mousemove", moveNode)
       .on("mouseup", dragend);
@@ -94,45 +119,66 @@ Template.myIds.onRendered(function() {
     .on("mousemove", moveNode)
     .on("mouseup", dragend);
 
-
+    /**
+     * Manages the moving of the element by responding to the {@code mousemove} event.
+     * Uses {@code d3.mouse} to retrieve the current mouse coordinates on the drawing surface
+     * and updates the values of the {@code x} and {@code y} positions in the regarding database
+     * collections which will automatically update the HTML/SVG.
+     */
     function moveNode() {
       mouseX = d3.mouse(d3.select("#ids-vis g").node())[0];
       mouseY = d3.mouse(d3.select("#ids-vis g").node())[1];
+
       Identifications.update(nodeDataObject._id, {
         $set: {
           x: mouseX,
-          y: mouseY}
+          y: mouseY
+        }
       });
+
       Links.find({"source._id": nodeDataObject._id}).forEach(function(link) {
-        Links.update(link._id,
-          {$set: {
+        Links.update(link._id, {
+          $set: {
             "source.x": mouseX,
             "source.y": mouseY
-          }}, {multi: true}
-        );
+          }
+        }, {multi: true});
       });
 
       Links.find({"target._id": nodeDataObject._id}).forEach(function(link) {
-        Links.update(link._id,
-          {$set: {
+        Links.update(link._id, {
+          $set: {
             "target.x": mouseX,
             "target.y": mouseY
-          }}, {multi: true}
-        );
+          }
+        }, {multi: true});
       });
-    }
+    } // end moveNode()
 
+    /**
+     * Handles the {@code mouseup} event subsequent to moving an element.
+     * Terminates the dragging.
+     */
     function dragend() {
-      console.log("mouseup shiftKey");
+      // We remove the CSS class indicating an element being dragged.
       d3.select(this)
         //.on("mousemove", null)
         .classed("dragging", false);
+
+      // We deregister the {@code mousemove} event
       d3.select("#ids-vis g").on("mousemove", null);
+      // We deselect the current element and reset our variables.
       selectNodeElement(null);
       resetMouseVars();
-    }
-  };
+    } // end dragend()
+  }; // end dragNodeToMousePosition()
 
+  /**
+   * Handles the {@code tick} event of the {@code d3.layout.force()}.
+   * {@code tick} events are dispatched for each tick of the force layout simulation, so listening
+   * to these events allows for updating the displayed DOM positions of nodes and links.
+   * (cf. <a href="https://github.com/mbostock/d3/wiki/Force-Layout#on">Force-Layout#on</a>)
+   */
   updateDOM = function () {
     linkElements.attr("x1", function(d) {
         return d.source.x;
@@ -153,12 +199,20 @@ Template.myIds.onRendered(function() {
 
   };
 
+  /**
+   * Sets the data objects referencing the previously processed nodes to null.
+   */
   resetMouseVars = function() {
     mousedownNode = null;
     mouseupNode = null;
   };
 
-  // Handle the mousedown event for the outer svgGroup.
+  /**
+   * Handles the {@code mousedown} event received by the encompassing SVG <g> element when
+   * no {@code Shift} key is being pressed.
+   * It simply deselects the HTML/SVG element and sets the data objects referencing the previously
+   * processed nodes to null.
+   */
   deselectCurrentNode = function() {
     if (!mousedownNode) {
       selectNodeElement(null);
@@ -168,7 +222,14 @@ Template.myIds.onRendered(function() {
     }
   };
 
-  // Handle the mousemove event for the outer svgGroup.
+
+  /**
+   * Responds to the {@code mousemove} event when no {@code Shift} key is being pressed, i.e. when
+   * a user wants to create a new node.
+   * Draws a temporary line between the current mouse position and to the position of the node
+   * element that received the {@code mousedown} event
+   * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
+   */
   drawLineToMousePosition = function() {
     // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
     if (!mousedownNode) {
@@ -194,7 +255,18 @@ Template.myIds.onRendered(function() {
       .attr("y2", d3.mouse(this)[1]);
   }; // end drawLineToMousePosition()
 
-  // Handle the mouseup event for the outer svgGroup.
+
+
+  /**
+   * Handles the {@code mouseup} event without a pressed {@code Shift} key that occurs at the end
+   * of a {@code mousemove} event.
+   * This function is responsible for creating a new data object of an 'Identification' node bubble
+   * and adding it to the regarding collections in our database.
+   * Makes use of the reactivity provided by {@code Meteor} to arrange the data driven
+   * update of the DOM by {@code D3}.
+   *
+   * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
+   */
   createNodeAtMousePosition = function() {
     var newNodePos,
       node,
@@ -284,16 +356,24 @@ Template.myIds.onRendered(function() {
     // Give the <p> element instant focus.
     newEditableElem.focus();
 
-    /**
-     * We want to select all of the text content within the currently active editable element
-     * to allow for instant text entering. The default text selection color is customized
-     * via CSS pseudo-element ::selection (@see CSS file)
-     * cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
-     */
+    // We want to select all of the text content within the currently active editable element
+    // to allow for instant text entering. The default text selection color is customized
+    // via CSS pseudo-element ::selection (@see CSS file)
+    // cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
     document.execCommand("selectAll", false, null);
   }; // end createNodeAtMousePosition()
 
-
+  /**
+   * Manages the data binding and establishing of the {@code D3} {@code update}, {@code enter} and
+   * {@code exit} selection. It is responsible for creating and rendering the visualization depending
+   * on the resulting selections and according to the applied attributes. It also manages the event
+   * registration.
+   * Besides the initial call, this function will automatically be called again from within
+   * a {@code Tracker.autorun} function every time the underlying reactive data sources change.
+   *
+   * @param {Array} idsCollection The queried documents of the 'Identifications' collection.
+   * @param {Array} linksCollection The queried documents of the 'Links' collection.
+   */
   updateLayout = function(idsCollection, linksCollection) {
     var nodeEnterGroup,
         avatarSize,
@@ -428,12 +508,11 @@ Template.myIds.onRendered(function() {
         svgText.setAttribute("transform", "translate(0," + (avatarSize/2 + 5) +")");
         return svgText;
       }
-      /**
-       * HEADS UP: Chrome will ignore the camelCase naming of SVG <foreignObject> elements
-       * and instead renders a lower case tagname <foreignobject>.
-       * So we apply a class "foreign-object" to be used as selector if needed.
-       * cf. http://bl.ocks.org/jebeck/10699411 [as of 2015-02-23]
-       */
+
+      // HEADS UP: Chrome will ignore the camelCase naming of SVG <foreignObject> elements
+      // and instead renders a lower case tagname <foreignobject>.
+      // So we apply a class "foreign-object" to be used as selector if needed.
+      // cf. http://bl.ocks.org/jebeck/10699411 [as of 2015-02-23]
       svgForeignObject = document.createElementNS(d3.ns.prefix.svg, "foreignObject");
       svgForeignObject.setAttribute("class", "foreign-object");
       svgForeignObject.setAttribute("width", radius * 2);
