@@ -272,7 +272,7 @@ a.avatar {
 }
 
 circle.dashed {
-  stroke: #fff;
+  stroke: #4593e3; /* blue color for selected nodes */
   stroke-width: 2;
   stroke-dasharray: 5 5;
   fill: #000;
@@ -280,7 +280,7 @@ circle.dashed {
 
 .child.node-selected.node-empty > circle.dashed,
 .child.node-selected.node-empty > g.selected-controls .delete-icon {
-  stroke: #a94442;
+  stroke: #d94839;
 }
 
 .child.node-selected .foreign-object {
@@ -288,11 +288,11 @@ circle.dashed {
   -webkit-border-radius: 50%;
   -moz-border-radius: 50%;
   border-radius: 50%;
-  background: #a7aaae;
+  background: #4593e3; /* blue color for selected nodes */
 }
 
 .child.node-selected.node-empty .foreign-object {
-  background: #a94442;
+  background: #d94839;
 }
 
 p.txt-input {
@@ -344,11 +344,10 @@ p.txt-input::-moz-selection {
  * elements which use the CSS variable 'currenColor' within the original symbol definition
  * in the file icons.svg.
  */
-.drag-icon,
 .delete-icon {
   cursor: pointer;
   fill: #000;
-  color: #fff;
-  stroke: #fff;
+  color: #4593e3; /* blue color for selected nodes */
+  stroke: #4593e3;
   stroke-width: 1;
 }
