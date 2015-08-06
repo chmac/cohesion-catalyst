@@ -1,3 +1,8 @@
+/*
+ * Base font-size of the <body> is set in relation to the Chrome browser
+ * default size of the <html> which is 10px.
+ * We want the base font-size to be of 16px, so 16px/10px yields 1.6em.
+ */
 body {
   font-size: 1.6em;
   background-color: #000;
@@ -283,29 +288,37 @@ circle.dashed {
   stroke: #d94839;
 }
 
-.child.node-selected .foreign-object {
-  /*display: table-row;*/ /* This is needed for vertical positioning of the text within <p> */
+.foreign-object {
+  display: table-row; /* This is needed for vertical positioning of the text within*/
   -webkit-border-radius: 50%;
   -moz-border-radius: 50%;
   border-radius: 50%;
-  background: #4593e3; /* blue color for selected nodes */
+  overflow: hidden;
+}
+
+.child.node-selected .foreign-object {
+  background: #4593e3; /* BLUE color for selected nodes */
 }
 
 .child.node-selected.node-empty .foreign-object {
-  background: #d94839;
+  background: #d94839; /* RED color for selected nodes */
 }
 
 p.txt-input {
   color: #000;
   display: table-cell; /* This is needed for vertical positioning */
   vertical-align: middle;
-  width: inherit;
-  height: inherit;
+  width: 5.8em;
+  height: 5.8em;
+  max-width: 5.8em;
+  max-height: 5.8em;
   font-family: sans-serif;
   font-size: 0.75em;
   line-height: 1.2em;
   text-align: center;
   outline: none;
+  word-wrap: break-word;
+  overflow: hidden;
 }
 
 .child.node-selected p.txt-input,
