@@ -46,8 +46,7 @@ Template.myIds.onRendered(function() {
     updateDOM,
     currentUser,
     currentTrainingId,
-    currentAvatar
-    ;
+    currentAvatar;
 
   margin = {
     top: 20,
@@ -70,7 +69,9 @@ Template.myIds.onRendered(function() {
   currentUser = Meteor.user();
   currentTrainingId = currentUser.profile.currentTraining;
   console.log("Template onRendered - current trainingId is: " + currentTrainingId);
-  currentAvatar = Avatars.findOne({type: currentUser.profile.avatar});
+  currentAvatar = Avatars.findOne({
+    type: currentUser.profile.avatar
+  });
 
   if (currentTrainingId && Identifications.find().count() === 0) {
     console.log("find count");
@@ -104,8 +105,7 @@ Template.myIds.onRendered(function() {
    */
   dragNodeToMousePosition = function(nodeDataObject) {
     var mouseX,
-      mouseY
-      ;
+      mouseY;
 
     // We register the event handlers that will respond to the mousemove events
     // and to the mouseup events subsequent to this mousedown event.
@@ -116,8 +116,8 @@ Template.myIds.onRendered(function() {
       .on("mouseup", dragend);
 
     d3.select("#ids-vis g")
-    .on("mousemove", moveNode)
-    .on("mouseup", dragend);
+      .on("mousemove", moveNode)
+      .on("mouseup", dragend);
 
     /**
      * Manages the moving of the element by responding to the {@code mousemove} event.
@@ -136,22 +136,30 @@ Template.myIds.onRendered(function() {
         }
       });
 
-      Links.find({"source._id": nodeDataObject._id}).forEach(function(link) {
+      Links.find({
+        "source._id": nodeDataObject._id
+      }).forEach(function(link) {
         Links.update(link._id, {
           $set: {
             "source.x": mouseX,
             "source.y": mouseY
           }
-        }, {multi: true});
+        }, {
+          multi: true
+        });
       });
 
-      Links.find({"target._id": nodeDataObject._id}).forEach(function(link) {
+      Links.find({
+        "target._id": nodeDataObject._id
+      }).forEach(function(link) {
         Links.update(link._id, {
           $set: {
             "target.x": mouseX,
             "target.y": mouseY
           }
-        }, {multi: true});
+        }, {
+          multi: true
+        });
       });
     } // end moveNode()
 
@@ -179,7 +187,7 @@ Template.myIds.onRendered(function() {
    * to these events allows for updating the displayed DOM positions of nodes and links.
    * (cf. <a href="https://github.com/mbostock/d3/wiki/Force-Layout#on">Force-Layout#on</a>)
    */
-  updateDOM = function () {
+  updateDOM = function() {
     linkElements.attr("x1", function(d) {
         return d.source.x;
       })
@@ -272,8 +280,7 @@ Template.myIds.onRendered(function() {
       node,
       newNodeId,
       link,
-      newEditableElem
-      ;
+      newEditableElem;
 
     // We are not on a node but on the drawing-surface so we want to
     // deselect the currently selected node and reset.
@@ -318,7 +325,9 @@ Template.myIds.onRendered(function() {
     });
 
     Identifications.update(node.parentId, {
-      $push: {children: newNodeId}
+      $push: {
+        children: newNodeId
+      }
     }, function(error, result) {
       if (error) {
         return throwError(error.reason);
@@ -329,7 +338,9 @@ Template.myIds.onRendered(function() {
     // the newly created node and add it to our 'Links' collection.
     link = {
       source: mousedownNode,
-      target: Identifications.findOne({"_id": newNodeId})
+      target: Identifications.findOne({
+        "_id": newNodeId
+      })
     };
     Links.insert(link, function(error, result) {
       if (error) {
@@ -338,7 +349,9 @@ Template.myIds.onRendered(function() {
     });
 
     // Set the new node as selectedNode.
-    selectedNode = Identifications.findOne({"_id": newNodeId});
+    selectedNode = Identifications.findOne({
+      "_id": newNodeId
+    });
     selectNodeElement(selectedNode._id);
 
     console.log("mousedownNode, ", mousedownNode);
@@ -376,12 +389,11 @@ Template.myIds.onRendered(function() {
    */
   updateLayout = function(idsCollection, linksCollection) {
     var nodeEnterGroup,
-        avatarSize,
-        nodeControls,
-        dragIcon,
-        deleteIcon,
-        iconRadius,
-        dashedRadius;
+      avatarSize,
+      nodeControls,
+      deleteIcon,
+      iconRadius,
+      dashedRadius;
 
     iconRadius = 15;
     dashedRadius = 40;
@@ -471,15 +483,15 @@ Template.myIds.onRendered(function() {
 
     nodeEnterGroup.append(function(d) {
       var avatarIcon,
-        filledCircle
-        ;
+        filledCircle;
 
       if (d.level === 0) {
         avatarIcon = document.createElementNS(d3.ns.prefix.svg, "use");
         avatarIcon.setAttributeNS(d3.ns.prefix.xlink, "xlink:href", currentAvatar.url);
         avatarIcon.setAttribute("width", avatarSize);
         avatarIcon.setAttribute("height", avatarSize);
-        avatarIcon.setAttribute("transform", "translate(" + (-avatarSize/2) + ","  +(-avatarSize/2) + ")");
+        avatarIcon.setAttribute("transform", "translate(" + (-avatarSize / 2) + "," + (-
+          avatarSize / 2) + ")");
         return avatarIcon;
       }
 
@@ -498,14 +510,13 @@ Template.myIds.onRendered(function() {
     nodeEnterGroup.append(function(d) {
       var svgText,
         svgForeignObject,
-        htmlParagraph
-        ;
+        htmlParagraph;
 
       if (d.level === 0) {
         svgText = document.createElementNS(d3.ns.prefix.svg, "text");
         svgText.setAttribute("text-anchor", "middle");
         svgText.textContent = currentUser.profile.name;
-        svgText.setAttribute("transform", "translate(0," + (avatarSize/2 + 5) +")");
+        svgText.setAttribute("transform", "translate(0," + (avatarSize / 2 + 5) + ")");
         return svgText;
       }
 
@@ -517,7 +528,8 @@ Template.myIds.onRendered(function() {
       svgForeignObject.setAttribute("class", "foreign-object");
       svgForeignObject.setAttribute("width", radius * 2);
       svgForeignObject.setAttribute("height", radius * 2);
-      svgForeignObject.setAttribute("transform", "translate(" + (-radius) + ", " + (-radius) + ")");
+      svgForeignObject.setAttribute("transform", "translate(" + (-radius) + ", " + (-
+        radius) + ")");
       htmlParagraph = document.createElementNS(d3.ns.prefix.xhtml, "p");
       htmlParagraph.setAttribute("class", "txt-input");
       htmlParagraph.setAttribute("contentEditable", true);
@@ -599,7 +611,8 @@ Template.myIds.onRendered(function() {
             Identifications.update(d._id, {
               $set: {
                 name: newName,
-                editCompleted: true}
+                editCompleted: true
+              }
             });
             inputTxt.node().blur();
             selectNodeElement(null);
@@ -632,23 +645,23 @@ Template.myIds.onRendered(function() {
         }
       });
 
-      nodeControls = nodeEnterGroup.append("g")
-        .attr("class", "selected-controls");
+    nodeControls = nodeEnterGroup.append("g")
+      .attr("class", "selected-controls");
 
-      deleteIcon = nodeControls.append("g")
-        .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
-        .attr("class", "delete-icon")
-        .on("mousedown", function(d) {
-          d3.event.stopPropagation();
-          deleteNodeAndLink("selectedElement");
-        });
+    deleteIcon = nodeControls.append("g")
+      .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
+      .attr("class", "delete-icon")
+      .on("mousedown", function(d) {
+        d3.event.stopPropagation();
+        deleteNodeAndLink("selectedElement");
+      });
 
-      deleteIcon.append("use")
-        .attr("xlink:href", "svg/icons.svg#delete-icon");
+    deleteIcon.append("use")
+      .attr("xlink:href", "svg/icons.svg#delete-icon");
 
     if (d3.event) {
       // Prevent browser's default behavior
-      console.log("d3.event >> " , d3.event);
+      console.log("d3.event >> ", d3.event);
       d3.event.preventDefault();
     }
 
@@ -677,7 +690,8 @@ Template.myIds.onRendered(function() {
   // Create the SVG element
   svgViewport = d3.select("#ids-graph").append("svg")
     .attr("id", "ids-vis")
-    .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
+    .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top +
+      margin.bottom))
     .attr("preserveAspectRatio", "xMidYMid meet");
 
   svgGroup = svgViewport.append("g")
@@ -744,7 +758,9 @@ function selectNodeElement(elementId) {
       return d3.select("#gid" + selectedElement).classed("node-empty", true);
     }
     Identifications.update(selectedElement, {
-      $set: {editCompleted: true}
+      $set: {
+        editCompleted: true
+      }
     });
     d3.select("#gid" + selectedElement).classed({
       "node-selected": false,
@@ -754,7 +770,9 @@ function selectNodeElement(elementId) {
   }
   if (elementId) {
     Identifications.update(elementId, {
-      $set: {editCompleted: false}
+      $set: {
+        editCompleted: false
+      }
     });
     d3.select("#gid" + elementId).classed("node-selected", true);
   }
@@ -779,18 +797,22 @@ function deleteNodeAndLink(sessionKey) {
     if (nodeDoc.children.length) {
       return throwError("You can not remove an identification bubble with attached child-bubbles.");
     }
-    Links.remove(Links.findOne({"target._id": nodeId})._id, function(error, result){
+    Links.remove(Links.findOne({
+      "target._id": nodeId
+    })._id, function(error, result) {
       if (error) {
         return throwError(error.reason);
       }
     });
-    Identifications.remove(nodeId, function(error, result){
+    Identifications.remove(nodeId, function(error, result) {
       if (error) {
         return throwError(error.reason);
       }
     });
     Identifications.update(nodeDoc.parentId, {
-      $pull: {children: nodeId}
+      $pull: {
+        children: nodeId
+      }
     }, function(error, result) {
       if (error) {
         return throwError(error.reason);
