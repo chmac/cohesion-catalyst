@@ -104,8 +104,14 @@ Template.myIds.onRendered(function() {
    * the {@code mousedown} event.
    */
   dragNodeToMousePosition = function(nodeDataObject) {
-    var mouseX,
-      mouseY;
+    var mousePos,
+      dragX,
+      dragY,
+      rootNodeData;
+
+    // We get the bound data of our root node for accessing its position since
+    // we want to prevent the user from dragging nodes beneath the root node's position.
+    rootNodeData = d3.select(".root").datum();
 
     // We register the event handlers that will respond to the mousemove events
     // and to the mouseup events subsequent to this mousedown event.
@@ -126,13 +132,14 @@ Template.myIds.onRendered(function() {
      * collections which will automatically update the HTML/SVG.
      */
     function moveNode() {
-      mouseX = d3.mouse(d3.select("#ids-vis g").node())[0];
-      mouseY = d3.mouse(d3.select("#ids-vis g").node())[1];
+      mousePos = d3.mouse(d3.select("#ids-vis g").node());
+      dragX = detectBoundaries(mousePos, rootNodeData, radius, width)[0];
+      dragY = detectBoundaries(mousePos, rootNodeData, radius, width)[1];
 
       Identifications.update(nodeDataObject._id, {
         $set: {
-          x: mouseX,
-          y: mouseY
+          x: dragX,
+          y: dragY
         }
       });
 
@@ -141,8 +148,8 @@ Template.myIds.onRendered(function() {
       }).forEach(function(link) {
         Links.update(link._id, {
           $set: {
-            "source.x": mouseX,
-            "source.y": mouseY
+            "source.x": dragX,
+            "source.y": dragY
           }
         }, {
           multi: true
@@ -154,8 +161,8 @@ Template.myIds.onRendered(function() {
       }).forEach(function(link) {
         Links.update(link._id, {
           $set: {
-            "target.x": mouseX,
-            "target.y": mouseY
+            "target.x": dragX,
+            "target.y": dragY
           }
         }, {
           multi: true
@@ -239,6 +246,11 @@ Template.myIds.onRendered(function() {
    * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
    */
   drawLineToMousePosition = function() {
+    var rootNodeData;
+
+    // We get the bound data of our root node for accessing its position.
+    rootNodeData = d3.select(".root").datum();
+
     // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
     if (!mousedownNode) {
       return;
@@ -259,8 +271,8 @@ Template.myIds.onRendered(function() {
       .attr("class", "drag-line")
       .attr("x1", mousedownNode.x)
       .attr("y1", mousedownNode.y)
-      .attr("x2", d3.mouse(this)[0])
-      .attr("y2", d3.mouse(this)[1]);
+      .attr("x2", detectBoundaries(d3.mouse(this), rootNodeData, radius, width)[0])
+      .attr("y2", detectBoundaries(d3.mouse(this), rootNodeData, radius, width)[1]);
   }; // end drawLineToMousePosition()
 
 
@@ -276,7 +288,10 @@ Template.myIds.onRendered(function() {
    * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
    */
   createNodeAtMousePosition = function() {
-    var newNodePos,
+    var rootNodeData,
+      newNodePos,
+      newX,
+      newY,
       node,
       newNodeId,
       link,
@@ -294,20 +309,28 @@ Template.myIds.onRendered(function() {
       return;
     }
 
+    // We get the bound data of our root node for accessing its position since
+    // we want to prevent the user from creating nodes beneath the root node's position.
+    rootNodeData = d3.select(".root").datum();
+
     // Since moving the mouse has finished, we hide the line drawn during dragging.
     // It will be replaced with a newly created 'linkElement', i.e. an SVG <line> which
     // represents the link between nodes.
     dragLine.attr("class", "drag-line-hidden");
 
-    // Create a new node object with the current mouse position coordinates.
+    // Get the current mouse position coordinates.
     newNodePos = d3.mouse(this);
+    newX = detectBoundaries(newNodePos, rootNodeData, radius, width)[0];
+    newY = detectBoundaries(newNodePos, rootNodeData, radius, width)[1];
+
+    // Create a new node object with the current mouse position coordinates.
     node = {
       level: mousedownNode.level + 1,
       fixed: isFixed,
-      x: newNodePos[0],
-      y: newNodePos[1],
-      px: newNodePos[0],
-      py: newNodePos[1],
+      x: newX,
+      y: newY,
+      px: newX,
+      py: newY,
       parentId: mousedownNode._id,
       children: [],
       name: placeHolderTxt,
@@ -732,6 +755,38 @@ Template.myIds.onDestroyed(function() {
   // TODO stop autorun
 });
 
+/**
+ * Constrains the dragging of nodes to the SVG viewport, i.e. the drawing surface.
+ * For example, if the user is about to drag a node outside of the SVG canvas, the
+ * coordinate is set to the bounding value, taking the node's radius into account.
+ * At the bottom, the specified boundary is the position of the avatar icon.
+ * @param {Array} mouseCoords The current {@code x} and {@code y} coordinates as two-element array.
+ * @param {Object} root The root node data object.
+ * @param {number} radius The specified radius of the node (i.e. {@code <circle>}).
+ * @param {number} width The specified width of the drawing surface.
+ * @return {Array}
+ */
+function detectBoundaries(mouseCoords, root, radius, width) {
+  var dragCoords = mouseCoords;
+
+  if (mouseCoords[0] < radius) {
+    dragCoords[0] = radius;
+  }
+
+  if (mouseCoords[0] > width - (radius * 2)) {
+    dragCoords[0] = width - (radius * 2);
+  }
+
+  if (mouseCoords[1] < radius) {
+    dragCoords[1] = radius;
+  }
+
+  if (mouseCoords[1] > root.y) {
+    dragCoords[1] = root.y;
+  }
+
+  return dragCoords;
+} // end checkBoundaries()
 
 /**
  * Selects (or deselects) a node element (i.e. an identification circle).
