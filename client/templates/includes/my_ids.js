@@ -564,14 +564,15 @@ Template.myIds.onRendered(function() {
 
     nodeEnterGroup
       .on("mousedown", function(d) {
+        // We select the current DOM element, i.e. the <g> element containing <circle> and <p>
+        var domNode = d3.select(this);
         d3.event.stopPropagation();
-        // d3.event.preventDefault();
         mousedownNode = d;
 
         // We enable the dragging of a node when the holds down the 'SHIFT' key.
         if (d3.event.shiftKey) {
           if (d.level > 0) {
-            d3.select(this).classed("dragging", true);
+            domNode.classed("dragging", true);
             dragNodeToMousePosition(mousedownNode);
           }
 
@@ -583,13 +584,23 @@ Template.myIds.onRendered(function() {
             d3.select("#ids-vis g")
               .on("mousemove", null)
               .on("mouseup", null);
-            return d3.select(this).classed("node-empty", true);
+            domNode.classed("node-empty", true);
+            // We select the placeholder text to allow for instant text input.
+            // HEADS UP: We call the 'focus()' function from the 'mouseup' event handler because calling
+            // it from the 'mousedown' event handler requires 'event.preventDefault()' in order to keep
+            // the focus from leaving the <p> element.
+            domNode.on("mouseup", function() {
+              d3.event.stopPropagation();
+              domNode.select("p.txt-input").node().focus();
+              document.execCommand("selectAll", false, null);
+            });
+            return;
           } else {
             d3.select("#ids-vis g")
               .on("mousemove", drawLineToMousePosition)
               .on("mouseup", createNodeAtMousePosition);
 
-            d3.select(this)
+            domNode
               .on("mouseup", function(d) {
                 d3.event.stopPropagation();
                 mouseupNode = d;
@@ -713,7 +724,8 @@ Template.myIds.onRendered(function() {
   // Create the SVG element
   svgViewport = d3.select("#ids-graph").append("svg")
     .attr("id", "ids-vis")
-    .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top +
+    .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin
+      .top +
       margin.bottom))
     .attr("preserveAspectRatio", "xMidYMid meet");
 
@@ -794,23 +806,29 @@ function detectBoundaries(mouseCoords, root, radius, width) {
  * All the other nodes are selectable by user interaction.
  * We use a Session variable to detect selected or deselected state, respectively.
  * Depending on that, we update the current document's 'editCompleted' field and we
- * also apply a CSS class, which in turn toggles the control handles for
- * dragging or deleting a circle.
+ * also apply a CSS class, which in turn toggles the control handle for deleting a circle.
  * @param {string} elementId The (database document) id of the node.
  */
 function selectNodeElement(elementId) {
   var selectedElement = Session.get("selectedElement"),
     nodeName;
-  if (elementId === selectedElement) {
-    return;
-  }
+
+  // We check if there exists currently already a selected element.
   if (selectedElement) {
+    // In case the user clicked on the already selected element, we do nothing and stop
+    // executing the function by using 'return'.
+    if (selectedElement === elementId) {
+      return;
+    }
+    // In any other case we need to check if the currently selected element is already filled with words other
+    // than the placeholder text or the empty string.
     nodeName = Identifications.findOne(selectedElement).name;
     if (nodeName === PLACEHOLDER_TXT || nodeName === "") {
       d3.select("#ids-vis g")
         .on("mousemove", null)
         .on("mouseup", null);
-      return d3.select("#gid" + selectedElement).classed("node-empty", true);
+      d3.select("#gid" + selectedElement).classed("node-empty", true);
+      return;
     }
     Identifications.update(selectedElement, {
       $set: {
@@ -823,6 +841,7 @@ function selectNodeElement(elementId) {
       "dragging": false
     });
   }
+
   if (elementId) {
     Identifications.update(elementId, {
       $set: {
@@ -850,7 +869,8 @@ function deleteNodeAndLink(sessionKey) {
   if (nodeId) {
     nodeDoc = Identifications.findOne(nodeId);
     if (nodeDoc.children.length) {
-      return throwError("You can not remove an identification bubble with attached child-bubbles.");
+      return throwError(
+        "You can not remove an identification bubble with attached child-bubbles.");
     }
     Links.remove(Links.findOne({
       "target._id": nodeId
