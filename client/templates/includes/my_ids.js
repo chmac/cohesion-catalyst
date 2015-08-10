@@ -462,10 +462,6 @@ Template.myIds.onRendered(function() {
       return d._id;
     });
 
-    nodeElements.classed("node-selected", function(d) {
-      return Session.equals("selectedElement", d._id);
-    });
-
     // We operate on our 'update selection' to determine the exiting elements, i.e. all the
     // present DOM elements (here: <g.node>) for which no new data point was found in our
     // 'nodes' array.
@@ -496,6 +492,9 @@ Template.myIds.onRendered(function() {
         },
         "node-selected": function(d) {
           return Session.equals("selectedElement", d._id);
+        },
+        "node-empty": function(d) {
+          return Session.equals("emptyNode", d._id);
         }
       });
 
@@ -585,6 +584,7 @@ Template.myIds.onRendered(function() {
               .on("mousemove", null)
               .on("mouseup", null);
             domNode.classed("node-empty", true);
+            // Session.set("emptyNode", mousedownNode._id);
             // We select the placeholder text to allow for instant text input.
             // HEADS UP: We call the 'focus()' function from the 'mouseup' event handler because calling
             // it from the 'mousedown' event handler requires 'event.preventDefault()' in order to keep
@@ -664,8 +664,10 @@ Template.myIds.onRendered(function() {
           // Therefore, we show whether the input text is valid or not.
           if (newName === placeHolderTxt || newName === "") {
             d3.select(this).classed("node-empty", true);
+            Session.set("emptyNode", d._id);
           } else {
             d3.select(this).classed("node-empty", false);
+            Session.set("emptyNode", null);
           }
 
         }
@@ -828,6 +830,7 @@ function selectNodeElement(elementId) {
         .on("mousemove", null)
         .on("mouseup", null);
       d3.select("#gid" + selectedElement).classed("node-empty", true);
+      Session.set("emptyNode", selectedElement);
       return;
     }
     Identifications.update(selectedElement, {
@@ -840,6 +843,7 @@ function selectNodeElement(elementId) {
       "node-empty": false,
       "dragging": false
     });
+    Session.set("emptyNode", null);
   }
 
   if (elementId) {
@@ -856,8 +860,6 @@ function selectNodeElement(elementId) {
 /**
  * Deletes a node document (i.e. an identification document) and its associated
  * link documents from the respective collection.
- * Since we call this function from inside different event handlers we use a
- * session key to set the variable in the session.
  * @param {string} sessionKey The key of the session variable to set.
  */
 function deleteNodeAndLink(sessionKey) {
@@ -893,6 +895,9 @@ function deleteNodeAndLink(sessionKey) {
         return throwError(error.reason);
       }
     });
+    if (Session.equals("emptyNode", nodeId)) {
+      Session.set("emptyNode", null);
+    }
     Session.set(sessionKey, null);
   }
 }
