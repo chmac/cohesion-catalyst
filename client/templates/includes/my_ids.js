@@ -8,11 +8,15 @@ var PLACEHOLDER_TXT = "I identify with...";
 
 /**
  * Adds a callback to be called when an instance of this template is created.
- * We use this callback for removing empty nodes when the user navigates to another 
+ * We use this callback for removing empty nodes when the user navigates to another
  * page and navigates back or when the users does a 'Refresh'.
  */
 Template.myIds.onCreated(function() {
-  var emptyIds = Identifications.find({name: {$in: [PLACEHOLDER_TXT, ""]}}); 
+  var emptyIds = Identifications.find({
+    name: {
+      $in: [PLACEHOLDER_TXT, ""]
+    }
+  });
   if (emptyIds.count() > 0) {
     emptyIds.forEach(function(empty) {
       deleteNodeAndLink(empty._id);
@@ -809,8 +813,8 @@ Template.myIds.onRendered(function() {
   // We declare a 'this.autorun' block to monitor the reactive data sources
   // represented by the cursors resulting from querying our Mongo collections.
   // If the result of our collection query changes, the function will re-run.
-  // 'this.autorun' is a version of 'Tracker.autorun' with 'this' being the current 
-  // template instance. Using 'this.autorun' (i.e. 'template.autorun') instead of 
+  // 'this.autorun' is a version of 'Tracker.autorun' with 'this' being the current
+  // template instance. Using 'this.autorun' (i.e. 'template.autorun') instead of
   // 'Tracker.autorun' allows for stopping the monitoring automatically when the template is
   // destroyed.
   this.autorun(function() {
@@ -832,7 +836,11 @@ Template.myIds.onRendered(function() {
  * and destroyed. We use this callback for cleaning up and removing empty nodes.
  */
 Template.myIds.onDestroyed(function() {
-  var emptyIds = Identifications.find({name: {$in: [PLACEHOLDER_TXT, ""]}}); 
+  var emptyIds = Identifications.find({
+    name: {
+      $in: [PLACEHOLDER_TXT, ""]
+    }
+  });
   if (emptyIds.count() > 0) {
     emptyIds.forEach(function(empty) {
       deleteNodeAndLink(empty._id);
@@ -939,7 +947,7 @@ function deleteNodeAndLink(id) {
   var nodeId,
     nodeDoc;
 
-  nodeId = id
+  nodeId = id;
 
   if (nodeId) {
     nodeDoc = Identifications.findOne(nodeId);
