@@ -200,7 +200,7 @@ a.avatar {
 }
 
 .sticky-checkbox path {
-  fill:none;
+  fill: none;
 }
 
 .sticky-checkbox.checked text{
@@ -221,7 +221,6 @@ a.avatar {
 
 .drawing-surface {
   fill: #000;
-  stroke: rgba(157, 157, 157, 0.35);
   pointer-events: all;
 }
 
@@ -242,7 +241,7 @@ a.avatar {
   /*fill: #000;
   stroke: #fff;
   stroke-width: 4;*/
-  display:none;
+  display: none;
 }
 
 .root > circle.dashed,
@@ -277,7 +276,7 @@ a.avatar {
 }
 
 circle.dashed {
-  stroke: #4593e3; /* blue color for selected nodes */
+  stroke: #4593e3; /* BLUE color for selected nodes */
   stroke-width: 2;
   stroke-dasharray: 5 5;
   fill: #000;
