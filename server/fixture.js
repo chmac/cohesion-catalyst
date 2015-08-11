@@ -1,9 +1,9 @@
 // Fixture data
 if (Trainings.find().count() === 0) {
   var today, tomorrow;
-  today = new Date();
-  tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  // Dummy dates in the future
+  today = new Date(2016, 1, 24);
+  tomorrow = new Date(2016, 1, 25);
   Trainings.insert({
     title: "Training Daimler",
     description: "Team building master class.",
