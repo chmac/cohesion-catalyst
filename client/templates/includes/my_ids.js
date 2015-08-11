@@ -7,6 +7,20 @@
 var PLACEHOLDER_TXT = "I identify with...";
 
 /**
+ * Adds a callback to be called when an instance of this template is created.
+ * We use this callback for removing empty nodes when the user navigates to another 
+ * page and navigates back or when the users does a 'Refresh'.
+ */
+Template.myIds.onCreated(function() {
+  var emptyIds = Identifications.find({name: {$in: [PLACEHOLDER_TXT, ""]}}); 
+  if (emptyIds.count() > 0) {
+    emptyIds.forEach(function(empty) {
+      deleteNodeAndLink(empty._id);
+    });
+  }
+});
+
+/**
  * Adds a callback to this template so that it is called when an instance of this template
  * is rendered and inserted into the DOM.
  * All of the {@code D3} code goes inside this callback to allow for accessing the DOM elements and
@@ -68,7 +82,6 @@ Template.myIds.onRendered(function() {
 
   currentUser = Meteor.user();
   currentTrainingId = currentUser.profile.currentTraining;
-  console.log("Template onRendered - current trainingId is: " + currentTrainingId);
   currentAvatar = Avatars.findOne({
     type: currentUser.profile.avatar
   });
@@ -377,9 +390,6 @@ Template.myIds.onRendered(function() {
     });
     selectNodeElement(selectedNode._id);
 
-    console.log("mousedownNode, ", mousedownNode);
-    console.log("selectedNode, ", selectedNode);
-
     resetMouseVars();
 
     updateLayout(Identifications.find().fetch(), Links.find().fetch());
@@ -498,10 +508,6 @@ Template.myIds.onRendered(function() {
         }
       });
 
-    // TEST circle for checking transfoms
-    // nodeEnterGroup.append("circle")
-    //   .attr("r", 10)
-    //   .style("fill", "green");
 
     nodeEnterGroup.append(function(d) {
       var avatarIcon,
@@ -641,6 +647,8 @@ Template.myIds.onRendered(function() {
           // that a user has finished editing. Therefore, on 'ENTER' it will be set to 'true'.
           // In any other case, i.e. all along while the user is still typing, the 'editCompleted'
           // field remains 'false'.
+          // NOTE: We also have to update the 'Links' collection due to the somewhat inconvenient
+          // data model.
           if (d3.event.keyCode === 13) {
             Identifications.update(d._id, {
               $set: {
@@ -648,14 +656,64 @@ Template.myIds.onRendered(function() {
                 editCompleted: true
               }
             });
+            Links.find({
+              "source._id": d._id
+            }).forEach(function(link) {
+              Links.update(link._id, {
+                $set: {
+                  "source.name": newName,
+                  "source.editCompleted": true
+                }
+              }, {
+                multi: true
+              });
+            });
+            Links.find({
+              "target._id": d._id
+            }).forEach(function(link) {
+              Links.update(link._id, {
+                $set: {
+                  "target.name": newName,
+                  "target.editCompleted": true
+                }
+              }, {
+                multi: true
+              });
+            });
+
             inputTxt.node().blur();
             selectNodeElement(null);
+
           } else {
             Identifications.update(d._id, {
               $set: {
                 name: newName,
                 editCompleted: false
               }
+            });
+            Links.find({
+              "source._id": d._id
+            }).forEach(function(link) {
+              Links.update(link._id, {
+                $set: {
+                  "source.name": newName,
+                  "source.editCompleted": false
+                }
+              }, {
+                multi: true
+              });
+            });
+            Links.find({
+              "target._id": d._id
+            }).forEach(function(link) {
+              Links.update(link._id, {
+                $set: {
+                  "target.name": newName,
+                  "target.editCompleted": false
+                }
+              }, {
+                multi: true
+              });
             });
           }
 
@@ -689,7 +747,7 @@ Template.myIds.onRendered(function() {
       .attr("class", "delete-icon")
       .on("mousedown", function(d) {
         d3.event.stopPropagation();
-        deleteNodeAndLink("selectedElement");
+        deleteNodeAndLink(d._id);
       });
 
     deleteIcon.append("use")
@@ -697,7 +755,6 @@ Template.myIds.onRendered(function() {
 
     if (d3.event) {
       // Prevent browser's default behavior
-      console.log("d3.event >> ", d3.event);
       d3.event.preventDefault();
     }
 
@@ -749,10 +806,14 @@ Template.myIds.onRendered(function() {
     .attr("y2", 0);
 
 
-  // We declare a 'Tracker.autorun' block to monitor the reactive data sources
+  // We declare a 'this.autorun' block to monitor the reactive data sources
   // represented by the cursors resulting from querying our Mongo collections.
   // If the result of our collection query changes, the function will re-run.
-  Tracker.autorun(function() {
+  // 'this.autorun' is a version of 'Tracker.autorun' with 'this' being the current 
+  // template instance. Using 'this.autorun' (i.e. 'template.autorun') instead of 
+  // 'Tracker.autorun' allows for stopping the monitoring automatically when the template is
+  // destroyed.
+  this.autorun(function() {
     var identifications,
       fromTo;
 
@@ -763,11 +824,23 @@ Template.myIds.onRendered(function() {
     updateLayout(identifications, fromTo);
   });
 
+}); // end Template.myIds.onRendered()
+
+
+/**
+ * Adds a callback to be called when an instance of this template is removed from the DOM
+ * and destroyed. We use this callback for cleaning up and removing empty nodes.
+ */
+Template.myIds.onDestroyed(function() {
+  var emptyIds = Identifications.find({name: {$in: [PLACEHOLDER_TXT, ""]}}); 
+  if (emptyIds.count() > 0) {
+    emptyIds.forEach(function(empty) {
+      deleteNodeAndLink(empty._id);
+    });
+  }
 });
 
-Template.myIds.onDestroyed(function() {
-  // TODO stop autorun
-});
+
 
 /**
  * Constrains the dragging of nodes to the SVG viewport, i.e. the drawing surface.
@@ -860,13 +933,13 @@ function selectNodeElement(elementId) {
 /**
  * Deletes a node document (i.e. an identification document) and its associated
  * link documents from the respective collection.
- * @param {string} sessionKey The key of the session variable to set.
+ * @param {string} id The current datum of the '_id' field bound to the current element.
  */
-function deleteNodeAndLink(sessionKey) {
+function deleteNodeAndLink(id) {
   var nodeId,
     nodeDoc;
 
-  nodeId = Session.get(sessionKey);
+  nodeId = id
 
   if (nodeId) {
     nodeDoc = Identifications.findOne(nodeId);
@@ -895,9 +968,13 @@ function deleteNodeAndLink(sessionKey) {
         return throwError(error.reason);
       }
     });
+
     if (Session.equals("emptyNode", nodeId)) {
       Session.set("emptyNode", null);
     }
-    Session.set(sessionKey, null);
+
+    if (Session.equals("selectedElement", nodeId)) {
+      Session.set("selectedElement", null);
+    }
   }
 }
