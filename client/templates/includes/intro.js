@@ -1,9 +1,7 @@
 Template.intro.onRendered(function() {
 
   if (!d3.select(".selected-avatar").empty()) {
-    Meteor.defer(function () {
       scaleElement(d3.select(".selected-avatar").node(), 1.5, 0);
-    });
   }
 
   d3.selectAll(".avatar")
