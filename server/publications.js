@@ -32,9 +32,9 @@ Meteor.publish("ownIdentificationsAndLinks", function(currentTraining) {
   ];
 });
 
-Meteor.publish("otherIdentifications", function() {
-  // TODO
-});
+// Meteor.publish("otherIdentifications", function() {
+//   // TODO
+// });
 
 Meteor.publish("links", function(currentTraining) {
   var currentUserId = this.userId;
