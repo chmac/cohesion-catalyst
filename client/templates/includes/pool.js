@@ -250,7 +250,7 @@ LayoutSameNumPerRow.prototype.getPositionAndSize = function(bubbleIndex) {
       return undefined;
 
     // go away up/down from center, change spacing each time
-    y -= sign * size*currentRowSpacing;
+    y -= sign * size*2*currentRowSpacing;
     currentRowSpacing *= 0.8;
     currentColSpacing *= 0.8;
     size *= 0.8;
@@ -258,7 +258,7 @@ LayoutSameNumPerRow.prototype.getPositionAndSize = function(bubbleIndex) {
 
   // go left/right from center, using spacing dependent 
   // on which row we are in
-  x += colDiff * currentColSpacing;
+  x += colDiff * size * 2* currentColSpacing;
 
   // return x, y, and bubble size 
   return { "x": x, "y": y, "size": size};
