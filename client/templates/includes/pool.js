@@ -5,8 +5,6 @@
  */
 
 var ids, 
-  cursorIndex, 
-  baseBubbleSize, 
   layout;
 
 /**
@@ -17,23 +15,13 @@ Template.idPool.onCreated(function() {
   // array to store the pool of IDs for rendering  
   ids = [];
 
-  // base size (radius in pixels) of a bubble
-  baseBubbleSize = 40;
-
   // Testing
-  addID("1","4","purple");
-  addID("2","6","blue");
-  addID("3","2");
-  addID("4","3");
-  addID("5","9","red");
-  addID("6","2");
-  addID("7","3");
-  addID("8","6");
-  addID("9","4");
-  addID("10","5");
+  for(var i=0; i<80; i++) {
+    addID(i,Math.random(10));
+  };
 
   // create new layout and init cursor within the layout
-  layout = new LayoutSameNumPerRow(ids, {"baseBubbleSize": baseBubbleSize});
+  layout = new LayoutSameNumPerRow(ids, {"baseBubbleRadius": 40});
 });
 
 /**
@@ -101,25 +89,29 @@ var updateID = function(text, newText, newCount, newColor) {
 
 
 /** 
-  * draw a single ID bubble at specified position with specified scale factor
+  * draw a single ID bubble centered around specified position 
+  * with specified radius and scale factor
   * drawingSurface: the SVG area's topmost group element
   * id: one entry from the ids array
   * pos: array containing X and Y coordinate of bubble to be drawn
-  * scale: scale factor for bubble's size
+  * radius: unscaled (base) radius of the bubble
+  * scale: scale factor for bubble size and text size
   **/
-var drawBubble = function(drawingSurface, id, x, y, size) {
+var drawBubble = function(drawingSurface, id, x, y, radius, scale) {
 
-console.log("draw bubble " + id.text + " at " + x + " / " + y + " size " + size);
+  console.log("draw bubble " + id.text + " at " + x + " / " + y + " scale " + scale);
   var bubbleGroup = drawingSurface.append("g")
-    .attr("transform", "translate(" + x + "," + y + ")");
+    .attr("transform", "translate(" + (x) + "," + (y) + ")");
 
   bubbleGroup.append("circle")
-    .attr("r", size)
+    .attr("r", radius)
+    .attr("transform", "scale(" + scale + " " + scale + ")")
     .style("fill", id.color);
 
   bubbleGroup.append("text")
     .attr("dy", ".3em")
-    .style("text-anchor", "middle")
+    .style("text-anchor", "middle")    
+    .attr("transform", "scale(" + scale + " " + scale + ")")
     .style("fill", "white")
     .text(id.text);
 
@@ -171,10 +163,19 @@ var draw = function() {
     .attr("height", height)
     .attr("class", "drawing-surface");
 
-    // Testing
+  // set width and height in layout
+  layout.setDimensions(width,height);
+
+    // for each bubbles, determine if/where to draw it, and do so  
   for(var i=0; i<ids.length; i++) {
-    var res = layout.getPositionAndSize(i);
-    drawBubble(drawingSurface, ids[i], res.x, res.y, res.size);
+    // emtpy slot in array?
+    if(ids[i] != undefined) {
+      var res = layout.getPositionAndSize(i);
+      // does the layout tell me to draw it at all?
+      if(res != undefined) {
+        drawBubble(drawingSurface, ids[i], res.x, res.y, 40, res.scale);
+      }
+    }
   }
 
 }
@@ -198,16 +199,24 @@ var LayoutSameNumPerRow = function(ids, options) {
   if(!options) 
     options = {};
   this.opt = {};
-  this.opt.bubbleBaseSize = options.bubbleBaseSize || 40;
-  this.opt.drawAreaWidth = options.drawAreaWidth || 800;
-  this.opt.drawAreaHeight = options.drawAreaHeight || 600;
+  this.opt.baseBubbleRadius = options.baseBubbleRadius || 40;
+  this.opt.drawAreaWidth = options.drawAreaWidth || 600;
+  this.opt.drawAreaHeight = options.drawAreaHeight || 400;
   this.opt.maxRows = options.maxRows || 5;
   this.opt.bubblesPerRow = options.bubblesPerRow || 5;
-  this.opt.rowSpacing = 1.2;
+  this.opt.rowSpacing = 1.0;
   this.opt.colSpacing = 1.2;
 
-  this.cursorIndex = Math.floor(ids.length / 2);
+  this.cursorIndex = Math.floor(ids.length / 2)-1;
 
+};
+
+/** 
+  *  set width and height of drawing area for subsequent calculations
+  */ 
+LayoutSameNumPerRow.prototype.setDimensions = function(width,height) {
+  this.opt.drawAreaWidth = width || 600;
+  this.opt.drawAreaHeight = height || 400;
 };
 
 /**
@@ -217,30 +226,37 @@ var LayoutSameNumPerRow = function(ids, options) {
   */
 LayoutSameNumPerRow.prototype.getPositionAndSize = function(bubbleIndex) {
  
+  // how many bubbles are there left from the center?
+  var offset = Math.floor(this.opt.bubblesPerRow/2);
+
+  // which "line" is the cursor in?
+  var cursorRow = Math.floor((this.cursorIndex - offset) / this.opt.bubblesPerRow);
+
+  // which "line" is the bubble to be rendered in?
+  var bubbleRow = Math.floor((bubbleIndex - offset) / this.opt.bubblesPerRow);
+
+  // which column?
+  var bubbleCol = bubbleIndex - offset - bubbleRow*this.opt.bubblesPerRow;
+  var cursorCol = this.cursorIndex - offset - cursorRow*this.opt.bubblesPerRow;;
+
   // how far is this bubble from the current cursor position?
-  var diff = this.cursorIndex - bubbleIndex;
-
-  // row and column number of bubble to be rendered
-  var bubbleRow = Math.floor(bubbleIndex / this.opt.bubblesPerRow);
-  var bubbleCol = bubbleIndex % this.opt.bubblesPerRow;
-
-  // row and column number of cursor position
-  var cursorRow = Math.floor(this.cursorIndex / this.opt.bubblesPerRow);
-  var cursorCol = this.cursorIndex % this.opt.bubblesPerRow;
+  var diff = bubbleIndex - this.cursorIndex;
 
   // how many rows / columns away?
-  var rowDiff = bubbleRow - cursorRow;
   var colDiff = bubbleCol - cursorCol;
+  var rowDiff = bubbleRow - cursorRow;
 
   // start in center of drawing area
-  var x = this.opt.drawAreaWidth / 2;
-  var y = this.opt.drawAreaHeight / 2;
+  var x = Math.floor(this.opt.drawAreaWidth / 2);
+  var y = Math.floor(this.opt.drawAreaHeight / 2);
 
   // initial row size is that of the basic bubble size
-  var size = this.opt.bubbleBaseSize;
+  var scale = 1.0;
   var sign = rowDiff<0? -1 : 1;
   var currentRowSpacing = this.opt.rowSpacing;
   var currentColSpacing = this.opt.colSpacing;
+
+  console.log("bubble #" + bubbleIndex + " row=" + bubbleRow + " col=" + bubbleCol + " diff=" + diff + " dx=" + colDiff + " dy=" + rowDiff);
 
   // for each row away,change x and y 
   for(var i=0; i<Math.abs(rowDiff); i++) {
@@ -250,18 +266,23 @@ LayoutSameNumPerRow.prototype.getPositionAndSize = function(bubbleIndex) {
       return undefined;
 
     // go away up/down from center, change spacing each time
-    y -= sign * size*2*currentRowSpacing;
-    currentRowSpacing *= 0.8;
-    currentColSpacing *= 0.8;
-    size *= 0.8;
+    y += Math.floor(sign * currentRowSpacing * this.opt.baseBubbleRadius*2);
+
+    // make rows and columns denser
+    currentRowSpacing = 0.70*currentRowSpacing;
+    currentColSpacing = 0.80*currentColSpacing;
+
+        // make bubbles smaller, row by row
+    scale = Math.min(currentRowSpacing*1.2, currentColSpacing*1.2);
+    
   }
 
   // go left/right from center, using spacing dependent 
   // on which row we are in
-  x += colDiff * size * 2* currentColSpacing;
+  x += colDiff  * currentColSpacing * this.opt.baseBubbleRadius*2;
 
   // return x, y, and bubble size 
-  return { "x": x, "y": y, "size": size};
+  return { "x": x, "y": y, "scale": scale};
  
 };
 
