@@ -826,15 +826,12 @@ Template.myIds.onRendered(function() {
       createdBy: currentUser._id,
       trainingId: currentTrainingId
     }).fetch();
-    console.log(identifications.length);
     fromTo = Links.find({
       "source.createdBy": currentUser._id,
       "source.trainingId": currentTrainingId,
       "target.createdBy": currentUser._id,
       "target.trainingId": currentTrainingId
     }).fetch();
-    console.log(fromTo.length);
-
     nodeElements = svgGroup.selectAll(".node");
     linkElements = svgGroup.selectAll(".link");
     updateLayout(identifications, fromTo);
