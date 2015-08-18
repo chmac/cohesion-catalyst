@@ -191,6 +191,7 @@ var draw = function() {
 
 }
 
+var XXX = function() {
 
 /***************************************************************************/
 
@@ -389,4 +390,4 @@ LayoutSameNumPerRow.prototype.getPosForFullRow = function(bubbleIndex) {
  
 };
 
-
+}; // XXX
