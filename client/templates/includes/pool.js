@@ -12,17 +12,18 @@ var ids,
   */
 Template.idPool.onCreated(function() {
 
-  // array to store the pool of IDs for rendering  
-  ids = [];
+  // init database subscription
+  var currentUser,
+    currentTrainingId,
+    templateInstance,
+    subscription;
 
-  // Testing
-  for(var i=0; i<50; i++) {
-    addID(i,Math.random(10));
-  };
+  currentUser = Meteor.user();
+  currentTrainingId = currentUser.profile.currentTraining;
 
-  // create new layout and init cursor within the layout
-  // TODO get the size info from CSS?
-  layout = new LayoutSameNumPerRow(ids, {"baseBubbleRadius": 40});
+  templateInstance = this;
+
+  subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId);
 
 }); // onCreated()
 
@@ -34,47 +35,123 @@ Template.idPool.onCreated(function() {
   * (cf. <a href="http://docs.meteor.com/#/full/template_onRendered">Meteor onRendered()</a>)
   */
 Template.idPool.onRendered(function() {
+
+  var currentUser,
+    currentTrainingId,
+    templateInstance,
+    subscription,
+    idsQuery,
+    handle,
+    idNames;
+
+  currentUser = Meteor.user();
+  currentTrainingId = currentUser.profile.currentTraining;
+
+  // We access the template instance at 'this' and store it in a variable.
+  templateInstance = this;
+
+  // GLOBAL array to store the pool of IDs for rendering  
+  ids = [];
+
+  // initial query to populate pool with current set of IDs 
+  Identifications.find({
+    createdBy: {$ne: currentUser._id},
+    trainingId: currentTrainingId,
+    editCompleted: true
+  }).forEach(function(d) { console.log("init: "+d.name); addID(d); });
+
+  // create new layout and init cursor within the layout
+  // TODO get the size info from CSS?
+  layout = new LayoutSameNumPerRow(ids, {"baseBubbleRadius": 40});
+
+  // set up autorunner to observe IDs that come, go, or change
+  templateInstance.autorun(function() {
+    idsQuery = Identifications.find({
+      createdBy: {$ne: currentUser._id},
+      trainingId: currentTrainingId,
+      editCompleted: true
+    });
+    handle = idsQuery.observe({
+      added: function(doc) {
+        console.log("add: "+doc.name)
+        addID(doc);
+        draw();
+      },
+      /*changed: function(newDoc, oldDoc) {
+        updateID(oldDoc.name, newDoc.name);
+        draw();
+      },*/
+      removed: function(oldDoc) {
+        deleteID(oldDoc);
+        draw();
+      }
+    }); // observe
+
+  }); // end autorun()
+
+  // initially render the ID pool 
   draw();
-}); 
+
+});  // onRendered()
 
 /**
-  *   add an ID to the pool of IDs to be rendered
+  *   add an ID, check if an ID with the same name is 
+  *   already in the pool (and update its count), or
+  *   whether this is an entierly new ID
   */
-var addID = function(text,count,color) {
+var addID = function(doc) {
 
+  for(var i=0; i<ids.length; i++) {
+    if(ids[i].text == doc.name) {
+      // ID with such name already in array, check who created it
+      for(var j=0; j<ids[i].createdBy.length; j++) {
+        if(ids[i].createdBy[j] == doc.createdBy) {
+          // already in, so just ignore this addID call
+          return "already in array";
+        };
+      };
+      // this creator is new, so add it to this ID
+      ids[i].count++;
+      ids[i].createdBy.push[doc.createdBy];
+      return;
+    }
+  }
+  // ID with such name not yet in array, so add new ID
   var id = {};
-  id.text = text===undefined? "wat?" : text;
-  id.count = count || 1;
-  id.color = color || "purple";
+  id.text = doc.name;
+  id.count = 1;
+  id.color = "purple";
+  id.createdBy = [doc.createdBy];
   ids.push(id);
   return id;
 };
 
 /**
-  *   search ID by text and return full ID information, or undefined
-  */
- var getID = function(text) {
-  for(var i=0; i<ids.length; i++) {
-    if(ids[i].text == text) {
-      return ids[i];
-    }
-  }
-  return undefined;
-};
-
-/**
   *   delete ID, identified by text
   */
-var deleteID = function(text) {
+var deleteID = function(doc) {
   for(var i=0; i<ids.length; i++) {
-    if(ids[i].text == text) {
-      // ids.slice(i,1);
-      ids[i] = undefined;
-      return;
+    if(ids[i].text == doc.name) {
+      for(var j=0; j<ids[i].createdBy.length; j++) {
+        if(ids[i].createdBy[j] == doc.createdBy) {
+
+          // found it, reduce count etc.
+          ids[i].createdBy.slice(j,1);
+          ids[i].count--;
+          if(ids[i].count == 0) {
+            // nobody has this ID any more, remove it from screen/array
+            ids[i] = undefined;
+            return;
+          }
+          return;
+        }
+      }
     }
   }
+  console.log("tried to delete " + doc.name + ", but could not find it!.");
 };
 
+var XXX = function () {
 /**
   *   update information for an ID, identified by text
   */
@@ -90,6 +167,7 @@ var updateID = function(text, newText, newCount, newColor) {
   }
 };
 
+}; // XXX
 
 /** 
   * draw a single ID bubble centered around specified position 
@@ -111,19 +189,38 @@ var drawBubble = function(drawingSurface, id, x, y, radius, scale) {
     .attr("transform", "scale(" + scale + " " + scale + ")")
     .style("fill", id.color);
 
+  /*
   bubbleGroup.append("text")
     .attr("dy", ".3em")
     .style("text-anchor", "middle")    
     .attr("transform", "scale(" + scale + " " + scale + ")")
     .style("fill", "white")
     .text(id.text);
+    */
+
+  bubbleGroup.append("foreignObject")
+    .attr({
+      "width": radius * 2,
+      "height": radius * 2,
+      "transform": "scale(" + scale + " " + scale + ") translate(" + (-radius) + ", " + (-
+        radius) + ")"
+    })
+      .append("xhtml:p")
+      .classed("txt-pool", true)
+      .style({
+        "width": radius *  2 + "px",
+        "height": radius *  2 + "px",
+        "max-width": radius *  2 + "px",
+        "max-height": radius *  2  + "px"
+      })
+      .text(id.text);
 
 }; // drawBubble()
 
 /**
   * draw the current set of bubbles with some magic layouting
   */
-var draw = function() {
+draw = function() {
 
   var margin,
     width,
@@ -193,5 +290,7 @@ var draw = function() {
       }
       draw();
   }); // d3.select()
+
+  return "yes, I have drawn the pool!";
 
 }; // draw()

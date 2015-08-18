@@ -363,3 +363,14 @@ p.txt-input::-moz-selection {
   stroke: #4593e3;
   stroke-width: 1;
 }
+
+p.txt-pool {
+  text-align: center;
+  word-wrap: break-word;
+  display: table-cell;
+  vertical-align: middle;
+  font-family: sans-serif;
+  font-size: 0.75em;
+  line-height: 1.2em;
+  padding: 0 3px;
+}

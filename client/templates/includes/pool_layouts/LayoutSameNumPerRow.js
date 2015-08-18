@@ -38,6 +38,8 @@ LayoutSameNumPerRow = function(ids, options) {
   // remember the ids array to query its length lateron (HACK???)
   this.ids = ids;
 
+  console.log("creating layout based on " + ids.length + " IDs.");
+
   // which bubble is in the center
   this.cursorIndex = Math.floor(ids.length / 2)-1;
 
