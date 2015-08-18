@@ -4,8 +4,11 @@
  * TODO Provide overview description of this file.
  */
 
-var ids, 
-  layout;
+/* global IDs array */
+var ids = [];
+
+/** layout to be used for positioning the bubbles in the pool */
+var layout;
 
 /**
   * init code for the "ID Pool" screen
@@ -23,7 +26,21 @@ Template.idPool.onCreated(function() {
 
   templateInstance = this;
 
-  subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId);
+  subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId,
+    function() {
+      // initial query to populate pool with current set of IDs 
+      Identifications.find({
+        createdBy: {$ne: currentUser._id},
+        trainingId: currentTrainingId,
+        editCompleted: true
+      }).forEach(function(d) { addID(d); });
+      layout = new LayoutSameNumPerRow(ids, {"baseBubbleRadius": 40});
+      draw();
+  });
+
+  // set up autorunner to observe IDs that come, go, or change
+//  templateInstance.autorun(function() {
+//  }); // autorun()
 
 }); // onCreated()
 
@@ -50,30 +67,16 @@ Template.idPool.onRendered(function() {
   // We access the template instance at 'this' and store it in a variable.
   templateInstance = this;
 
-  // GLOBAL array to store the pool of IDs for rendering  
-  ids = [];
-
-  // initial query to populate pool with current set of IDs 
-  Identifications.find({
-    createdBy: {$ne: currentUser._id},
-    trainingId: currentTrainingId,
-    editCompleted: true
-  }).forEach(function(d) { console.log("init: "+d.name); addID(d); });
-
-  // create new layout and init cursor within the layout
-  // TODO get the size info from CSS?
-  layout = new LayoutSameNumPerRow(ids, {"baseBubbleRadius": 40});
-
   // set up autorunner to observe IDs that come, go, or change
   templateInstance.autorun(function() {
-    idsQuery = Identifications.find({
+
+    // initial query to populate pool with current set of IDs 
+    handle = Identifications.find({
       createdBy: {$ne: currentUser._id},
       trainingId: currentTrainingId,
       editCompleted: true
-    });
-    handle = idsQuery.observe({
+    }).observe({
       added: function(doc) {
-        console.log("add: "+doc.name)
         addID(doc);
         draw();
       },
@@ -294,3 +297,20 @@ draw = function() {
   return "yes, I have drawn the pool!";
 
 }; // draw()
+
+
+// Test adding ids
+Template.idPool.events({
+  "click #add-id": function(event, instance) {
+    event.preventDefault();
+    var fakeID = "fake1149"+Math.trunc(Math.random()*10000);
+    Identifications.insert({
+      createdBy: fakeID,
+      name: "Berlin"+Math.trunc(Math.random()*10000),
+      editCompleted: true,
+      trainingId: Meteor.user().profile.currentTraining
+    });
+
+  }
+});
+

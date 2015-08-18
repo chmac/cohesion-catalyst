@@ -100,7 +100,7 @@ LayoutSameNumPerRow.prototype.scroll = function(numPixels) {
   this.cursorPixelPos = pixelPos;
   this.cursorIndex = idx;
 
-  console.log("idx="+idx + " pixPos = "+pixelPos);
+  //console.log("idx="+idx + " pixPos = "+pixelPos);
 };
 
 /**
