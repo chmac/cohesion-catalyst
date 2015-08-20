@@ -48,17 +48,18 @@ LayoutSameNumPerRow = function() {
 
     console.log("creating layout based on " + numIDs + " IDs.");
 
-    // which bubble is in the center
-    this.cursorIndex = Math.floor(numIDs / 2)-1;
+    // which bubble column is in the center? 
+    this.centerColumn = Math.floor(this.opt.bubblesPerRow / 2);
 
-    // index of the first (min) id to be shown in the center
-    this.minIndex = this.cursorIndex % this.opt.bubblesPerRow;
+    // in which column shall the first bubble be displayed?
+    this.firstOffset = numIDs % this.opt.bubblesPerRow; 
+
+    // which bubble is in the center
+    this.cursorRow = Math.floor(numIDs / this.opt.bubblesPerRow / 2);
 
     // cursorPixelPos describes how many pixels the central
     // bubble is off-center, vertically 
     this.cursorPixelPos = 0;
-
-    // console.log("INIT idx="+this.cursorIndex + " min="+this.cursorOffset);
 
   };
 
@@ -77,8 +78,7 @@ LayoutSameNumPerRow = function() {
   Layout.prototype.scroll = function(numPixels) {
 
     // min / max allowed central index
-    var maxIndex = Math.floor(this.queryNumberOfIDs()/this.opt.bubblesPerRow-1)*this.opt.bubblesPerRow + 
-                   this.minIndex;
+    var maxRow = Math.floor((this.queryNumberOfIDs()+this.firstOffset)/this.opt.bubblesPerRow)-1;
 
     // how many pixels for advancing from one bubble row to the next?
     var pixelsPerRow = Math.floor(this.opt.baseBubbleRadius * 2 * this.opt.rowSpacing);
@@ -89,24 +89,24 @@ LayoutSameNumPerRow = function() {
     // scroll by how many rows?
     var rows = Math.trunc(pixelPos/pixelsPerRow);
 
-    // new index of central bubble, new pixel pos
-    var idx = this.cursorIndex - rows*this.opt.bubblesPerRow;
+    // new row of central bubble, new pixel pos
+    var row = this.cursorRow - rows;
     pixelPos = pixelPos - rows*pixelsPerRow;
 
     // clamp
-    if(idx <= this.minIndex) {
-      idx = this.minIndex;
+    if(row <= 0) {
+      row = 0;
       if(pixelPos>0)
         pixelPos = 0;
-    } else if(idx >= maxIndex) {
-      idx = maxIndex;
+    } else if(row >= maxRow) {
+      row = maxRow;
       if(pixelPos<0)
         pixelPos = 0; 
     } 
 
     // set cursor to resulting values
+    this.cursorRow = row;
     this.cursorPixelPos = pixelPos;
-    this.cursorIndex = idx;
 
     //console.log("idx="+idx + " pixPos = "+pixelPos);
   };
@@ -158,25 +158,19 @@ LayoutSameNumPerRow = function() {
     // how many IDs currently in pool?
     var numIds = this.queryNumberOfIDs();
 
-    // how many bubbles are there left from the center?
-    var offset = Math.floor(this.opt.bubblesPerRow/2);
-
-    // which "line" is the cursor in?
-    var cursorRow = Math.floor((this.cursorIndex - offset) / this.opt.bubblesPerRow);
-
     // which "line" is the bubble to be rendered in?
-    var bubbleRow = Math.floor((bubbleIndex - offset) / this.opt.bubblesPerRow);
+    var bubbleRow = Math.floor((bubbleIndex + this.firstOffset) / this.opt.bubblesPerRow);
 
     // which column?
-    var bubbleCol = bubbleIndex - offset - bubbleRow*this.opt.bubblesPerRow;
-    var cursorCol = this.cursorIndex - offset - cursorRow*this.opt.bubblesPerRow;;
+    var bubbleCol = bubbleIndex + this.firstOffset - bubbleRow*this.opt.bubblesPerRow;
+    var cursorCol = this.centerColumn;
 
     // how far is this bubble from the current cursor position?
     var diff = bubbleIndex - this.cursorIndex;
 
     // how many rows / columns away?
     var colDiff = bubbleCol - cursorCol;
-    var rowDiff = bubbleRow - cursorRow;
+    var rowDiff = bubbleRow - this.cursorRow;
 
     // start in center of drawing area
     var x = Math.floor(this.opt.drawAreaWidth / 2);
