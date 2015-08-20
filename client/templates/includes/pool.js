@@ -26,6 +26,10 @@ Template.idPool.onCreated(function() {
 
   templateInstance = this;
 
+  // initial dummy layout, until all bubbles in pool are known
+  layout = new LayoutSameNumPerRow(ids, {"baseBubbleRadius": 40});
+
+
   subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId,
     function() {
       // initial query to populate pool with current set of IDs 
