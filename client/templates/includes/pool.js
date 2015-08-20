@@ -10,7 +10,7 @@
 var pool = function() {
 
   /* IDs array for rendering scrollable ID bubbles */
-  var ids = [];
+  ids = [];
 
   /** layout to be used for positioning the bubbles in the pool */
   var layout;
@@ -33,7 +33,6 @@ var pool = function() {
 
     // initial dummy layout, until all bubbles in pool are known
     layout = new LayoutSameNumPerRow(function(){return 0;});
-
 
     subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId,
       function() {
@@ -115,7 +114,7 @@ var pool = function() {
   var addID = function(doc) {
 
     for(var i=0; i<ids.length; i++) {
-      if(ids[i].text == doc.name) {
+      if(ids[i] && ids[i].text == doc.name) {
         // ID with such name already in array, check who created it
         for(var j=0; j<ids[i].createdBy.length; j++) {
           if(ids[i].createdBy[j] == doc.createdBy) {
@@ -129,12 +128,21 @@ var pool = function() {
         return;
       }
     }
-    // ID with such name not yet in array, so add new ID
+    // ID with such name not yet in array, so create new ID
     var id = {};
     id.text = doc.name;
     id.count = 1;
     id.color = "purple";
     id.createdBy = [doc.createdBy];
+
+    // insert it at the first free slot
+    for(var i=0; i<ids.length; i++) {
+      if(ids[i] == undefined) {
+        ids[i] = id;
+        return id;
+      }
+    }
+    // no emtpy slot found, append to array
     ids.push(id);
     return id;
   };
@@ -144,7 +152,7 @@ var pool = function() {
     */
   var deleteID = function(doc) {
     for(var i=0; i<ids.length; i++) {
-      if(ids[i].text == doc.name) {
+      if(ids[i] && ids[i].text == doc.name) {
         for(var j=0; j<ids[i].createdBy.length; j++) {
           if(ids[i].createdBy[j] == doc.createdBy) {
 
@@ -154,8 +162,10 @@ var pool = function() {
             if(ids[i].count == 0) {
               // nobody has this ID any more, remove it from screen/array
               ids[i] = undefined;
+              console.log("bubble "+doc.name+" removed");
               return;
             }
+            console.log("removed one instance from bubble "+doc.name+", count="+ids[i].count);
             return;
           }
         }
@@ -309,7 +319,7 @@ var pool = function() {
   }; // draw()
 
 
-  // Test adding ids
+  // Test adding and removing ids
   Template.idPool.events({
     "click #add-id": function(event, instance) {
       event.preventDefault();
@@ -320,8 +330,26 @@ var pool = function() {
         editCompleted: true,
         trainingId: Meteor.user().profile.currentTraining
       });
+    } ,
+    "click #remove-id": function(event, instance) {
+      event.preventDefault();
+      var randomIdx = Math.floor(Math.random() * (ids.length-1));
+      var i=0;
+      while(i<1000 && ids[randomIdx] == undefined) {
+        i++;
+        randomIdx = Math.floor(Math.random() * (ids.length-1));
+      };
+      if(i>=1000) {
+        console.log("found nothing to remove");
+        return;
+      } 
+      var name = ids[randomIdx].text;
+      var createdBy = ids[randomIdx].createdBy[0];
+      console.log("remove idx="+randomIdx+" name="+name+" createdBy="+createdBy);
+      deleteID({"name": name, "createdBy": createdBy});
+      draw();
+    }   
 
-    }
-  });
+  }); // events()
 
 }(); // module
