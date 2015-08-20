@@ -24,9 +24,10 @@
 LayoutSameNumPerRow = function() {
 
   /**
-    *  constructor initializes cursor etc. and returns a new layout object
+    *  constructor initializes cursor and returns a new layout object
+    *  queryNumberOfIDs: function that can be used to query current number of IDs in the pool
     */
-  var Layout = function(ids, options) {
+  var Layout = function(queryNumberOfIDs, options) {
 
     // read options and provide default values
     if(!options) 
@@ -41,12 +42,14 @@ LayoutSameNumPerRow = function() {
     this.opt.colSpacing = 1.2;
 
     // remember the ids array to query its length lateron (HACK???)
-    this.ids = ids;
+    this.queryNumberOfIDs = queryNumberOfIDs;
 
-    console.log("creating layout based on " + ids.length + " IDs.");
+    var numIDs = this.queryNumberOfIDs();
+
+    console.log("creating layout based on " + numIDs + " IDs.");
 
     // which bubble is in the center
-    this.cursorIndex = Math.floor(ids.length / 2)-1;
+    this.cursorIndex = Math.floor(numIDs / 2)-1;
 
     // index of the first (min) id to be shown in the center
     this.minIndex = this.cursorIndex % this.opt.bubblesPerRow;
@@ -74,7 +77,7 @@ LayoutSameNumPerRow = function() {
   Layout.prototype.scroll = function(numPixels) {
 
     // min / max allowed central index
-    var maxIndex = Math.floor(this.ids.length/this.opt.bubblesPerRow-1)*this.opt.bubblesPerRow + 
+    var maxIndex = Math.floor(this.queryNumberOfIDs()/this.opt.bubblesPerRow-1)*this.opt.bubblesPerRow + 
                    this.minIndex;
 
     // how many pixels for advancing from one bubble row to the next?
@@ -151,6 +154,10 @@ LayoutSameNumPerRow = function() {
     *  (without in-between cursor positions several pixels off a full row)
     */
   Layout.prototype.getPosForFullRow = function(bubbleIndex) {
+
+    // how many IDs currently in pool?
+    var numIds = this.queryNumberOfIDs();
+
     // how many bubbles are there left from the center?
     var offset = Math.floor(this.opt.bubblesPerRow/2);
 
