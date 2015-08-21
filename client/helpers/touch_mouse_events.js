@@ -113,6 +113,7 @@ touchMouseEvents = function() {
     }
 
     // which mode are we in?
+    // TODO: this can go wrong, if the mouse is already pressed when the function is called
     var mode = "UP";
 
     // track where the mouse/finger has gone down initially
@@ -155,6 +156,7 @@ touchMouseEvents = function() {
       cfg.longDown && cfg.longDown(downPos[0], downPos[1]);
     };
 
+    /** this event listener is called whenever the mouse/touch is moving */
     var move = function() {
 
       var pos = getCurrentPos(container);
@@ -219,6 +221,7 @@ touchMouseEvents = function() {
 
     }; // move
 
+    /** this event listener is called whenever the mouse/touch is released */
     var up = function(event) {
 
       // current mouse pos

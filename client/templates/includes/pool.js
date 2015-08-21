@@ -37,7 +37,7 @@ var pool = function() {
 
     templateInstance = this;
 
-    // initial dummy layout, until all bubbles in pool are known
+    // initial dummy layout, do now draw anything until all bubbles in pool are known
     layout = new LayoutSameNumPerRow(function(){return 0;});
 
   }); // onCreated()
@@ -72,6 +72,7 @@ var pool = function() {
     touchMouseEvents(drawingSurface, // target
                      drawingSurface.node(), // container for position calculation
                      { "test": false,
+                       "down": function() {d3.event.preventDefault();}, // prevent DOM element selection etc.
                        "dragMove": function(x,y,dx,dy) { d3.event.preventDefault(); layout.scroll(dy); draw(); }
                      });
 
