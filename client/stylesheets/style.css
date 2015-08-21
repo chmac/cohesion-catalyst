@@ -1,3 +1,7 @@
+html {
+  font-size: 10px;
+}
+
 /*
  * Base font-size of the <body> is set in relation to the Chrome browser
  * default size of the <html> which is 10px.
@@ -171,18 +175,16 @@ a.avatar {
   outline: none;
 }
 
-.ids-container {
-  position: relative;
-}
-
 /*@media screen and (min-width: 768px) and (max-height: 800px) {
   .ids-container {
-      height: 700px;
+      height: 600px;
     }
 }*/
 
 #ids-vis {
   margin: auto;
+  width: 90vmin; /* 90% of minimum length of current viewport - either width or height, whatever is smallest */
+  height: 90vh;  /* 90% of current viewport height */
 }
 
 .sticky-checkbox {
@@ -370,7 +372,7 @@ p.txt-pool {
   display: table-cell;
   vertical-align: middle;
   font-family: sans-serif;
-  font-size: 0.75em;
-  line-height: 1.2em;
+  font-size: 1.2em;
+  line-height: 1.4em;
   padding: 0 3px;
 }
