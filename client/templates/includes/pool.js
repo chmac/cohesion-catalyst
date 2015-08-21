@@ -1,7 +1,7 @@
 /**
  * pool.js
  *
- * Template for the "ID Pool" screen, and methods to 
+ * Template for the "ID Pool" screen, and methods to
  * query, update, render, and scroll the pool of IDs
  *
  */
@@ -85,14 +85,14 @@ var pool = function() {
     // subscribe to other people's IDs, draw when ready
     subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId,
       function() {
-        // initial query to populate pool with current set of IDs 
+        // initial query to populate pool with current set of IDs
         Identifications.find({
           createdBy: {$ne: currentUser._id},
           trainingId: currentTrainingId,
           editCompleted: true
         }).forEach(function(d) { addID(d); });
-        layout = new LayoutSameNumPerRow( function(){return ids.length;}, 
-                                          {"baseBubbleRadius": 40});
+        layout = new LayoutSameNumPerRow( function(){return ids.length;},
+                                          {"baseBubbleRadius": 65});
         // set width and height in layout
         layout.setDimensions(width,height);
 
@@ -104,7 +104,7 @@ var pool = function() {
     // set up autorunner to observe IDs that come, go, or change
     templateInstance.autorun(function() {
 
-      // initial query to populate pool with current set of IDs 
+      // initial query to populate pool with current set of IDs
       handle = Identifications.find({
         createdBy: {$ne: currentUser._id},
         trainingId: currentTrainingId,
@@ -130,7 +130,7 @@ var pool = function() {
   });  // onRendered()
 
   /**
-    *   add an ID, check if an ID with the same name is 
+    *   add an ID, check if an ID with the same name is
     *   already in the pool (and update its count), or
     *   whether this is an entierly new ID
     */
@@ -143,8 +143,8 @@ var pool = function() {
           if(ids[i].createdBy[j] == doc.createdBy) {
             // already in, so just ignore this addID call
             return "already in array";
-          };
-        };
+          }
+        }
         // this creator is new, so add it to this ID
         ids[i].count++;
         ids[i].createdBy.push[doc.createdBy];
@@ -205,7 +205,7 @@ var pool = function() {
     for(var i=0; i<ids.length; i++) {
       var id = ids[i];
       if(id.text == text) {
-        id = {"text": newText || id.text, 
+        id = {"text": newText || id.text,
               "count": newCount || id.count,
               "color": newColor || id.color};
         return;
@@ -216,9 +216,9 @@ var pool = function() {
   }; // XXX
 
   /**
-    * add the SVG container to draw into 
+    * add the SVG container to draw into
     *
-    */ 
+    */
   var makeDrawingSurface = function() {
    var margin,
       //width,
@@ -229,15 +229,15 @@ var pool = function() {
     // We create a margin object following the D3 margin convention.
     // cf. http://bl.ocks.org/mbostock/3019563
     margin = {
-      top: 20,
+      top: 10,
       right: 10,
-      bottom: 20,
+      bottom: 10,
       left: 10
     };
 
     // We define the inner dimensions of the drawing area.
-    width = 768 - margin.left - margin.right;
-    height = 1024 - margin.top - margin.bottom;
+    width = 788 - margin.left - margin.right;
+    height = 1044 - margin.top - margin.bottom;
 
     // remove all existing children of the drawing area
     //d3.select("#ids-graph").selectAll("*").remove();
@@ -247,7 +247,8 @@ var pool = function() {
       .attr("id", "ids-vis")
       .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin
         .top + margin.bottom))
-      .attr("preserveAspectRatio", "xMidYMid meet");
+      // .attr("preserveAspectRatio", "xMidYMid meet");
+      .attr("preserveAspectRatio", "xMidYMin meet");
 
     // We append a <g> element that translates the origin to the top-left
     // corner of the drawing area.
@@ -278,24 +279,24 @@ var pool = function() {
     // remove all scene objects from last rendered frame
     drawingSurface.selectAll(".scene_obj").remove();
 
-    // for each bubbles, let the layout determine if/where to draw it, and do so  
+    // for each bubbles, let the layout determine if/where to draw it, and do so
     for(var i=0; i<ids.length; i++) {
-      // is there something in this slot in the IDs array? 
+      // is there something in this slot in the IDs array?
       if(ids[i] != undefined) {
         // let layout compute position and scale factor
         var res = layout.getPositionAndSize(i);
         // draw it at all?
         if(res != undefined) {
           // draw single bubble
-          drawBubble(drawingSurface, ids[i], res.x, res.y, 40, res.scale);
+          drawBubble(drawingSurface, ids[i], res.x, res.y, 65, res.scale);
         }
       }
     }
 
   }; // draw()
 
-  /** 
-    * draw a single ID bubble centered around specified position 
+  /**
+    * draw a single ID bubble centered around specified position
     * with specified radius and scale factor
     * drawingSurface: the SVG area's topmost group element
     * id: one entry from the ids array
@@ -318,7 +319,7 @@ var pool = function() {
     /*
     bubbleGroup.append("text")
       .attr("dy", ".3em")
-      .style("text-anchor", "middle")    
+      .style("text-anchor", "middle")
       .attr("transform", "scale(" + scale + " " + scale + ")")
       .style("fill", "white")
       .text(id.text);
@@ -366,13 +367,13 @@ var pool = function() {
       if(i>=1000) {
         console.log("found nothing to remove");
         return;
-      } 
+      }
       var name = ids[randomIdx].text;
       var createdBy = ids[randomIdx].createdBy[0];
       console.log("remove idx="+randomIdx+" name="+name+" createdBy="+createdBy);
       deleteID({"name": name, "createdBy": createdBy});
       draw();
-    }   
+    }
 
   }); // events()
 
