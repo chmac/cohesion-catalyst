@@ -791,7 +791,7 @@ Template.myIds.onRendered(function() {
     .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin
       .top +
       margin.bottom))
-    .attr("preserveAspectRatio", "xMidYMid meet");
+    .attr("preserveAspectRatio", "xMidYMin meet");
 
   svgGroup = svgViewport.append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
