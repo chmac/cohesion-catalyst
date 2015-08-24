@@ -1,6 +1,13 @@
+/*
+ * common.css
+ *
+ * Layout declarations that are shared between - at least two - templates.
+ */
+
 html {
   font-size: 10px;
 }
+
 
 /*
  * Base font-size of the <body> is set in relation to the Chrome browser
@@ -14,80 +21,17 @@ body {
 }
 
 
-/* Override the alignment rules in order to center the nav components */
-@media (min-width: 768px) {
-  .main-navigation {
-  /*.navbar .navbar-nav {*/
-    display: inline-block;
-    float: none;
-  }
-
-  .navbar .navbar-collapse {
-    text-align: center;
-  }
-
-  .main-navigation > li > a {
-    padding-left: 35px;
-    padding-right: 35px;
-  }
-}
-
-.navbar-dark {
-  background-color: #000;
-  /*border-color: #080808;*/
-}
-
-.navbar-dark .navbar-nav > li > a {
-  color: #9d9d9d;
-}
-
-.navbar-dark .navbar-nav > li > a:hover,
-.navbar-dark .navbar-nav > li > a:focus,
-.navbar-dark .navbar-nav > .active > a,
-.navbar-dark .navbar-nav > .active > a:hover,
-.navbar-dark .navbar-nav > .active > a:focus {
-  color: #fff;
-  background-color: #000;
-}
-
-.navbar-dark .navbar-toggle .icon-bar {
-  background-color: #fff;
-}
-
-.logged-out {
-  visibility: hidden;
-}
-
 .centering {
   width: 50%;
   margin: auto;
 }
 
-.not-found {
-  text-align: center;
-  padding-top: 30px;
-}
-
-.not-found h2 {
-  font-size: 3.75em;
-  font-weight: 100;
-}
-
-.not-found p {
-  font-size: 1.3125em;
-  font-weight: 200;
-}
 
 .vis-container {
   margin: 20% 25% 0 25%;
   width: 50%;
 }
 
-#welcome-vis,
-#smiley-selection,
-#ids-vis {
-  display: block;
-}
 
 #b-box {
   pointer-events: all;
@@ -95,85 +39,6 @@ body {
   cursor: pointer;
 }
 
-.welcome-text {
-  margin-top: -7%;
-  margin-left: 63%;
-  width: 200px;
-  position: relative;
-  min-height: 1px;
-  padding-right: 15px;
-  /*padding-left: 15px;*/
-  font-size: 0.7875em;
-  color: #fff;
-}
-
-.register-form-container {
-  width: 50%;
-  margin: 3% 25% 0 25%;
-}
-
-
-#create-account-link {
-  display: inline-block;
-  margin-top: 15px;
-}
-
-@-webkit-keyframes fadeOut {
-  0% {opacity: 0;}
-  10% {opacity: 1;}
-  90% {opacity: 1;}
-  100% {opacity: 0;}
-}
-
-@keyframes fadeOut {
-  0% {opacity: 0;}
-  10% {opacity: 1;}
-  90% {opacity: 1;}
-  100% {opacity: 0;}
-}
-
-/*
- cf. [as of 2015-06-22]:
- https://css-tricks.com/centering-percentage-widthheight-elements/
- http://tympanus.net/codrops/2013/06/25/nifty-modal-window-effects/
-*/
-.errors {
-  position: fixed;
-  z-index: 10000;
-  padding: 10px;
-  left: 50%;
-  top: 50%;
-  width: 50%;
-  height: auto;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-.error-alert {
-  animation: fadeOut 3700ms ease-in 0s 1 forwards;
-  -webkit-animation: fadeOut 3700ms ease-in 0s 1 forwards;
-  -moz-animation: fadeOut 3700ms ease-in 0s 1 forwards;
-  padding: 10px;
-  max-width: 630px;
-  min-width: 300px;
-  min-height: 150px;
-  margin-bottom: 5px;
-  pointer-events: auto;
-}
-
-.avatar-container {
-  margin: 20% auto 0 auto;
-  width: 75%;
-}
-
-.avatar-container > h4 {
-  padding: 0 0 15px 30px;
-}
-
-a.avatar {
-  cursor: pointer; /* Needs to explicitly set for SVG <a> elements */
-  outline: none;
-}
 
 /*@media screen and (min-width: 768px) and (max-height: 800px) {
   .ids-container {
@@ -181,198 +46,16 @@ a.avatar {
     }
 }*/
 
+
 #ids-vis {
+  display: block;
   margin: auto;
   width: 90vmin; /* 90% of minimum length of current viewport - either width or height, whatever is smallest */
   height: 90vh;  /* 90% of current viewport height */
 }
 
-.sticky-checkbox {
-  pointer-events: all;
-  cursor: pointer;
-}
-
-.sticky-checkbox text {
-  fill: #747272;
-  font-style: italic;
-}
-
-.sticky-checkbox circle {
-  fill: #747272;
-}
-
-.sticky-checkbox path {
-  fill: none;
-}
-
-.sticky-checkbox.checked text{
-  fill: #fff;
-  font-style:normal;
-}
-
-.sticky-checkbox.checked circle {
-  fill: #fff;
-}
-
-.sticky-checkbox.checked path {
-  stroke: #000;
-  stroke-width: 1.2;
-  stroke-linejoin: round;
-  fill: none;
-}
 
 .drawing-surface {
   fill: #000;
   pointer-events: all;
-}
-
-.node {
-  cursor: crosshair;
-  fill: #fff;
-}
-
-.node.dragging {
-  cursor: move;
-}
-
-.root {
-  outline: none;
-}
-
-.root > circle.filled {
-  /*fill: #000;
-  stroke: #fff;
-  stroke-width: 4;*/
-  display: none;
-}
-
-.root > circle.dashed,
-.root > g.selected-controls {
-  display: none;
-}
-
-.root > text {
-  fill: #fff;
-  font-size: 1.125em;
-}
-
-.child {
-  outline: none;
-  display: table; /* This is needed for vertical positioning of the text within <p> */
-}
-
-.child > circle.filled {
-  fill: #fff;
-  stroke: #000;
-  stroke-width: 2;
-}
-
-.child > circle.dashed,
-.child > g.selected-controls {
-  display: none;
-}
-
-.child.node-selected > circle.dashed,
-.child.node-selected > g.selected-controls {
-  display: block;
-}
-
-circle.dashed {
-  stroke: #4593e3; /* BLUE color for selected nodes */
-  stroke-width: 2;
-  stroke-dasharray: 5 5;
-  fill: #000;
-}
-
-.child.node-selected.node-empty > circle.dashed,
-.child.node-selected.node-empty > g.selected-controls .delete-icon {
-  stroke: #d94839;
-}
-
-.foreign-object {
-  display: table-row; /* This is needed for vertical positioning of the text within*/
-  -webkit-border-radius: 50%;
-  -moz-border-radius: 50%;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.child.node-selected .foreign-object {
-  background: #4593e3; /* BLUE color for selected nodes */
-}
-
-.child.node-selected.node-empty .foreign-object {
-  background: #d94839; /* RED color for selected nodes */
-}
-
-p.txt-input {
-  color: #000;
-  display: table-cell; /* This is needed for vertical positioning */
-  vertical-align: middle;
-  width: 5.8em;
-  height: 5.8em;
-  max-width: 5.8em;
-  max-height: 5.8em;
-  font-family: sans-serif;
-  font-size: 0.75em;
-  line-height: 1.2em;
-  text-align: center;
-  outline: none;
-  word-wrap: break-word;
-  overflow: hidden;
-}
-
-.child.node-selected p.txt-input,
-.child.node-selected.node-empty p.txt-input {
-  color: #fff;
-}
-
-/* http://css-tricks.com/overriding-the-default-text-selection-color-with-css/ */
-p.txt-input::selection {
-  background: transparent;
-}
-
-p.txt-input::-moz-selection {
-  background: #fff;
-}
-
-.drag-line {
-  stroke: #fff;
-  stroke-width: 3;
-  pointer-events: none;
-}
-
-.drag-line-hidden {
-  stroke-width: 0;
-  pointer-events: none;
-}
-
-.link {
-  stroke: #fff;
-  stroke-width: 3;
-  cursor: crosshair;
-}
-
-/* HEADS UP: The CSS 'color' property is not applicable to SVG elements.
- * We use it here to customize the 'fill' color value of the icon's <path> and <line>
- * elements which use the CSS variable 'currenColor' within the original symbol definition
- * in the file icons.svg.
- */
-.delete-icon {
-  cursor: pointer;
-  fill: #000;
-  color: #4593e3; /* blue color for selected nodes */
-  stroke: #4593e3;
-  stroke-width: 1;
-}
-
-p.txt-pool {
-  text-align: center;
-  word-wrap: break-word;
-  display: table-cell;
-  vertical-align: middle;
-  font-family: sans-serif;
-  font-size: 1.2em;
-  line-height: 1.4em;
-  padding: 0 3px;
 }
