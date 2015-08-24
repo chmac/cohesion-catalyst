@@ -11,7 +11,7 @@ Template.navigation.helpers({
     // to see if any of the routes' corresponding URL is equal to the current path.
     // If any of the routes match up with the current path, 'any()' will return true.
     var active = _.any(args, function(name) {
-      return Router.current() && Router.current().route.getName() === name;
+      return Router.current() && Router.current().route && Router.current().route.getName() === name;
     });
 
     // Use the 'boolean && string' JavaScript pattern, where 'false && myString' returns 'false'
