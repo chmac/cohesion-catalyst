@@ -1,0 +1,15 @@
+/*
+ * login.css
+ *
+ * Layout affecting the 'login.html' template.
+ */
+
+.register-form-container {
+ width: 50%;
+ margin: 3% 25% 0 25%;
+}
+
+#create-account-link {
+ display: inline-block;
+ margin-top: 15px;
+}

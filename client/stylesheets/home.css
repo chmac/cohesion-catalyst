@@ -1,0 +1,21 @@
+/*
+ * home.css
+ *
+ * Layout affecting the 'home.html' template.
+ */
+
+ #welcome-vis {
+   display: block;
+ }
+
+.welcome-text {
+ margin-top: -7%;
+ margin-left: 63%;
+ width: 200px;
+ position: relative;
+ min-height: 1px;
+ padding-right: 15px;
+ /*padding-left: 15px;*/
+ font-size: 0.7875em;
+ color: #fff;
+}

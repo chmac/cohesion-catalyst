@@ -1,0 +1,23 @@
+/*
+ * intro.css
+ *
+ * Layout affecting the 'intro.html' template.
+ */
+
+.avatar-container {
+  margin: 20% auto 0 auto;
+  width: 75%;
+}
+
+.avatar-container > h4 {
+  padding: 0 0 15px 30px;
+}
+
+#smiley-selection {
+  display: block;
+}
+
+a.avatar {
+  cursor: pointer; /* Needs to explicitly set for SVG <a> elements */
+  outline: none;
+}

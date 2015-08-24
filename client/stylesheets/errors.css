@@ -1,0 +1,48 @@
+/*
+ * errors.css
+ *
+ * Layout affecting the 'errors.html' template.
+ */
+
+ @-webkit-keyframes fadeOut {
+   0% {opacity: 0;}
+   10% {opacity: 1;}
+   90% {opacity: 1;}
+   100% {opacity: 0;}
+ }
+
+ @keyframes fadeOut {
+   0% {opacity: 0;}
+   10% {opacity: 1;}
+   90% {opacity: 1;}
+   100% {opacity: 0;}
+ }
+
+ /*
+  cf. [as of 2015-06-22]:
+  https://css-tricks.com/centering-percentage-widthheight-elements/
+  http://tympanus.net/codrops/2013/06/25/nifty-modal-window-effects/
+ */
+ .errors {
+   position: fixed;
+   z-index: 10000;
+   padding: 10px;
+   left: 50%;
+   top: 50%;
+   width: 50%;
+   height: auto;
+   transform: translate(-50%, -50%);
+   pointer-events: none;
+ }
+
+ .error-alert {
+   animation: fadeOut 3700ms ease-in 0s 1 forwards;
+   -webkit-animation: fadeOut 3700ms ease-in 0s 1 forwards;
+   -moz-animation: fadeOut 3700ms ease-in 0s 1 forwards;
+   padding: 10px;
+   max-width: 630px;
+   min-width: 300px;
+   min-height: 150px;
+   margin-bottom: 5px;
+   pointer-events: auto;
+ }

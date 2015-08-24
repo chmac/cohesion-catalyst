@@ -1,0 +1,22 @@
+/*
+ * not_found.css
+ *
+ * Layout affecting the 'not_found.html' template.
+ */
+
+.not-found {
+  text-align: center;
+  padding-top: 30px;
+}
+
+.not-found h2 {
+  /* 1em = 10px */
+  font-size: 3.75em;
+  font-weight: 100;
+}
+
+.not-found p {
+  /* 1em = 10px */
+  font-size: 1.3125em;
+  font-weight: 200;
+}

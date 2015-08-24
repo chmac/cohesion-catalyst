@@ -1,0 +1,16 @@
+/*
+ * pool.css
+ *
+ * Layout affecting the 'pool.html' template.
+ */
+
+ p.txt-pool {
+   text-align: center;
+   word-wrap: break-word;
+   display: table-cell;
+   vertical-align: middle;
+   font-family: sans-serif;
+   font-size: 1.2em;
+   line-height: 1.4em;
+   padding: 0 3px;
+ }

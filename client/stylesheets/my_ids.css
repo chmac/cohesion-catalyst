@@ -1,0 +1,145 @@
+/*
+ * my_ids.css
+ *
+ * Layout affecting the 'my_ids.html' template.
+ */
+ 
+ .node {
+   cursor: crosshair;
+   fill: #fff;
+ }
+
+ .node.dragging {
+   cursor: move;
+ }
+
+ .root {
+   outline: none;
+ }
+
+ .root > circle.filled {
+   /*fill: #000;
+   stroke: #fff;
+   stroke-width: 4;*/
+   display: none;
+ }
+
+ .root > circle.dashed,
+ .root > g.selected-controls {
+   display: none;
+ }
+
+ .root > text {
+   fill: #fff;
+   font-size: 1.125em;
+ }
+
+ .child {
+   outline: none;
+   display: table; /* This is needed for vertical positioning of the text within <p> */
+ }
+
+ .child > circle.filled {
+   fill: #fff;
+   stroke: #000;
+   stroke-width: 2;
+ }
+
+ .child > circle.dashed,
+ .child > g.selected-controls {
+   display: none;
+ }
+
+ .child.node-selected > circle.dashed,
+ .child.node-selected > g.selected-controls {
+   display: block;
+ }
+
+ circle.dashed {
+   stroke: #4593e3; /* BLUE color for selected nodes */
+   stroke-width: 2;
+   stroke-dasharray: 5 5;
+   fill: #000;
+ }
+
+ .child.node-selected.node-empty > circle.dashed,
+ .child.node-selected.node-empty > g.selected-controls .delete-icon {
+   stroke: #d94839;
+ }
+
+ .foreign-object {
+   display: table-row; /* This is needed for vertical positioning of the text within*/
+   -webkit-border-radius: 50%;
+   -moz-border-radius: 50%;
+   border-radius: 50%;
+   overflow: hidden;
+ }
+
+ .child.node-selected .foreign-object {
+   background: #4593e3; /* BLUE color for selected nodes */
+ }
+
+ .child.node-selected.node-empty .foreign-object {
+   background: #d94839; /* RED color for selected nodes */
+ }
+
+ p.txt-input {
+   color: #000;
+   display: table-cell; /* This is needed for vertical positioning */
+   vertical-align: middle;
+   width: 5.8em;
+   height: 5.8em;
+   max-width: 5.8em;
+   max-height: 5.8em;
+   font-family: sans-serif;
+   font-size: 0.75em;
+   line-height: 1.2em;
+   text-align: center;
+   outline: none;
+   word-wrap: break-word;
+   overflow: hidden;
+ }
+
+ .child.node-selected p.txt-input,
+ .child.node-selected.node-empty p.txt-input {
+   color: #fff;
+ }
+
+ /* http://css-tricks.com/overriding-the-default-text-selection-color-with-css/ */
+ p.txt-input::selection {
+   background: transparent;
+ }
+
+ p.txt-input::-moz-selection {
+   background: #fff;
+ }
+
+ .drag-line {
+   stroke: #fff;
+   stroke-width: 3;
+   pointer-events: none;
+ }
+
+ .drag-line-hidden {
+   stroke-width: 0;
+   pointer-events: none;
+ }
+
+ .link {
+   stroke: #fff;
+   stroke-width: 3;
+   cursor: crosshair;
+ }
+
+ /* HEADS UP: The CSS 'color' property is not applicable to SVG elements.
+  * We use it here to customize the 'fill' color value of the icon's <path> and <line>
+  * elements which use the CSS variable 'currenColor' within the original symbol definition
+  * in the file icons.svg.
+  */
+ .delete-icon {
+   cursor: pointer;
+   fill: #000;
+   color: #4593e3; /* blue color for selected nodes */
+   stroke: #4593e3;
+   stroke-width: 1;
+ }
