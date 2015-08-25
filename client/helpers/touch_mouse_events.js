@@ -160,7 +160,6 @@ touchMouseEvents = function() {
     var move = function() {
 
       var pos = getCurrentPos(container);
-      var deltaPos = [-1,-1];
 
       if(mode == "UP") {
 
@@ -204,8 +203,8 @@ touchMouseEvents = function() {
       if(mode == "DRAG" || mode == "LONGDRAG") {
 
         // calculate delta position from last known position
-        deltaPos[0] = pos[0]-lastDragPos[0];
-        deltaPos[1] = pos[1]-lastDragPos[1];
+        var deltaPos = [ pos[0]-lastDragPos[0],
+                         pos[1]-lastDragPos[1] ];
 
         // current positions is stored as last known position
         lastDragPos = pos;
@@ -244,9 +243,8 @@ touchMouseEvents = function() {
       };
 
       // calculate delta position from last known position
-      var deltaPos = [-1,-1];
-      deltaPos[0] = pos[0]-lastDragPos[0];
-      deltaPos[1] = pos[1]-lastDragPos[1];
+      var deltaPos = [ pos[0]-lastDragPos[0],
+                       pos[1]-lastDragPos[1] ];
 
       // trigger "drag end" callback
       if(prevMode == "DRAG") {
