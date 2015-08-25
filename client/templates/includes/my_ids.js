@@ -113,8 +113,8 @@ Template.myIds.onRendered(function() {
   }
 
   function emptyNode(d) {
-    return d.name === placeHolderTxt || d.name === "";
-  };
+    return d && (d.name === placeHolderTxt || d.name === "");
+  }
 
 
   /**
@@ -129,8 +129,7 @@ Template.myIds.onRendered(function() {
   dragNodeToMousePosition = function(nodeDataObject,x,y,dx,dy) {
       var rootNodeData;
 
-    if(emptyNode(mouseDownNode)) return;
-
+    if(emptyNode(mousedownNode)) return;
     // We get the bound data of our root node for accessing its position since
     // we want to prevent the user from dragging nodes beneath the root node's position.
     rootNodeData = d3.select(".root").datum();
@@ -176,7 +175,7 @@ Template.myIds.onRendered(function() {
 
   function longDragEnd() {
 
-    if(emptyNode(mouseDownNode)) return;
+    if(emptyNode(mousedownNode)) return;
 
     // We remove the CSS class indicating an element being dragged.
     d3.select(this)
@@ -301,7 +300,7 @@ Template.myIds.onRendered(function() {
     }
 
     // drag was not started on a valid node
-    if(emptyNode(mouseDownNode)) return;
+    if(emptyNode(mousedownNode)) return;
 
     // We get the bound data of our root node for accessing its position since
     // we want to prevent the user from creating nodes beneath the root node's position.
@@ -572,11 +571,13 @@ Template.myIds.onRendered(function() {
 
     // events on IDs
     touchMouseEvents(nodeEnterGroup, drawingSurface.node(), {
+      "test": false,
       "down": function(d) {
         d3.event.stopPropagation();
         mousedownNode = d;
       },
       "longDown": function(d) {
+        mousedownNode = d;
         var domNode = d3.select(this);
         if (d.level > 0) {
           domNode.classed("dragging", true);
