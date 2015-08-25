@@ -33,7 +33,7 @@ LayoutSameNumPerRow = function() {
     if(!options) 
       options = {};
     this.opt = {};
-    this.opt.baseBubbleRadius = options.baseBubbleRadius || 40;
+    this.opt.baseBubbleRadius = options.baseBubbleRadius || 60;
     this.opt.drawAreaWidth = options.drawAreaWidth || 600;
     this.opt.drawAreaHeight = options.drawAreaHeight || 400;
     this.opt.maxRows = options.maxRows || 8;

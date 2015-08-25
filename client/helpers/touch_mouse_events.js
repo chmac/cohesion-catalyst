@@ -21,9 +21,10 @@
  *   
  *   options:   an object defining one or more event callbacks as well 
  *              as other options. almost all callbacks will receive 
- *              two parameters (x,y) that reflect the mouse/touch position
+ *              three parameters (d,x,y) that reflect the D3 element on which
+ *              the event is triggered, and the mouse/touch position
  *              relative to the specified container; the *drag*
- *              callbacks will receive four parameters (x,y,deltaX,deltaY)
+ *              callbacks will receive five parameters (d, x,y,deltaX,deltaY)
  *              with deltaX and deltaY being the position relative to that
  *              from the previous call to the same callback.
  *
@@ -54,14 +55,14 @@
  *
  *              { 
  *                 "longPressTime": 500,                      // half a second for a long press
- *                 "longDown": function(x,y) { 
+ *                 "longDown": function(d,x,y) { 
  *                   console.log("pressed for a long time, at x="+x+", y="+y);
  *                 },
- *                 "dragMove": function(x,y,deltaX,deltaY) { 
+ *                 "dragMove": function(d,x,y,deltaX,deltaY) { 
  *                   d3.event.preventDefault();               
  *                   console.log("dragged yet another ("+deltaX+","+deltaY") pixels");
  *                 },  
- *                 "longDragMove": function(x,y,deltaX,deltaY) { 
+ *                 "longDragMove": function(d,x,y,deltaX,deltaY) { 
  *                   d3.event.preventDefault();               
  *                   console.log("dragged after a long press, yet another ("+deltaX+","+deltaY") pixels");
  *                 },  
@@ -100,16 +101,16 @@ touchMouseEvents = function() {
 
     // test mode: assign debugging functions to all possible events
     if(cfg.test) {
-      cfg.down        = cfg.down || function(x,y) { console.log("down pos=("+x+","+y+")"); };
-      cfg.up          = cfg.up || function(x,y) { console.log("up pos=("+x+","+y+")"); };
-      cfg.click       = cfg.click || function(x,y) { console.log("click pos=("+x+","+y+")"); };
-      cfg.longDown    = cfg.longDown || function(x,y) { console.log("longDown pos=("+x+","+y+")"); };
-      cfg.longClick   = cfg.longClick || function(x,y) { console.log("longClick pos=("+x+","+y+")"); };
-      cfg.move        = cfg.move ||function(x,y,dx,dy) { console.log("move pos=("+x+","+y+")"); };
-      cfg.dragMove    = cfg.dragMove || function(x,y,dx,dy) { console.log("dragMove pos=("+x+","+y+"), delta=("+dx+","+dy+")"); };
-      cfg.dragEnd     = cfg.dragEnd || function(x,y,dx,dy) { console.log("dragEnd pos=("+x+","+y+"), delta=("+dx+","+dy+")");  };
-      cfg.longDragMove= cfg.longDragMove || function(x,y,dx,dy) { console.log("longDragMove pos=("+x+","+y+"), delta=("+dx+","+dy+")"); };
-      cfg.longDragEnd = cfg.longDragEnd || function(x,y,dx,dy) { console.log("longDragEnd pos=("+x+","+y+"), delta=("+dx+","+dy+")"); };
+      cfg.down        = cfg.down || function(d,x,y) { console.log("down pos=("+x+","+y+")"); };
+      cfg.up          = cfg.up || function(d,x,y) { console.log("up pos=("+x+","+y+")"); };
+      cfg.click       = cfg.click || function(d,x,y) { console.log("click pos=("+x+","+y+")"); };
+      cfg.longDown    = cfg.longDown || function(d,x,y) { console.log("longDown pos=("+x+","+y+")"); };
+      cfg.longClick   = cfg.longClick || function(d,x,y) { console.log("longClick pos=("+x+","+y+")"); };
+      cfg.move        = cfg.move ||function(d,x,y,dx,dy) { console.log("move pos=("+x+","+y+")"); };
+      cfg.dragMove    = cfg.dragMove || function(d,x,y,dx,dy) { console.log("dragMove pos=("+x+","+y+"), delta=("+dx+","+dy+")"); };
+      cfg.dragEnd     = cfg.dragEnd || function(d,x,y,dx,dy) { console.log("dragEnd pos=("+x+","+y+"), delta=("+dx+","+dy+")");  };
+      cfg.longDragMove= cfg.longDragMove || function(d,x,y,dx,dy) { console.log("longDragMove pos=("+x+","+y+"), delta=("+dx+","+dy+")"); };
+      cfg.longDragEnd = cfg.longDragEnd || function(d,x,y,dx,dy) { console.log("longDragEnd pos=("+x+","+y+"), delta=("+dx+","+dy+")"); };
     }
 
     // which mode are we in?
@@ -126,13 +127,13 @@ touchMouseEvents = function() {
     var longDownTimeoutCallback = undefined;
 
     // mouse/finger down can be the beginning of a click, a drag, or a long click
-    var down = function() {
+    var down = function(d) {
 
       downPos = getCurrentPos(container);
       mode = "DOWN";
 
       // callback for "mouse/finger down"
-      cfg.down && cfg.down(downPos[0], downPos[1]);
+      cfg.down && cfg.down(d, downPos[0], downPos[1]);
 
       // set up timeout so in a few miliseconds this turns into a long click
       if(cfg.longDown) {
@@ -142,7 +143,7 @@ touchMouseEvents = function() {
     };
 
     // some time after clicking down, trigger long click if mouse did not move
-    var checkLongPress = function() {
+    var checkLongPress = function(d) {
 
       // check if we have changed mode in the meantime
       if(mode != "DOWN") {
@@ -153,18 +154,18 @@ touchMouseEvents = function() {
 
       // change mode to "LONG" and trigger callback
       mode = "LONG";
-      cfg.longDown && cfg.longDown(downPos[0], downPos[1]);
+      cfg.longDown && cfg.longDown(d, downPos[0], downPos[1]);
     };
 
     /** this event listener is called whenever the mouse/touch is moving */
-    var move = function() {
+    var move = function(d) {
 
       var pos = getCurrentPos(container);
 
       if(mode == "UP") {
 
         // mouse is not pressed, so this is just a "move" event
-        cfg.move && cfg.move(pos[0],pos[1]);
+        cfg.move && cfg.move(d, pos[0],pos[1]);
         return;
 
       } 
@@ -211,9 +212,9 @@ touchMouseEvents = function() {
 
         // trigger callbacks
         if(mode == "DRAG") {
-          cfg.dragMove && cfg.dragMove(pos[0],pos[1], deltaPos[0],deltaPos[1]);
+          cfg.dragMove && cfg.dragMove(d, pos[0],pos[1], deltaPos[0],deltaPos[1]);
         } else if(mode == "LONGDRAG") {
-          cfg.longDragMove(pos[0],pos[1], deltaPos[0],deltaPos[1]);
+          cfg.longDragMove(d, pos[0],pos[1], deltaPos[0],deltaPos[1]);
         };
 
       }; // if mode DRAG or LONGDRAG
@@ -221,7 +222,7 @@ touchMouseEvents = function() {
     }; // move
 
     /** this event listener is called whenever the mouse/touch is released */
-    var up = function(event) {
+    var up = function(d) {
 
       // current mouse pos
       var pos = getCurrentPos(container);
@@ -231,14 +232,14 @@ touchMouseEvents = function() {
       mode = "UP";
 
       // trigger "up" callback
-      cfg.up && cfg.up(pos[0],pos[1]);
+      cfg.up && cfg.up(d, pos[0],pos[1]);
 
       // trigger "click" or long click" callback
       if(prevMode == "DOWN") {
-         cfg.click && cfg.click(pos[0],pos[1]);
+         cfg.click && cfg.click(d, pos[0],pos[1]);
          return;
       } else if(prevMode == "LONG") {
-        cfg.longClick && cfg.longClick(pos[0],pos[1]);
+        cfg.longClick && cfg.longClick(d, pos[0],pos[1]);
         return;
       };
 
@@ -248,9 +249,9 @@ touchMouseEvents = function() {
 
       // trigger "drag end" callback
       if(prevMode == "DRAG") {
-         cfg.dragEnd && cfg.dragEnd(pos[0],pos[1],deltaPos[0],deltaPos[1]);
+         cfg.dragEnd && cfg.dragEnd(d, pos[0],pos[1],deltaPos[0],deltaPos[1]);
       } else if(prevMode == "LONGDRAG") {
-         cfg.longDragEnd && cfg.longDragEnd(pos[0],pos[1],deltaPos[0],deltaPos[1]);
+         cfg.longDragEnd && cfg.longDragEnd(d, pos[0],pos[1],deltaPos[0],deltaPos[1]);
       } 
 
     }; // up()
