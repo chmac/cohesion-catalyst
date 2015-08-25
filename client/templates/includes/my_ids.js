@@ -112,6 +112,11 @@ Template.myIds.onRendered(function() {
     });
   }
 
+  function emptyNode(d) {
+    return d.name === placeHolderTxt || d.name === "";
+  };
+
+
   /**
    * Handles the dragging (i.e. re-positioning) of an existing node element (an identification bubble).
    * It is called from a {@code mousedown} event if the {@code Shift} key was active and registers
@@ -121,91 +126,67 @@ Template.myIds.onRendered(function() {
    * @param {Object} nodeDataObject The joined data of the HTML/SVG element that received
    * the {@code mousedown} event.
    */
-  dragNodeToMousePosition = function(nodeDataObject) {
-    var mousePos,
-      dragX,
-      dragY,
-      rootNodeData;
+  dragNodeToMousePosition = function(nodeDataObject,x,y,dx,dy) {
+      var rootNodeData;
+
+    if(emptyNode(mouseDownNode)) return;
 
     // We get the bound data of our root node for accessing its position since
     // we want to prevent the user from dragging nodes beneath the root node's position.
     rootNodeData = d3.select(".root").datum();
 
-    // We register the event handlers that will respond to the mousemove events
-    // and to the mouseup events subsequent to this mousedown event.
-    // Note that we are registering to both the individual node <g> elements and
-    // the encompassing <g> element (i.e. the drawing surface).
-    d3.select("#gid" + nodeDataObject._id)
-      //.on("mousemove", moveNode)
-      .on("mouseup", dragend);
+    mousePos = [x,y];
+    dragX = detectBoundaries(mousePos, rootNodeData, radius, width)[0];
+    dragY = detectBoundaries(mousePos, rootNodeData, radius, width)[1];
 
-    d3.select("#ids-vis g")
-      .on("mousemove", moveNode)
-      .on("mouseup", dragend);
+    Identifications.update(nodeDataObject._id, {
+      $set: {
+        x: dragX,
+        y: dragY
+      }
+    });
 
-    /**
-     * Manages the moving of the element by responding to the {@code mousemove} event.
-     * Uses {@code d3.mouse} to retrieve the current mouse coordinates on the drawing surface
-     * and updates the values of the {@code x} and {@code y} positions in the regarding database
-     * collections which will automatically update the HTML/SVG.
-     */
-    function moveNode() {
-      mousePos = d3.mouse(d3.select("#ids-vis g").node());
-      dragX = detectBoundaries(mousePos, rootNodeData, radius, width)[0];
-      dragY = detectBoundaries(mousePos, rootNodeData, radius, width)[1];
-
-      Identifications.update(nodeDataObject._id, {
+    Links.find({
+      "source._id": nodeDataObject._id
+    }).forEach(function(link) {
+      Links.update(link._id, {
         $set: {
-          x: dragX,
-          y: dragY
+          "source.x": dragX,
+          "source.y": dragY
         }
+      }, {
+        multi: true
       });
+    });
 
-      Links.find({
-        "source._id": nodeDataObject._id
-      }).forEach(function(link) {
-        Links.update(link._id, {
-          $set: {
-            "source.x": dragX,
-            "source.y": dragY
-          }
-        }, {
-          multi: true
-        });
+    Links.find({
+      "target._id": nodeDataObject._id
+    }).forEach(function(link) {
+      Links.update(link._id, {
+        $set: {
+          "target.x": dragX,
+          "target.y": dragY
+        }
+      }, {
+        multi: true
       });
+    });
 
-      Links.find({
-        "target._id": nodeDataObject._id
-      }).forEach(function(link) {
-        Links.update(link._id, {
-          $set: {
-            "target.x": dragX,
-            "target.y": dragY
-          }
-        }, {
-          multi: true
-        });
-      });
-    } // end moveNode()
-
-    /**
-     * Handles the {@code mouseup} event subsequent to moving an element.
-     * Terminates the dragging.
-     */
-    function dragend() {
-      // We remove the CSS class indicating an element being dragged.
-      d3.select(this)
-        //.on("mousemove", null)
-        .classed("dragging", false);
-
-      // We deregister the {@code mousemove} event
-      d3.select("#ids-vis g").on("mousemove", null);
-      // We deselect the current element and reset our variables.
-      selectNodeElement(null);
-      resetMouseVars();
-    } // end dragend()
   }; // end dragNodeToMousePosition()
 
+  function longDragEnd() {
+
+    if(emptyNode(mouseDownNode)) return;
+
+    // We remove the CSS class indicating an element being dragged.
+    d3.select(this)
+      //.on("mousemove", null)
+      .classed("dragging", false);
+
+    // We deselect the current element and reset our variables.
+    selectNodeElement(null);
+    resetMouseVars();
+  } // end dragend()
   /**
    * Handles the {@code tick} event of the {@code d3.layout.force()}.
    * {@code tick} events are dispatched for each tick of the force layout simulation, so listening
@@ -263,21 +244,16 @@ Template.myIds.onRendered(function() {
    * element that received the {@code mousedown} event
    * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
    */
-  drawLineToMousePosition = function() {
+  drawLineToMousePosition = function(d,x,y,dx,dy) {
     var rootNodeData;
-
-    // We get the bound data of our root node for accessing its position.
-    rootNodeData = d3.select(".root").datum();
 
     // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
     if (!mousedownNode) {
       return;
     }
 
-    // We do not want the dragLine to be drawn when we drag a node.
-    if (d3.event.shiftKey) {
-      return;
-    }
+    // We get the bound data of our root node for accessing its position.
+    rootNodeData = d3.select(".root").datum();
 
     if (Session.equals("selectedElement", mousedownNode._id)) {
       selectNodeElement(null);
@@ -289,8 +265,8 @@ Template.myIds.onRendered(function() {
       .attr("class", "drag-line")
       .attr("x1", mousedownNode.x)
       .attr("y1", mousedownNode.y)
-      .attr("x2", detectBoundaries(d3.mouse(this), rootNodeData, radius, width)[0])
-      .attr("y2", detectBoundaries(d3.mouse(this), rootNodeData, radius, width)[1]);
+      .attr("x2", detectBoundaries([x,y], rootNodeData, radius, width)[0])
+      .attr("y2", detectBoundaries([x,y], rootNodeData, radius, width)[1]);
   }; // end drawLineToMousePosition()
 
 
@@ -305,7 +281,7 @@ Template.myIds.onRendered(function() {
    *
    * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
    */
-  createNodeAtMousePosition = function() {
+  createNodeAtMousePosition = function(d,x,y,dx,dy) {
     var rootNodeData,
       newNodePos,
       newX,
@@ -324,9 +300,8 @@ Template.myIds.onRendered(function() {
       return;
     }
 
-    if (d3.event.shiftKey) {
-      return;
-    }
+    // drag was not started on a valid node
+    if(emptyNode(mouseDownNode)) return;
 
     // We get the bound data of our root node for accessing its position since
     // we want to prevent the user from creating nodes beneath the root node's position.
@@ -338,7 +313,7 @@ Template.myIds.onRendered(function() {
     dragLine.attr("class", "drag-line-hidden");
 
     // Get the current mouse position coordinates.
-    newNodePos = d3.mouse(this);
+    newNodePos = [x,y];
     newX = detectBoundaries(newNodePos, rootNodeData, radius, width)[0];
     newY = detectBoundaries(newNodePos, rootNodeData, radius, width)[1];
 
@@ -584,59 +559,48 @@ Template.myIds.onRendered(function() {
       return svgForeignObject;
     });
 
-    nodeEnterGroup
-      .on("mousedown", function(d) {
-        // We select the current DOM element, i.e. the <g> element containing <circle> and <p>
-        var domNode = d3.select(this);
+
+    var drawingSurface = d3.select("#ids-vis g");
+
+    // events on background
+    touchMouseEvents(drawingSurface, drawingSurface.node(), {
+      "dragMove": drawLineToMousePosition,
+      "dragEnd": createNodeAtMousePosition,
+      "longDragMove": dragNodeToMousePosition,
+      "longDragEnd": longDragEnd
+    });
+
+    // events on IDs
+    touchMouseEvents(nodeEnterGroup, drawingSurface.node(), {
+      "down": function(d) {
         d3.event.stopPropagation();
         mousedownNode = d;
-
-        // We enable the dragging of a node when the holds down the 'SHIFT' key.
-        if (d3.event.shiftKey) {
-          if (d.level > 0) {
-            domNode.classed("dragging", true);
-            dragNodeToMousePosition(mousedownNode);
-          }
-
-        } else {
-
-          // We need to ensure that the user enters some text before he or she may
-          // continue to create other identification bubbles.
-          if (mousedownNode.name === placeHolderTxt || mousedownNode.name === "") {
-            d3.select("#ids-vis g")
-              .on("mousemove", null)
-              .on("mouseup", null);
-            domNode.classed("node-empty", true);
-            // Session.set("emptyNode", mousedownNode._id);
-            // We select the placeholder text to allow for instant text input.
-            // HEADS UP: We call the 'focus()' function from the 'mouseup' event handler because calling
-            // it from the 'mousedown' event handler requires 'event.preventDefault()' in order to keep
-            // the focus from leaving the <p> element.
-            domNode.on("mouseup", function() {
-              d3.event.stopPropagation();
-              domNode.select("p.txt-input").node().focus();
-              document.execCommand("selectAll", false, null);
-            });
-            return;
-          } else {
-            d3.select("#ids-vis g")
-              .on("mousemove", drawLineToMousePosition)
-              .on("mouseup", createNodeAtMousePosition);
-
-            domNode
-              .on("mouseup", function(d) {
-                d3.event.stopPropagation();
-                mouseupNode = d;
-
-                if (!mousedownNode || mouseupNode._id === mousedownNode._id) {
-                  resetMouseVars();
-                  return;
-                }
-              });
-          }
+      },
+      "longDown": function(d) {
+        var domNode = d3.select(this);
+        if (d.level > 0) {
+          domNode.classed("dragging", true);
         }
-        selectNodeElement(mousedownNode._id);
-      })
+      },
+      "up": function(d) {
+        if(emptyNode(d)) {
+          var domNode = d3.select(this);
+          d3.event.stopPropagation();
+          domNode.select("p.txt-input").node().focus();
+          document.execCommand("selectAll", false, null);
+          domNode.classed("node-empty", true);
+        } else {
+          // d3.event.stopPropagation();
+        }
+      },
+      "dragMove": drawLineToMousePosition,
+      "dragEnd": createNodeAtMousePosition,
+      "longDragMove": dragNodeToMousePosition,
+      "longDragEnd": longDragEnd
+    });
+
+
+    nodeEnterGroup
       .on("keydown", function(d) {
         // For the 'keydown' event we need to prevent that the return character is
         // appended to the input text.
@@ -927,11 +891,13 @@ function selectNodeElement(elementId) {
     }
     // In any other case we need to check if the currently selected element is already filled with words other
     // than the placeholder text or the empty string.
-    nodeName = Identifications.findOne(selectedElement).name;
-    if (nodeName === PLACEHOLDER_TXT || nodeName === "") {
+    node = Identifications.findOne(selectedElement);
+    if(emptyNode(node)) {
+      /**
       d3.select("#ids-vis g")
         .on("mousemove", null)
         .on("mouseup", null);
+        */
       d3.select("#gid" + selectedElement).classed("node-empty", true);
       Session.set("emptyNode", selectedElement);
       return;
