@@ -313,6 +313,7 @@ Template.myIds.onRendered(function() {
       node,
       newNodeId,
       link,
+      newLinkId,
       newEditableElem;
 
     // We are not on a node but on the drawing-surface so we want to
@@ -383,7 +384,18 @@ Template.myIds.onRendered(function() {
         "_id": newNodeId
       })
     };
-    Links.insert(link, function(error, result) {
+
+    newLinkId = Links.insert(link, function(error, result) {
+      if (error) {
+        return throwError(error.reason);
+      }
+    });
+
+    Links.update(newLinkId, {
+      $push: {
+        "source.children": newNodeId
+      }
+    }, function(error, result) {
       if (error) {
         return throwError(error.reason);
       }
@@ -763,7 +775,7 @@ Template.myIds.onRendered(function() {
       d3.event.preventDefault();
     }
 
-    force.start();
+  force.start();
   }; // end updateLayout() function
 
 
