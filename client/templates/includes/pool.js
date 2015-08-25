@@ -72,8 +72,14 @@ var pool = function() {
     touchMouseEvents(drawingSurface, // target
                      drawingSurface.node(), // container for position calculation
                      { "test": false,
-                       "down": function() {d3.event.preventDefault();}, // prevent DOM element selection etc.
-                       "dragMove": function(x,y,dx,dy) { d3.event.preventDefault(); layout.scroll(dy); draw(); }
+                       "down": function() {
+                         d3.event.preventDefault(); // prevent DOM element selection etc.
+                       },
+                       "dragMove": function(x,y,dx,dy) { 
+                         d3.event.preventDefault(); 
+                         layout.scroll(dy); // use only Y component for scrolling the "wheel"
+                         draw();            // update screen after scrolling
+                       }
                      });
 
     // subscribe to other people's IDs, draw when ready
