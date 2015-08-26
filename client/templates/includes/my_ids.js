@@ -4,7 +4,9 @@
  * TODO provide overview description of this file
  */
 
-var PLACEHOLDER_TXT = "I identify with...";
+var PLACEHOLDER_TXT = "I identify with...",
+  mouseDownNode;
+
 
 /**
  * Adds a callback to be called when an instance of this template is created.
@@ -42,8 +44,6 @@ Template.myIds.onRendered(function() {
     radius,
     placeHolderTxt,
     selectedNode,
-    mousedownNode,
-    mouseupNode,
     rootNode,
     force,
     drag,
@@ -68,22 +68,22 @@ Template.myIds.onRendered(function() {
     currentAvatar;
 
   margin = {
-    top: 20,
+    top: 10,
     right: 10,
-    bottom: 20,
+    bottom: 10,
     left: 10
   };
 
-  width = 768 - margin.left - margin.right;
-  height = 1024 - margin.top - margin.bottom;
+  width = 788 - margin.left - margin.right;
+  height = 1044 - margin.top - margin.bottom;
   xPos = width / 2;
   yPos = height / 3 * 1.5;
   radius = 35;
   placeHolderTxt = PLACEHOLDER_TXT;
   isFixed = true;
   selectedNode = null;
-  mousedownNode = null;
-  mouseupNode = null;
+  //mouseDownNode = null;
+
 
   currentUser = Meteor.user();
   currentTrainingId = currentUser.profile.currentTraining;
@@ -112,10 +112,6 @@ Template.myIds.onRendered(function() {
     });
   }
 
-  function emptyNode(d) {
-    return d && (d.name === placeHolderTxt || d.name === "");
-  }
-
 
   /**
    * Handles the dragging (i.e. re-positioning) of an existing node element (an identification bubble).
@@ -126,10 +122,24 @@ Template.myIds.onRendered(function() {
    * @param {Object} nodeDataObject The joined data of the HTML/SVG element that received
    * the {@code mousedown} event.
    */
-  dragNodeToMousePosition = function(nodeDataObject,x,y,dx,dy) {
-      var rootNodeData;
+  dragNodeToMousePosition = function(d, x, y, dx, dy) {
+    var rootNodeData,
+      mousePos;
 
-    if(emptyNode(mousedownNode)) return;
+    if (emptyNode(mouseDownNode)) {
+      promptEmptyNode();
+      return;
+    }
+
+    var nodeDataObject = mouseDownNode;
+
+    if (nodeDataObject && nodeDataObject.level === 0) {
+      return;
+    }
+
+    if (emptyNode(mouseDownNode)) {
+      return;
+    }
     // We get the bound data of our root node for accessing its position since
     // we want to prevent the user from dragging nodes beneath the root node's position.
     rootNodeData = d3.select(".root").datum();
@@ -174,18 +184,15 @@ Template.myIds.onRendered(function() {
   }; // end dragNodeToMousePosition()
 
   function longDragEnd() {
-
-    if(emptyNode(mousedownNode)) return;
-
-    // We remove the CSS class indicating an element being dragged.
-    d3.select(this)
-      //.on("mousemove", null)
-      .classed("dragging", false);
-
-    // We deselect the current element and reset our variables.
+    if (emptyNode(mouseDownNode)) {
+      return;
+    }
+    // We deselect the current element which also removes the CSS class
+    // indicating an element being dragged.
     selectNodeElement(null);
-    resetMouseVars();
-  } // end dragend()
+  } // end longDragend()
+
+
   /**
    * Handles the {@code tick} event of the {@code d3.layout.force()}.
    * {@code tick} events are dispatched for each tick of the force layout simulation, so listening
@@ -209,15 +216,14 @@ Template.myIds.onRendered(function() {
     nodeElements.attr("transform", function(d) {
       return "translate(" + d.x + "," + d.y + ")";
     });
-
-  };
+  }; // end updateDOM()
 
   /**
    * Sets the data objects referencing the previously processed nodes to null.
    */
   resetMouseVars = function() {
-    mousedownNode = null;
-    mouseupNode = null;
+    console.log("reset!");
+    //mouseDownNode = null;
   };
 
   /**
@@ -227,12 +233,14 @@ Template.myIds.onRendered(function() {
    * processed nodes to null.
    */
   deselectCurrentNode = function() {
-    if (!mousedownNode) {
-      selectNodeElement(null);
-      resetMouseVars();
-      // TODO(nz): Implement Zoom+Pan behavior
+    if (emptyNode(mouseDownNode)) {
+      promptEmptyNode();
       return;
     }
+
+    selectNodeElement(null);
+    resetMouseVars();
+    return;
   };
 
 
@@ -243,29 +251,35 @@ Template.myIds.onRendered(function() {
    * element that received the {@code mousedown} event
    * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
    */
-  drawLineToMousePosition = function(d,x,y,dx,dy) {
+  drawLineToMousePosition = function(d, x, y, dx, dy) {
     var rootNodeData;
 
-    // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
-    if (!mousedownNode) {
+    if (emptyNode(mouseDownNode)) {
+      promptEmptyNode();
       return;
     }
+
+    // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
+    // if (!mouseDownNode) {
+    //   return;
+    // }
 
     // We get the bound data of our root node for accessing its position.
     rootNodeData = d3.select(".root").datum();
 
-    if (Session.equals("selectedElement", mousedownNode._id)) {
+    if (Session.equals("selectedElement", mouseDownNode._id)) {
       selectNodeElement(null);
     }
 
     // We update the coordinates of the dragLine during mousemove to draw a line
-    // from the mousedownNode to the current mouse position.
+    // from the mouseDownNode to the current mouse position.
     dragLine
       .attr("class", "drag-line")
-      .attr("x1", mousedownNode.x)
-      .attr("y1", mousedownNode.y)
+      .attr("x1", mouseDownNode.x)
+      .attr("y1", mouseDownNode.y)
       .attr("x2", detectBoundaries([x,y], rootNodeData, radius, width)[0])
       .attr("y2", detectBoundaries([x,y], rootNodeData, radius, width)[1]);
+
   }; // end drawLineToMousePosition()
 
 
@@ -280,7 +294,7 @@ Template.myIds.onRendered(function() {
    *
    * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
    */
-  createNodeAtMousePosition = function(d,x,y,dx,dy) {
+  createNodeAtMousePosition = function(d, x, y, dx, dy) {
     var rootNodeData,
       newNodePos,
       newX,
@@ -291,16 +305,18 @@ Template.myIds.onRendered(function() {
       newLinkId,
       newEditableElem;
 
+    if (emptyNode(mouseDownNode)) {
+      promptEmptyNode();
+      return;
+    }
+
     // We are not on a node but on the drawing-surface so we want to
     // deselect the currently selected node and reset.
-    if (!mousedownNode) {
+    if (!mouseDownNode) {
       selectNodeElement(null);
       resetMouseVars();
       return;
     }
-
-    // drag was not started on a valid node
-    if(emptyNode(mousedownNode)) return;
 
     // We get the bound data of our root node for accessing its position since
     // we want to prevent the user from creating nodes beneath the root node's position.
@@ -312,19 +328,17 @@ Template.myIds.onRendered(function() {
     dragLine.attr("class", "drag-line-hidden");
 
     // Get the current mouse position coordinates.
-    newNodePos = [x,y];
-    newX = detectBoundaries(newNodePos, rootNodeData, radius, width)[0];
-    newY = detectBoundaries(newNodePos, rootNodeData, radius, width)[1];
+    newNodePos = detectBoundaries([x,y], rootNodeData, radius, width);
 
     // Create a new node object with the current mouse position coordinates.
     node = {
-      level: mousedownNode.level + 1,
+      level: mouseDownNode.level + 1,
       fixed: isFixed,
-      x: newX,
-      y: newY,
-      px: newX,
-      py: newY,
-      parentId: mousedownNode._id,
+      x: newNodePos[0],
+      y: newNodePos[1],
+      px: newNodePos[0],
+      py: newNodePos[1],
+      parentId: mouseDownNode._id,
       children: [],
       name: placeHolderTxt,
       createdBy: currentUser._id,
@@ -350,10 +364,10 @@ Template.myIds.onRendered(function() {
       }
     });
 
-    // Create a new link object for the edge between the mousedownNode and
+    // Create a new link object for the edge between the mouseDownNode and
     // the newly created node and add it to our 'Links' collection.
     link = {
-      source: mousedownNode,
+      source: mouseDownNode,
       target: Identifications.findOne({
         "_id": newNodeId
       })
@@ -381,7 +395,10 @@ Template.myIds.onRendered(function() {
     });
     selectNodeElement(selectedNode._id);
 
-    resetMouseVars();
+    // SUPER important!!! for empty node detection
+    mouseDownNode = selectedNode;
+
+    // resetMouseVars();
 
     updateLayout(Identifications.find().fetch(), Links.find().fetch());
 
@@ -563,6 +580,8 @@ Template.myIds.onRendered(function() {
 
     // events on background
     touchMouseEvents(drawingSurface, drawingSurface.node(), {
+      "test": false,
+      "down": deselectCurrentNode,
       "dragMove": drawLineToMousePosition,
       "dragEnd": createNodeAtMousePosition,
       "longDragMove": dragNodeToMousePosition,
@@ -573,33 +592,45 @@ Template.myIds.onRendered(function() {
     touchMouseEvents(nodeEnterGroup, drawingSurface.node(), {
       "test": false,
       "down": function(d) {
+        if (emptyNode(mouseDownNode) && d._id != mouseDownNode._id ) {
+          promptEmptyNode();
+          return;
+        }
+        mouseDownNode = d;
+
+        selectNodeElement(mouseDownNode._id);
+        // HEADS UP: It is important to stop the event propagation here.
+        // We took care of the event, so we don't want anyone else to notice it.
         d3.event.stopPropagation();
-        mousedownNode = d;
       },
       "longDown": function(d) {
-        mousedownNode = d;
+        if (emptyNode(mouseDownNode)) {
+          promptEmptyNode();
+          return;
+        }
+        mouseDownNode = d;
         var domNode = d3.select(this);
         if (d.level > 0) {
           domNode.classed("dragging", true);
         }
       },
       "up": function(d) {
-        if(emptyNode(d)) {
-          var domNode = d3.select(this);
+        if (emptyNode(mouseDownNode)) {
+          promptEmptyNode();
+          // var domNode = d3.select(this);
+          // domNode.select("p.txt-input").node().focus();
+          // document.execCommand("selectAll", false, null);
+          // domNode.classed("node-empty", true);
           d3.event.stopPropagation();
-          domNode.select("p.txt-input").node().focus();
-          document.execCommand("selectAll", false, null);
-          domNode.classed("node-empty", true);
         } else {
           // d3.event.stopPropagation();
         }
       },
-      "dragMove": drawLineToMousePosition,
-      "dragEnd": createNodeAtMousePosition,
+      //"dragMove": drawLineToMousePosition,
+      //"dragEnd": createNodeAtMousePosition,
       "longDragMove": dragNodeToMousePosition,
       "longDragEnd": longDragEnd
     });
-
 
     nodeEnterGroup
       .on("keydown", function(d) {
@@ -771,8 +802,8 @@ Template.myIds.onRendered(function() {
     .attr("preserveAspectRatio", "xMidYMin meet");
 
   svgGroup = svgViewport.append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-    .on("mousedown", deselectCurrentNode);
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    // .on("mousedown", deselectCurrentNode);
 
   svgGroup.append("rect")
     .attr("width", width)
@@ -836,6 +867,23 @@ Template.myIds.onDestroyed(function() {
 });
 
 
+function emptyNode(d) {
+  if (!d) {
+    return false;
+  }
+  return d.name === PLACEHOLDER_TXT || d.name === "";
+}
+
+// mark the current node as an empty node, prompt user with red color etc.
+function promptEmptyNode() {
+  if (!mouseDownNode) {
+    return;
+  }
+  var domNode = d3.select("#gid" + mouseDownNode._id);
+  domNode.select("p.txt-input").node().focus();
+  document.execCommand("selectAll", false, null);
+  domNode.classed("node-empty", true);
+}
 
 /**
  * Constrains the dragging of nodes to the SVG viewport, i.e. the drawing surface.
@@ -877,11 +925,11 @@ function detectBoundaries(mouseCoords, root, radius, width) {
  * We use a Session variable to detect selected or deselected state, respectively.
  * Depending on that, we update the current document's 'editCompleted' field and we
  * also apply a CSS class, which in turn toggles the control handle for deleting a circle.
- * @param {string} elementId The (database document) id of the node.
+ * @param {string} elementId The (database document) id of the node or {@code null}.
  */
 function selectNodeElement(elementId) {
   var selectedElement = Session.get("selectedElement"),
-    nodeName;
+    node;
 
   // We check if there exists currently already a selected element.
   if (selectedElement) {
@@ -893,7 +941,7 @@ function selectNodeElement(elementId) {
     // In any other case we need to check if the currently selected element is already filled with words other
     // than the placeholder text or the empty string.
     node = Identifications.findOne(selectedElement);
-    if(emptyNode(node)) {
+    if (emptyNode(node)) {
       /**
       d3.select("#ids-vis g")
         .on("mousemove", null)
@@ -924,6 +972,9 @@ function selectNodeElement(elementId) {
     });
     d3.select("#gid" + elementId).classed("node-selected", true);
   }
+
+  // Set the Session variable to the passed in value which may be null which results in
+  // deselected state.
   Session.set("selectedElement", elementId);
 }
 
@@ -973,5 +1024,6 @@ function deleteNodeAndLink(id) {
     if (Session.equals("selectedElement", nodeId)) {
       Session.set("selectedElement", null);
     }
+    mouseDownNode = null;
   }
 }
