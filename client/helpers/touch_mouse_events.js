@@ -71,6 +71,21 @@
  *
  */
 
+ // which mode are we in?
+ // TODO: this can go wrong, if the mouse is already pressed when the function is called
+ var mode = "UP";
+ var prevMode = "";
+
+
+ // track where the mouse/finger has gone down initially
+ var downPos;
+
+ // track the previous know position during drag operations
+ var lastDragPos;
+
+ // remember the timeout callback for long press
+ var longDownTimeoutCallback = undefined;
+
 /**
   *  module returns function
   *  NOTE that the definition below is GLOBAL
@@ -100,7 +115,7 @@ touchMouseEvents = function() {
     cfg.posTolerance  = cfg.posTolerance  || 5;    // pixels
 
     // test mode: assign debugging functions to all possible events
-    if(cfg.test) {
+    if (cfg.test) {
       cfg.down        = cfg.down || function(d,x,y) { console.log("down pos=("+x+","+y+")"); };
       cfg.up          = cfg.up || function(d,x,y) { console.log("up pos=("+x+","+y+")"); };
       cfg.click       = cfg.click || function(d,x,y) { console.log("click pos=("+x+","+y+")"); };
@@ -113,18 +128,6 @@ touchMouseEvents = function() {
       cfg.longDragEnd = cfg.longDragEnd || function(d,x,y,dx,dy) { console.log("longDragEnd pos=("+x+","+y+"), delta=("+dx+","+dy+")"); };
     }
 
-    // which mode are we in?
-    // TODO: this can go wrong, if the mouse is already pressed when the function is called
-    var mode = "UP";
-
-    // track where the mouse/finger has gone down initially
-    var downPos;
-
-    // track the previous know position during drag operations
-    var lastDragPos;
-
-    // remember the timeout callback for long press
-    var longDownTimeoutCallback = undefined;
 
     // mouse/finger down can be the beginning of a click, a drag, or a long click
     var down = function(d) {
@@ -136,7 +139,7 @@ touchMouseEvents = function() {
       cfg.down && cfg.down.apply(this, [d, downPos[0], downPos[1]]);
 
       // set up timeout so in a few miliseconds this turns into a long click
-      if(cfg.longDown) {
+      if (cfg.longDown) {
         longDownTimeoutCallback = setTimeout(checkLongPress, cfg.longPressTime);
       }
 
@@ -145,8 +148,8 @@ touchMouseEvents = function() {
       function checkLongPress() {
 
         // check if we have changed mode in the meantime
-        if(mode != "DOWN") {
-          if(cfg.test)
+        if (mode != "DOWN") {
+          if (cfg.test)
             console.log("this was not a long press");
           return;
         }
@@ -165,7 +168,7 @@ touchMouseEvents = function() {
 
       var pos = getCurrentPos(container);
 
-      if(mode == "UP") {
+      if (mode == "UP") {
 
         // mouse is not pressed, so this is just a "move" event
         cfg.move && cfg.move.apply(this, [d, pos[0],pos[1]]);
@@ -174,14 +177,14 @@ touchMouseEvents = function() {
       }
 
       // moving with the mouse down, but not yet in dragging mode?
-      if(mode == "DOWN" || mode == "LONG") {
+      if (mode == "DOWN" || mode == "LONG") {
 
         // check tolerance from initial position
-        if(Math.abs(pos[0]-downPos[0])>cfg.posTolerance ||
+        if (Math.abs(pos[0]-downPos[0])>cfg.posTolerance ||
            Math.abs(pos[1]-downPos[1])>cfg.posTolerance   ) {
 
           // the mouse moved, so this can no longer become a "long press"
-          if(longDownTimeoutCallback) {
+          if (longDownTimeoutCallback) {
             clearTimeout(longDownTimeoutCallback);
             longDownTimeoutCallback = undefined;
           }
@@ -195,7 +198,7 @@ touchMouseEvents = function() {
         } else {
 
           // mouse moved within same-pixel tolerance value
-          if(cfg.test) {
+          if (cfg.test) {
             console.log("moving within pixel tolerance...");
           }
 
@@ -204,7 +207,7 @@ touchMouseEvents = function() {
       } // if mode DOWN or LONG
 
       // in dragging mode, calculate delta and trigger respective events
-      if(mode == "DRAG" || mode == "LONGDRAG") {
+      if (mode == "DRAG" || mode == "LONGDRAG") {
 
         // calculate delta position from last known position
         var deltaPos = [ pos[0]-lastDragPos[0],
@@ -214,9 +217,9 @@ touchMouseEvents = function() {
         lastDragPos = pos;
 
         // trigger callbacks
-        if(mode == "DRAG") {
+        if (mode == "DRAG") {
           cfg.dragMove && cfg.dragMove.apply(this, [d, pos[0],pos[1], deltaPos[0],deltaPos[1]]);
-        } else if(mode == "LONGDRAG") {
+        } else if (mode == "LONGDRAG") {
           cfg.longDragMove.apply(this, [d, pos[0],pos[1], deltaPos[0],deltaPos[1]]);
         }
 
@@ -228,44 +231,43 @@ touchMouseEvents = function() {
     var up = function(d) {
 
       // up event triggered multiple times?
-      if(mode=="UP")
-        return;
+      if (mode=="UP") {
+        // do the same as before, up was fired multiple times
+      } else {
+        prevMode = mode;
+        mode = "UP";
+      }
 
       // current mouse pos
       var pos = getCurrentPos(container);
-
-      // reset mode, remember previous mode
-      var prevMode = mode;
-      mode = "UP";
 
       // trigger "up" callback
       cfg.up && cfg.up.apply(this, [d, pos[0],pos[1]]);
 
       // trigger "click" or long click" callback
-      if(prevMode == "DOWN") {
+      if (prevMode == "DOWN") {
          cfg.click && cfg.click.apply(this, [d, pos[0],pos[1]]);
          return;
-      } else if(prevMode == "LONG") {
+      } else if (prevMode == "LONG") {
         cfg.longClick && cfg.longClick.apply(this, [d, pos[0],pos[1]]);
         return;
       }
-      console.log("prev mode="+prevMode);
 
       // calculate delta position from last known position
       var deltaPos = [ pos[0]-lastDragPos[0],
                        pos[1]-lastDragPos[1] ];
 
       // trigger "drag end" callback
-      if(prevMode == "DRAG") {
+      if (prevMode == "DRAG") {
          cfg.dragEnd && cfg.dragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
-      } else if(prevMode == "LONGDRAG") {
+      } else if (prevMode == "LONGDRAG") {
          cfg.longDragEnd && cfg.longDragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
       }
 
     }; // up()
 
     // now hook up the basic mouse/touch events
-    if(hasTouch()) {
+    if (hasTouch()) {
       d3target.on("touchstart", down);
       d3target.on("touchmove", move);
       d3target.on("touchend",   up);
