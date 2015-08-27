@@ -5,7 +5,7 @@
  */
 
 var PLACEHOLDER_TXT = "I identify with...",
-  mouseDownNode;
+  currentActiveNode;
 
 
 /**
@@ -56,7 +56,6 @@ Template.myIds.onRendered(function() {
     isFixed,
     svgGroup,
     dragLine,
-    resetMouseVars,
     drawLineToMousePosition,
     createNodeAtMousePosition,
     dragNodeToMousePosition,
@@ -82,7 +81,7 @@ Template.myIds.onRendered(function() {
   placeHolderTxt = PLACEHOLDER_TXT;
   isFixed = true;
   selectedNode = null;
-  //mouseDownNode = null;
+  //currentActiveNode = null;
 
 
   currentUser = Meteor.user();
@@ -126,18 +125,18 @@ Template.myIds.onRendered(function() {
     var rootNodeData,
       mousePos;
 
-    if (emptyNode(mouseDownNode)) {
+    if (emptyNode(currentActiveNode)) {
       promptEmptyNode();
       return;
     }
 
-    var nodeDataObject = mouseDownNode;
+    var nodeDataObject = currentActiveNode;
 
     if (nodeDataObject && nodeDataObject.level === 0) {
       return;
     }
 
-    if (emptyNode(mouseDownNode)) {
+    if (emptyNode(currentActiveNode)) {
       return;
     }
     // We get the bound data of our root node for accessing its position since
@@ -184,7 +183,7 @@ Template.myIds.onRendered(function() {
   }; // end dragNodeToMousePosition()
 
   function longDragEnd() {
-    if (emptyNode(mouseDownNode)) {
+    if (emptyNode(currentActiveNode)) {
       return;
     }
     // We deselect the current element which also removes the CSS class
@@ -218,13 +217,6 @@ Template.myIds.onRendered(function() {
     });
   }; // end updateDOM()
 
-  /**
-   * Sets the data objects referencing the previously processed nodes to null.
-   */
-  resetMouseVars = function() {
-    console.log("reset!");
-    //mouseDownNode = null;
-  };
 
   /**
    * Handles the {@code mousedown} event received by the encompassing SVG <g> element when
@@ -233,50 +225,54 @@ Template.myIds.onRendered(function() {
    * processed nodes to null.
    */
   deselectCurrentNode = function() {
-    if (emptyNode(mouseDownNode)) {
+    if (emptyNode(currentActiveNode)) {
       promptEmptyNode();
       return;
     }
 
     selectNodeElement(null);
-    resetMouseVars();
     return;
   };
 
 
   /**
-   * Responds to the {@code mousemove} event when no {@code Shift} key is being pressed, i.e. when
-   * a user wants to create a new node.
-   * Draws a temporary line between the current mouse position and to the position of the node
-   * element that received the {@code mousedown} event
+   * Responds to a {@code mousemove} event or {@code touchmove} event, respectively (i.e. when
+   * a user wants to create a new node).
+   * Draws a temporary line between the current mouse/touch position and to the position of the node
+   * element that received the event
    * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
+   * @param {Object} d 
+   * @param {number} x
+   * @param {number} y
+   * @param {number} dx
+   * @param {number} dy
    */
   drawLineToMousePosition = function(d, x, y, dx, dy) {
     var rootNodeData;
 
-    if (emptyNode(mouseDownNode)) {
+    if (emptyNode(currentActiveNode)) {
       promptEmptyNode();
       return;
     }
 
     // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
-    // if (!mouseDownNode) {
-    //   return;
-    // }
+    if (!currentActiveNode) {
+      return;
+    }
 
     // We get the bound data of our root node for accessing its position.
     rootNodeData = d3.select(".root").datum();
 
-    if (Session.equals("selectedElement", mouseDownNode._id)) {
+    if (Session.equals("selectedElement", currentActiveNode._id)) {
       selectNodeElement(null);
     }
 
     // We update the coordinates of the dragLine during mousemove to draw a line
-    // from the mouseDownNode to the current mouse position.
+    // from the currentActiveNode to the current mouse position.
     dragLine
       .attr("class", "drag-line")
-      .attr("x1", mouseDownNode.x)
-      .attr("y1", mouseDownNode.y)
+      .attr("x1", currentActiveNode.x)
+      .attr("y1", currentActiveNode.y)
       .attr("x2", detectBoundaries([x,y], rootNodeData, radius, width)[0])
       .attr("y2", detectBoundaries([x,y], rootNodeData, radius, width)[1]);
 
@@ -285,8 +281,8 @@ Template.myIds.onRendered(function() {
 
 
   /**
-   * Handles the {@code mouseup} event without a pressed {@code Shift} key that occurs at the end
-   * of a {@code mousemove} event.
+   * Handles the {@code dragEnd} event that occurs on the 'drawingSurface" at the end of a {@code mousemove} event or
+   * {@code touchmove} event, respectively.
    * This function is responsible for creating a new data object of an 'Identification' node bubble
    * and adding it to the regarding collections in our database.
    * Makes use of the reactivity provided by {@code Meteor} to arrange the data driven
@@ -305,16 +301,15 @@ Template.myIds.onRendered(function() {
       newLinkId,
       newEditableElem;
 
-    if (emptyNode(mouseDownNode)) {
+    if (emptyNode(currentActiveNode)) {
       promptEmptyNode();
       return;
     }
 
     // We are not on a node but on the drawing-surface so we want to
     // deselect the currently selected node and reset.
-    if (!mouseDownNode) {
+    if (!currentActiveNode) {
       selectNodeElement(null);
-      resetMouseVars();
       return;
     }
 
@@ -332,13 +327,13 @@ Template.myIds.onRendered(function() {
 
     // Create a new node object with the current mouse position coordinates.
     node = {
-      level: mouseDownNode.level + 1,
+      level: currentActiveNode.level + 1,
       fixed: isFixed,
       x: newNodePos[0],
       y: newNodePos[1],
       px: newNodePos[0],
       py: newNodePos[1],
-      parentId: mouseDownNode._id,
+      parentId: currentActiveNode._id,
       children: [],
       name: placeHolderTxt,
       createdBy: currentUser._id,
@@ -364,10 +359,10 @@ Template.myIds.onRendered(function() {
       }
     });
 
-    // Create a new link object for the edge between the mouseDownNode and
+    // Create a new link object for the edge between the currentActiveNode and
     // the newly created node and add it to our 'Links' collection.
     link = {
-      source: mouseDownNode,
+      source: currentActiveNode,
       target: Identifications.findOne({
         "_id": newNodeId
       })
@@ -396,9 +391,7 @@ Template.myIds.onRendered(function() {
     selectNodeElement(selectedNode._id);
 
     // SUPER important!!! for empty node detection
-    mouseDownNode = selectedNode;
-
-    // resetMouseVars();
+    currentActiveNode = selectedNode;
 
     updateLayout(Identifications.find().fetch(), Links.find().fetch());
 
@@ -592,42 +585,34 @@ Template.myIds.onRendered(function() {
     touchMouseEvents(nodeEnterGroup, drawingSurface.node(), {
       "test": false,
       "down": function(d) {
-        if (emptyNode(mouseDownNode) && d._id != mouseDownNode._id ) {
+        if (emptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode();
           return;
         }
-        mouseDownNode = d;
+        currentActiveNode = d;
 
-        selectNodeElement(mouseDownNode._id);
+        selectNodeElement(currentActiveNode._id);
         // HEADS UP: It is important to stop the event propagation here.
         // We took care of the event, so we don't want anyone else to notice it.
         d3.event.stopPropagation();
       },
       "longDown": function(d) {
-        if (emptyNode(mouseDownNode)) {
+        if (emptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode();
           return;
         }
-        mouseDownNode = d;
+        currentActiveNode = d;
         var domNode = d3.select(this);
         if (d.level > 0) {
           domNode.classed("dragging", true);
         }
       },
       "up": function(d) {
-        if (emptyNode(mouseDownNode)) {
+        if (emptyNode(currentActiveNode && d._id != currentActiveNode._id)) {
           promptEmptyNode();
-          // var domNode = d3.select(this);
-          // domNode.select("p.txt-input").node().focus();
-          // document.execCommand("selectAll", false, null);
-          // domNode.classed("node-empty", true);
           d3.event.stopPropagation();
-        } else {
-          // d3.event.stopPropagation();
         }
       },
-      //"dragMove": drawLineToMousePosition,
-      //"dragEnd": createNodeAtMousePosition,
       "longDragMove": dragNodeToMousePosition,
       "longDragEnd": longDragEnd
     });
@@ -644,14 +629,16 @@ Template.myIds.onRendered(function() {
         // Here, we process the user input:
         // Using "keyup" instead of 'keydown' is necessary because 'keydown' event is fired
         // before the editable content inside the <p> element has changed and is processed, respectively.
-        d3.event.stopPropagation();
-
         if (d.level > 0) {
           var newName,
             inputTxt;
 
           inputTxt = d3.select(this).select("p.txt-input");
           newName = inputTxt.text();
+          currentActiveNode = d;
+          console.log("KEYUP > currentActiveNode.name: ", currentActiveNode.name);
+          console.log("KEYUP > d.name ", d.name);
+
 
           // When the user hits 'ENTER' (i.e. keycode 13) we update the 'name' field and the
           // 'editCompleted' field of the current document in the 'Identifications'
@@ -740,7 +727,6 @@ Template.myIds.onRendered(function() {
             d3.select(this).classed("node-empty", false);
             Session.set("emptyNode", null);
           }
-
         }
         // We use 'return' here to abort listening to this event on root level
         return;
@@ -803,7 +789,6 @@ Template.myIds.onRendered(function() {
 
   svgGroup = svgViewport.append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    // .on("mousedown", deselectCurrentNode);
 
   svgGroup.append("rect")
     .attr("width", width)
@@ -876,10 +861,10 @@ function emptyNode(d) {
 
 // mark the current node as an empty node, prompt user with red color etc.
 function promptEmptyNode() {
-  if (!mouseDownNode) {
+  if (!currentActiveNode) {
     return;
   }
-  var domNode = d3.select("#gid" + mouseDownNode._id);
+  var domNode = d3.select("#gid" + currentActiveNode._id);
   domNode.select("p.txt-input").node().focus();
   document.execCommand("selectAll", false, null);
   domNode.classed("node-empty", true);
@@ -942,11 +927,6 @@ function selectNodeElement(elementId) {
     // than the placeholder text or the empty string.
     node = Identifications.findOne(selectedElement);
     if (emptyNode(node)) {
-      /**
-      d3.select("#ids-vis g")
-        .on("mousemove", null)
-        .on("mouseup", null);
-        */
       d3.select("#gid" + selectedElement).classed("node-empty", true);
       Session.set("emptyNode", selectedElement);
       return;
@@ -1024,6 +1004,6 @@ function deleteNodeAndLink(id) {
     if (Session.equals("selectedElement", nodeId)) {
       Session.set("selectedElement", null);
     }
-    mouseDownNode = null;
+    currentActiveNode = null;
   }
 }
