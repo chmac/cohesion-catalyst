@@ -4,8 +4,7 @@
  * TODO provide overview description of this file
  */
 
-var PLACEHOLDER_TXT = "I identify with...",
-  currentActiveNode;
+var PLACEHOLDER_TXT = "I identify with...";
 
 
 /**
@@ -81,7 +80,6 @@ Template.myIds.onRendered(function() {
   placeHolderTxt = PLACEHOLDER_TXT;
   isFixed = true;
   selectedNode = null;
-  //currentActiveNode = null;
 
 
   currentUser = Meteor.user();
@@ -123,10 +121,13 @@ Template.myIds.onRendered(function() {
    */
   dragNodeToMousePosition = function(d, x, y, dx, dy) {
     var rootNodeData,
-      mousePos;
+      mousePos,
+      currentActiveNode;
 
-    if (emptyNode(currentActiveNode)) {
-      promptEmptyNode();
+    currentActiveNode = Session.get("selectedElement");
+
+    if (isEmptyNode(currentActiveNode)) {
+      promptEmptyNode(currentActiveNode);
       return;
     }
 
@@ -136,9 +137,6 @@ Template.myIds.onRendered(function() {
       return;
     }
 
-    if (emptyNode(currentActiveNode)) {
-      return;
-    }
     // We get the bound data of our root node for accessing its position since
     // we want to prevent the user from dragging nodes beneath the root node's position.
     rootNodeData = d3.select(".root").datum();
@@ -183,7 +181,8 @@ Template.myIds.onRendered(function() {
   }; // end dragNodeToMousePosition()
 
   function longDragEnd() {
-    if (emptyNode(currentActiveNode)) {
+    var currentActiveNode = Session.get("selectedElement");
+    if (isEmptyNode(currentActiveNode)) {
       return;
     }
     // We deselect the current element which also removes the CSS class
@@ -225,8 +224,9 @@ Template.myIds.onRendered(function() {
    * processed nodes to null.
    */
   deselectCurrentNode = function() {
-    if (emptyNode(currentActiveNode)) {
-      promptEmptyNode();
+    var currentActiveNode = Session.get("selectedElement");
+    if (isEmptyNode(currentActiveNode)) {
+      promptEmptyNode(currentActiveNode);
       return;
     }
 
@@ -241,17 +241,18 @@ Template.myIds.onRendered(function() {
    * Draws a temporary line between the current mouse/touch position and to the position of the node
    * element that received the event
    * This handler is registered on the encompassing SVG <g> element representing the drawing surface.
-   * @param {Object} d 
+   * @param {Object} d
    * @param {number} x
    * @param {number} y
    * @param {number} dx
    * @param {number} dy
    */
   drawLineToMousePosition = function(d, x, y, dx, dy) {
-    var rootNodeData;
+    var rootNodeData,
+      currentActiveNode = Session.get("selectedElement");
 
-    if (emptyNode(currentActiveNode)) {
-      promptEmptyNode();
+    if (isEmptyNode(currentActiveNode)) {
+      promptEmptyNode(currentActiveNode);
       return;
     }
 
@@ -263,9 +264,6 @@ Template.myIds.onRendered(function() {
     // We get the bound data of our root node for accessing its position.
     rootNodeData = d3.select(".root").datum();
 
-    if (Session.equals("selectedElement", currentActiveNode._id)) {
-      selectNodeElement(null);
-    }
 
     // We update the coordinates of the dragLine during mousemove to draw a line
     // from the currentActiveNode to the current mouse position.
@@ -301,8 +299,9 @@ Template.myIds.onRendered(function() {
       newLinkId,
       newEditableElem;
 
-    if (emptyNode(currentActiveNode)) {
-      promptEmptyNode();
+    var currentActiveNode = Session.get("selectedElement");
+    if (isEmptyNode(currentActiveNode)) {
+      promptEmptyNode(currentActiveNode);
       return;
     }
 
@@ -388,10 +387,7 @@ Template.myIds.onRendered(function() {
     selectedNode = Identifications.findOne({
       "_id": newNodeId
     });
-    selectNodeElement(selectedNode._id);
-
-    // SUPER important!!! for empty node detection
-    currentActiveNode = selectedNode;
+    selectNodeElement(selectedNode);
 
     updateLayout(Identifications.find().fetch(), Links.find().fetch());
 
@@ -502,7 +498,8 @@ Template.myIds.onRendered(function() {
           return d._id && d.level > 0;
         },
         "node-selected": function(d) {
-          return Session.equals("selectedElement", d._id);
+          var nodeSelected = Session.get("selectedElement");
+          return nodeSelected && (nodeSelected._id === d._id);
         },
         "node-empty": function(d) {
           return Session.equals("emptyNode", d._id);
@@ -585,33 +582,39 @@ Template.myIds.onRendered(function() {
     touchMouseEvents(nodeEnterGroup, drawingSurface.node(), {
       "test": false,
       "down": function(d) {
-        if (emptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
-          promptEmptyNode();
+        var currentActiveNode = Session.get("selectedElement");
+        if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
+          promptEmptyNode(currentActiveNode);
+          disableTarget(d);
           return;
         }
-        currentActiveNode = d;
 
-        selectNodeElement(currentActiveNode._id);
+        selectNodeElement(d);
         // HEADS UP: It is important to stop the event propagation here.
         // We took care of the event, so we don't want anyone else to notice it.
         d3.event.stopPropagation();
       },
       "longDown": function(d) {
-        if (emptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
-          promptEmptyNode();
+        var currentActiveNode = Session.get("selectedElement");
+        if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
+          promptEmptyNode(currentActiveNode);
+          disableTarget(d);
           return;
         }
-        currentActiveNode = d;
+
         var domNode = d3.select(this);
         if (d.level > 0) {
           domNode.classed("dragging", true);
         }
       },
       "up": function(d) {
-        if (emptyNode(currentActiveNode && d._id != currentActiveNode._id)) {
-          promptEmptyNode();
-          d3.event.stopPropagation();
+        var currentActiveNode = Session.get("selectedElement");
+        if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
+          promptEmptyNode(currentActiveNode);
+          disableTarget(d);
+          return;
         }
+        d3.event.stopPropagation();
       },
       "longDragMove": dragNodeToMousePosition,
       "longDragEnd": longDragEnd
@@ -635,8 +638,6 @@ Template.myIds.onRendered(function() {
 
           inputTxt = d3.select(this).select("p.txt-input");
           newName = inputTxt.text();
-          currentActiveNode = d;
-          console.log("KEYUP > currentActiveNode.name: ", currentActiveNode.name);
           console.log("KEYUP > d.name ", d.name);
 
 
@@ -722,9 +723,11 @@ Template.myIds.onRendered(function() {
           // Therefore, we show whether the input text is valid or not.
           if (newName === placeHolderTxt || newName === "") {
             d3.select(this).classed("node-empty", true);
+            d3.selectAll(".node").classed("not-editable", true);
             Session.set("emptyNode", d._id);
           } else {
             d3.select(this).classed("node-empty", false);
+            d3.selectAll(".node").classed("not-editable", false);
             Session.set("emptyNode", null);
           }
         }
@@ -852,22 +855,31 @@ Template.myIds.onDestroyed(function() {
 });
 
 
-function emptyNode(d) {
-  if (!d) {
+function isEmptyNode(currentNode) {
+  if (!currentNode) {
     return false;
   }
-  return d.name === PLACEHOLDER_TXT || d.name === "";
+  return currentNode.name === PLACEHOLDER_TXT || currentNode.name === "";
 }
 
 // mark the current node as an empty node, prompt user with red color etc.
-function promptEmptyNode() {
-  if (!currentActiveNode) {
+function promptEmptyNode(currentNode) {
+  if (!currentNode) {
     return;
   }
-  var domNode = d3.select("#gid" + currentActiveNode._id);
+  var domNode = d3.select("#gid" + currentNode._id);
+  Session.set("emptyNode", currentNode._id);
   domNode.select("p.txt-input").node().focus();
   document.execCommand("selectAll", false, null);
   domNode.classed("node-empty", true);
+}
+
+function disableTarget(d) {
+  if (d3.event) {
+    d3.event.preventDefault();
+  }
+  var domNode = d3.select("#gid" + d._id);
+  domNode.classed("not-editable", true);
 }
 
 /**
@@ -910,9 +922,9 @@ function detectBoundaries(mouseCoords, root, radius, width) {
  * We use a Session variable to detect selected or deselected state, respectively.
  * Depending on that, we update the current document's 'editCompleted' field and we
  * also apply a CSS class, which in turn toggles the control handle for deleting a circle.
- * @param {string} elementId The (database document) id of the node or {@code null}.
+ * @param {object} element The db node document or {@code null}.
  */
-function selectNodeElement(elementId) {
+function selectNodeElement(element) {
   var selectedElement = Session.get("selectedElement"),
     node;
 
@@ -920,23 +932,22 @@ function selectNodeElement(elementId) {
   if (selectedElement) {
     // In case the user clicked on the already selected element, we do nothing and stop
     // executing the function by using 'return'.
-    if (selectedElement === elementId) {
+    if (selectedElement === element) {
       return;
     }
     // In any other case we need to check if the currently selected element is already filled with words other
     // than the placeholder text or the empty string.
-    node = Identifications.findOne(selectedElement);
-    if (emptyNode(node)) {
-      d3.select("#gid" + selectedElement).classed("node-empty", true);
-      Session.set("emptyNode", selectedElement);
+    node = Identifications.findOne(selectedElement._id);
+    if (isEmptyNode(node)) {
+      promptEmptyNode(node);
       return;
     }
-    Identifications.update(selectedElement, {
+    Identifications.update(selectedElement._id, {
       $set: {
         editCompleted: true
       }
     });
-    d3.select("#gid" + selectedElement).classed({
+    d3.select("#gid" + selectedElement._id).classed({
       "node-selected": false,
       "node-empty": false,
       "dragging": false
@@ -944,18 +955,21 @@ function selectNodeElement(elementId) {
     Session.set("emptyNode", null);
   }
 
-  if (elementId) {
-    Identifications.update(elementId, {
+  if (element) {
+    Identifications.update(element._id, {
       $set: {
         editCompleted: false
       }
     });
-    d3.select("#gid" + elementId).classed("node-selected", true);
+    d3.select("#gid" + element._id).classed({
+      "node-selected": true,
+      "not-editable": false
+  });
   }
 
-  // Set the Session variable to the passed in value which may be null which results in
-  // deselected state.
-  Session.set("selectedElement", elementId);
+  // Set the Session variable to the passed in value (which may be null and therefore will result in
+  // deselected state).
+  Session.set("selectedElement", element);
 }
 
 /**
@@ -1001,9 +1015,9 @@ function deleteNodeAndLink(id) {
       Session.set("emptyNode", null);
     }
 
-    if (Session.equals("selectedElement", nodeId)) {
+    var selectedNode = Session.get("selectedElement");
+    if (selectedNode && (selectedNode._id === nodeId)) {
       Session.set("selectedElement", null);
     }
-    currentActiveNode = null;
   }
 }
