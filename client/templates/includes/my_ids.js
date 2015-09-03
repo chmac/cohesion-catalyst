@@ -500,9 +500,6 @@ Template.myIds.onRendered(function() {
         "node-selected": function(d) {
           var nodeSelected = Session.get("selectedElement");
           return nodeSelected && (nodeSelected._id === d._id);
-        },
-        "node-empty": function(d) {
-          return Session.equals("emptyNode", d._id);
         }
       });
 
@@ -717,19 +714,9 @@ Template.myIds.onRendered(function() {
               });
             });
           }
-
-          // We need to ensure that the placeholder text gets replaced by user input or that user
-          // does not leave the input empty, respectively.
-          // Therefore, we show whether the input text is valid or not.
-          if (newName === placeHolderTxt || newName === "") {
-            d3.select(this).classed("node-empty", true);
-            d3.selectAll(".node").classed("not-editable", true);
-            Session.set("emptyNode", d._id);
-          } else {
-            d3.select(this).classed("node-empty", false);
-            d3.selectAll(".node").classed("not-editable", false);
-            Session.set("emptyNode", null);
-          }
+          d.name = newName;
+          Session.set("selectedElement", d);
+          selectNodeElement(d);
         }
         // We use 'return' here to abort listening to this event on root level
         return;
@@ -868,7 +855,6 @@ function promptEmptyNode(currentNode) {
     return;
   }
   var domNode = d3.select("#gid" + currentNode._id);
-  Session.set("emptyNode", currentNode._id);
   domNode.select("p.txt-input").node().focus();
   document.execCommand("selectAll", false, null);
   domNode.classed("node-empty", true);
@@ -928,20 +914,15 @@ function selectNodeElement(element) {
   var selectedElement = Session.get("selectedElement"),
     node;
 
-  // We check if there exists currently already a selected element.
-  if (selectedElement) {
-    // In case the user clicked on the already selected element, we do nothing and stop
-    // executing the function by using 'return'.
-    if (selectedElement === element) {
+  // deal with previously selected element
+  if(selectedElement) {
+
+    // do we want to switch away from a selected empty node?
+    if(isEmptyNode(selectedElement) && element && element._id != selectedElement._id) {
+      promptEmptyNode(selectedElement);
       return;
     }
-    // In any other case we need to check if the currently selected element is already filled with words other
-    // than the placeholder text or the empty string.
-    node = Identifications.findOne(selectedElement._id);
-    if (isEmptyNode(node)) {
-      promptEmptyNode(node);
-      return;
-    }
+    // deselect previously selected elements
     Identifications.update(selectedElement._id, {
       $set: {
         editCompleted: true
@@ -952,24 +933,30 @@ function selectNodeElement(element) {
       "node-empty": false,
       "dragging": false
     });
-    Session.set("emptyNode", null);
   }
 
-  if (element) {
+  // select new element
+  if(!element) {
+
+    // nada
+
+  } else {
+
     Identifications.update(element._id, {
       $set: {
         editCompleted: false
       }
     });
     d3.select("#gid" + element._id).classed({
-      "node-selected": true,
-      "not-editable": false
-  });
+      "node-selected": true
+    });
+
   }
 
   // Set the Session variable to the passed in value (which may be null and therefore will result in
   // deselected state).
   Session.set("selectedElement", element);
+
 }
 
 /**
@@ -1011,9 +998,6 @@ function deleteNodeAndLink(id) {
       }
     });
 
-    if (Session.equals("emptyNode", nodeId)) {
-      Session.set("emptyNode", null);
-    }
 
     var selectedNode = Session.get("selectedElement");
     if (selectedNode && (selectedNode._id === nodeId)) {
