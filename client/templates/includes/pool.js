@@ -75,8 +75,8 @@ var pool = function() {
                        "down": function(d) {
                          d3.event.preventDefault(); // prevent DOM element selection etc.
                        },
-                       "dragMove": function(d, x,y,dx,dy) { 
-                         d3.event.preventDefault(); 
+                       "dragMove": function(d, x,y,dx,dy) {
+                         d3.event.preventDefault();
                          layout.scroll(dy); // use only Y component for scrolling the "wheel"
                          draw();            // update screen after scrolling
                        }
@@ -157,6 +157,7 @@ var pool = function() {
     id.count = 1;
     id.color = "purple";
     id.createdBy = [doc.createdBy];
+    id.index = ids.length;
 
     // insert it at the first free slot
     for(var i=0; i<ids.length; i++) {
@@ -279,70 +280,90 @@ var pool = function() {
     // remove all scene objects from last rendered frame
     drawingSurface.selectAll(".scene_obj").remove();
 
-    // for each bubbles, let the layout determine if/where to draw it, and do so
-    for(var i=0; i<ids.length; i++) {
-      // is there something in this slot in the IDs array?
-      if(ids[i] != undefined) {
-        // let layout compute position and scale factor
-        var res = layout.getPositionAndSize(i);
-        // draw it at all?
-        if(res != undefined) {
-          // draw single bubble
-          drawBubble(drawingSurface, ids[i], res.x, res.y, 65, res.scale);
-        }
-      }
-    }
-
+    // For each element in the array, we want to create a <g> element.
+    // We follow the D3 pattern 'selectAll() - data() - enter() - append()'.
+    // Therefore we create a D3 selection of elements with a class 'scene_obj' and bind
+    // the 'ids' array to this selection using the 'data()' method.
+    // With 'enter()' we store placeholder DOM nodes for the <g> elements to be created.
+    // Using 'append()' we instantiate the desired <g> elements.
+    // Finally, at the end of the chain, we use 'selection.call()' to call a function that is
+    // responsible for the creation of the contents of each <g>.
+    // That is, we draw a bubble (circle with text).
+    drawingSurface.selectAll(".scene_obj").data(ids, function(d) {
+      return d.text;
+    })
+    .enter()
+    .append("g")
+    .classed("scene_obj", true)
+    .call(createBubble);
   }; // draw()
 
   /**
     * draw a single ID bubble centered around specified position
-    * with specified radius and scale factor
-    * drawingSurface: the SVG area's topmost group element
-    * id: one entry from the ids array
-    * pos: array containing X and Y coordinate of bubble to be drawn
-    * radius: unscaled (base) radius of the bubble
-    * scale: scale factor for bubble size and text size
+    * with specified radius and scale factor.
+    * selection: the current D3 selection.
     **/
-  var drawBubble = function(drawingSurface, id, x, y, radius, scale) {
+  var createBubble = function(selection) {
+    // 'selection.each' invokes its own argument function, passing the bound data item to the
+    // function. The 'this' context in the function is the current DOM element, here: the
+    // recently created <g> element.
+    selection.each(function(d) {
+      var group = d3.select(this);
+      var res = layout.getPositionAndSize(d.index);
+      var radius = 65;
 
-    //console.log("draw bubble " + id.text + " at " + x + " / " + y + " scale " + scale);
-    var bubbleGroup = drawingSurface.append("g")
-      .attr("transform", "translate(" + (x) + "," + (y) + ")")
-      .attr("class", "scene_obj"); // mark as a scene object, so can be deleted for next frame
+      // for some items in the array there is no ID/data/bubble to be drawn
+      if(!d)
+        return;
 
-    bubbleGroup.append("circle")
-      .attr("r", radius)
-      .attr("transform", "scale(" + scale + " " + scale + ")")
-      .style("fill", id.color);
+      if(!res)
+        return group;
 
-    /*
-    bubbleGroup.append("text")
-      .attr("dy", ".3em")
-      .style("text-anchor", "middle")
-      .attr("transform", "scale(" + scale + " " + scale + ")")
-      .style("fill", "white")
-      .text(id.text);
-      */
+      // console.log(group);
+      // console.log(d);
 
-    bubbleGroup.append("foreignObject")
-      .attr({
-        "width": radius * 2,
-        "height": radius * 2,
-        "transform": "scale(" + scale + " " + scale + ") translate(" + (-radius) + ", " + (-
-          radius) + ")"
-      })
-        .append("xhtml:p")
-        .classed("txt-pool", true)
-        .style({
-          "width": radius *  2 + "px",
-          "height": radius *  2 + "px",
-          "max-width": radius *  2 + "px",
-          "max-height": radius *  2  + "px"
+      //console.log("draw bubble " + id.text + " at " + x + " / " + y + " scale " + scale);
+
+      // Move each <g> to its calculated position.
+      group.attr("transform", "translate(" + (res.x) + "," + (res.y) + ")");
+
+      // Append a <circle> to the <g>.
+      group.append("circle")
+        .attr("r", radius)
+        .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
+        .style("fill", d.color);
+
+      // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
+      group.append("foreignObject")
+        .attr({
+          "width": radius * 2,
+          "height": radius * 2,
+          "transform": "scale(" + res.scale + " " + res.scale + ") translate(" + (-radius) + ", " + (-
+            radius) + ")"
         })
-        .text(id.text);
+          .append("xhtml:p")
+          .classed("txt-pool", true)
+          .style({
+            "width": radius *  2 + "px",
+            "height": radius *  2 + "px",
+            "max-width": radius *  2 + "px",
+            "max-height": radius *  2  + "px"
+          })
+          .text(d.text);
 
-  }; // drawBubble()
+        // Call the function to handle touch and mouse events, respectively.
+        touchMouseEvents(group, drawingSurface.node(), {
+          "test": false,
+          "click": function(d,x,y) {
+            // deleteID(d);
+            console.log("delete ID __" + d.text + "__ at position x: " + x + ", y: " + y);
+            draw();
+          }
+        });
+    }); // selection.each()
+
+  }; // createBubble()
+
 
   // Test adding and removing ids
   Template.idPool.events({
