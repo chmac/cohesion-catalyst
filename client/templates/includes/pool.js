@@ -319,9 +319,6 @@ var pool = function() {
       if(!res)
         return group;
 
-      // console.log(group);
-      // console.log(d);
-
       //console.log("draw bubble " + id.text + " at " + x + " / " + y + " scale " + scale);
 
       // Move each <g> to its calculated position.
@@ -356,7 +353,9 @@ var pool = function() {
           "test": false,
           "click": function(d,x,y) {
             // deleteID(d);
+            addToMyIds(d, x, y);
             console.log("delete ID __" + d.text + "__ at position x: " + x + ", y: " + y);
+
             draw();
           }
         });
@@ -364,6 +363,42 @@ var pool = function() {
 
   }; // createBubble()
 
+
+  /**
+   * Inserts the clicked-on ID bubble into the users 'Identifications' collection.
+   * The document which will be inserted into the DB has an additional 'matched' field
+   * to indicate this item as one the user selected from the pool of other users' identifications.
+   *
+   * The inserted document will be recognized once the user navigates back to the 'my IDs' screen.
+   * @see my_ids.js 'integrateMatchedIds()' function.
+   * @param {Object} d An object containing the information of this ID bubble.
+   * @param {number} x The current x-coordinate of the bubble on the drawing surface.
+   * @param {number} y The current y-coordinate of the bubble on the drawing surface.
+   */
+  var addToMyIds = function(d, x, y) {
+    var currentUser = Meteor.user();
+    var currentTrainingId = currentUser.profile.currentTraining;
+
+    // Create the document to be inserted into the collection.
+    var myMatch = {
+      fixed: true,
+      x: x,
+      y: y,
+      children: [],
+      name: d.text,
+      createdBy: currentUser._id,
+      trainingId: currentTrainingId,
+      editCompleted: true,
+      matched: true
+    };
+
+    Identifications.insert(myMatch, function(error, result) {
+      if (error) {
+        return throwError(error.reason);
+      }
+    });
+
+  }; //end addToMyIds()
 
   // Test adding and removing ids
   Template.idPool.events({

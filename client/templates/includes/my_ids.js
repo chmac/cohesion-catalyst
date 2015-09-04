@@ -13,8 +13,11 @@ var PLACEHOLDER_TXT = "I identify with...";
  * page and navigates back or when the users does a 'Refresh'.
  */
 Template.myIds.onCreated(function() {
+  var currentUser = Meteor.user();
+  var currentTrainingId = currentUser.profile.currentTraining;
   var emptyIds = Identifications.find({
-    createdBy: Meteor.userId(),
+    createdBy: currentUser._id,
+    trainingId: currentTrainingId,
     name: {
       $in: [PLACEHOLDER_TXT, ""]
     }
@@ -23,6 +26,15 @@ Template.myIds.onCreated(function() {
     emptyIds.forEach(function(empty) {
       deleteNodeAndLink(empty._id);
     });
+  }
+
+  var matchedIds = Identifications.find({
+    createdBy: currentUser._id,
+    trainingId: currentTrainingId,
+    matched: true
+  });
+  if (matchedIds.count() > 0) {
+    matchedIds.forEach(integrateMatchedIds);
   }
 });
 
@@ -836,6 +848,72 @@ Template.myIds.onDestroyed(function() {
     });
   }
 });
+
+
+// TODO calculate position for matchedIds
+
+/**
+ * Processes a matched ID document so that it will be properly rendered as an immediate
+ * child of the root node. Therefore, we need to update the 'Identifications' collection to
+ * hold the 'parent' and 'child' data. In order to draw a link, we insert the relevant data
+ * into the 'Links' collection.
+ * @param {Oject} d A document of the user's 'Identifications' collection which the user
+ *    selected from the 'ID pool'.
+ */
+function integrateMatchedIds(d) {
+  var currentUser = Meteor.user();
+  var currentTrainingId = currentUser.profile.currentTraining;
+
+  var parent = Identifications.findOne({
+    createdBy: currentUser._id,
+    trainingId: currentTrainingId,
+    level: 0
+  });
+
+  Identifications.update(d._id, {
+    $set: {
+      level: parent.level + 1,
+      parentId: parent._id
+    }
+  }, function(error, result) {
+    if (error) {
+      return throwError(error.reason);
+    }
+  });
+
+  Identifications.update(d.parentId, {
+    $push: {
+      children: d._id
+    }
+  }, function(error, result) {
+    if (error) {
+      return throwError(error.reason);
+    }
+  });
+
+  // Create a new link object for the edge between the currentActiveNode and
+  // the newly created node and add it to our 'Links' collection.
+  var link = {
+    source: parent,
+    target: d
+  };
+
+  var newLinkId = Links.insert(link, function(error, result) {
+    if (error) {
+      return throwError(error.reason);
+    }
+  });
+
+  Links.update(newLinkId, {
+    $push: {
+      "source.children": d._id
+    }
+  }, function(error, result) {
+    if (error) {
+      return throwError(error.reason);
+    }
+  });
+} //end integrateMatchedIds()
 
 /**
  * Checks the text content of the current node.
