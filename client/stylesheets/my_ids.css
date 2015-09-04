@@ -13,10 +13,6 @@
  cursor: move;
 }
 
-.node.not-editable:not(.node-empty) {
- cursor: not-allowed;
-}
-
 .root {
  outline: none;
 }
