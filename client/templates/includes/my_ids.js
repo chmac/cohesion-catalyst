@@ -112,12 +112,6 @@ Template.myIds.onRendered(function() {
 
   /**
    * Handles the dragging (i.e. re-positioning) of an existing node element (an identification bubble).
-   * It is called from a {@code mousedown} event if the {@code Shift} key was active and registers
-   * the handlers for the {@mousemove} and {@mouseup} events that follow the {@mousedown} event.
-   * These handlers are defined within the function.
-   *
-   * @param {Object} nodeDataObject The joined data of the HTML/SVG element that received
-   * the {@code mousedown} event.
    */
   dragNodeToMousePosition = function(d, x, y, dx, dy) {
     var rootNodeData,
@@ -582,7 +576,6 @@ Template.myIds.onRendered(function() {
         var currentActiveNode = Session.get("selectedElement");
         if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode(currentActiveNode);
-          disableTarget(d);
           return;
         }
 
@@ -595,7 +588,6 @@ Template.myIds.onRendered(function() {
         var currentActiveNode = Session.get("selectedElement");
         if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode(currentActiveNode);
-          disableTarget(d);
           return;
         }
 
@@ -608,7 +600,6 @@ Template.myIds.onRendered(function() {
         var currentActiveNode = Session.get("selectedElement");
         if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode(currentActiveNode);
-          disableTarget(d);
           return;
         }
         d3.event.stopPropagation();
@@ -635,8 +626,6 @@ Template.myIds.onRendered(function() {
 
           inputTxt = d3.select(this).select("p.txt-input");
           newName = inputTxt.text();
-          console.log("KEYUP > d.name ", d.name);
-
 
           // When the user hits 'ENTER' (i.e. keycode 13) we update the 'name' field and the
           // 'editCompleted' field of the current document in the 'Identifications'
@@ -714,6 +703,8 @@ Template.myIds.onRendered(function() {
               });
             });
           }
+          // We need to manually update the node data and the selection to make sure
+          // the check for empty nodes operates on up-to-date data.
           d.name = newName;
           Session.set("selectedElement", d);
           selectNodeElement(d);
@@ -733,11 +724,16 @@ Template.myIds.onRendered(function() {
 
     deleteIcon = nodeControls.append("g")
       .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
-      .attr("class", "delete-icon")
-      .on("mousedown", function(d) {
+      .attr("class", "delete-icon");
+
+    // Events on the delete button
+    touchMouseEvents(deleteIcon, drawingSurface.node(), {
+      "test": false,
+      "down": function(d) {
         d3.event.stopPropagation();
         deleteNodeAndLink(d._id);
-      });
+      }
+    });
 
     deleteIcon.append("use")
       .attr("xlink:href", "svg/icons.svg#delete-icon");
@@ -841,7 +837,12 @@ Template.myIds.onDestroyed(function() {
   }
 });
 
-
+/**
+ * Checks the text content of the current node.
+ * @param {Object} currentNode The value of the 'selectedElement' Session variable.
+ * @return {boolean} True if the content of the element is the placeholder text or an empty
+ *    string. False otherwise.
+ */
 function isEmptyNode(currentNode) {
   if (!currentNode) {
     return false;
@@ -849,10 +850,18 @@ function isEmptyNode(currentNode) {
   return currentNode.name === PLACEHOLDER_TXT || currentNode.name === "";
 }
 
-// mark the current node as an empty node, prompt user with red color etc.
+/**
+ * Marks the current node as an empty node.
+ * A CSS class gets applied to color the node red.
+ * The editable <p> element receives focus and its content is selected to allow for instant input.
+ * @param {Object} currentNode The value of the 'selectedElement' Session variable.
+ */
 function promptEmptyNode(currentNode) {
   if (!currentNode) {
     return;
+  }
+  if (d3.event) {
+    d3.event.preventDefault();
   }
   var domNode = d3.select("#gid" + currentNode._id);
   domNode.select("p.txt-input").node().focus();
@@ -860,13 +869,6 @@ function promptEmptyNode(currentNode) {
   domNode.classed("node-empty", true);
 }
 
-function disableTarget(d) {
-  if (d3.event) {
-    d3.event.preventDefault();
-  }
-  var domNode = d3.select("#gid" + d._id);
-  domNode.classed("not-editable", true);
-}
 
 /**
  * Constrains the dragging of nodes to the SVG viewport, i.e. the drawing surface.
@@ -911,14 +913,12 @@ function detectBoundaries(mouseCoords, root, radius, width) {
  * @param {object} element The db node document or {@code null}.
  */
 function selectNodeElement(element) {
-  var selectedElement = Session.get("selectedElement"),
-    node;
+  var selectedElement = Session.get("selectedElement");
 
   // deal with previously selected element
-  if(selectedElement) {
-
+  if (selectedElement) {
     // do we want to switch away from a selected empty node?
-    if(isEmptyNode(selectedElement) && element && element._id != selectedElement._id) {
+    if (isEmptyNode(selectedElement) && element && element._id != selectedElement._id) {
       promptEmptyNode(selectedElement);
       return;
     }
@@ -936,12 +936,11 @@ function selectNodeElement(element) {
   }
 
   // select new element
-  if(!element) {
-
+  // The passed in value may be null in which case we do nothing (We simply use the null value
+  // later to reset the Session variable).
+  if (!element) {
     // nada
-
   } else {
-
     Identifications.update(element._id, {
       $set: {
         editCompleted: false
@@ -950,14 +949,12 @@ function selectNodeElement(element) {
     d3.select("#gid" + element._id).classed({
       "node-selected": true
     });
-
   }
 
-  // Set the Session variable to the passed in value (which may be null and therefore will result in
-  // deselected state).
+  // Set the Session variable to the passed in value (which may be null).
   Session.set("selectedElement", element);
 
-}
+} // end selectNodeElement()
 
 /**
  * Deletes a node document (i.e. an identification document) and its associated
@@ -998,10 +995,9 @@ function deleteNodeAndLink(id) {
       }
     });
 
-
     var selectedNode = Session.get("selectedElement");
     if (selectedNode && (selectedNode._id === nodeId)) {
       Session.set("selectedElement", null);
     }
   }
-}
+} // end deleteNodeAndLink()
