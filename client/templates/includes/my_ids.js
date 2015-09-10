@@ -100,8 +100,11 @@ Template.myIds.onRendered(function() {
     type: currentUser.profile.avatar
   });
 
-  if (currentTrainingId && Identifications.find().count() === 0) {
-    console.log("find count");
+  if (currentTrainingId && Identifications.find({
+    createdBy: currentUser._id,
+    trainingId: currentTrainingId
+  }).count() === 0) {
+    console.log("No IDs yet, inserting the rootNode...");
     rootNode = {
       level: 0,
       fixed: true,
@@ -766,8 +769,16 @@ Template.myIds.onRendered(function() {
    */
   force = d3.layout.force()
     .size([width, height])
-    .nodes(Identifications.find().fetch())
-    .links(Links.find().fetch())
+    .nodes(Identifications.find({
+      createdBy: currentUser._id,
+      trainingId: currentTrainingId
+    }).fetch())
+    .links(Links.find({
+      "source.createdBy": currentUser._id,
+      "source.trainingId": currentTrainingId,
+      "target.createdBy": currentUser._id,
+      "target.trainingId": currentTrainingId
+    }).fetch())
     .linkDistance(function(d) {
       return 250 / (d.source.level + 1) + radius;
     })
