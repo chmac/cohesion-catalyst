@@ -172,27 +172,15 @@ var pool = function() {
   };
 
   /**
-    *   delete ID, identified by text
+    *   delete ID from screen, identified by text
     */
-  var deleteID = function(doc) {
+  var deleteID = function(id) {
+    console.log(id);
     for(var i=0; i<ids.length; i++) {
-      if(ids[i] && ids[i].text == doc.name) {
-        for(var j=0; j<ids[i].createdBy.length; j++) {
-          if(ids[i].createdBy[j] == doc.createdBy) {
-
-            // found it, reduce count etc.
-            ids[i].createdBy.slice(j,1);
-            ids[i].count--;
-            if(ids[i].count == 0) {
-              // nobody has this ID any more, remove it from screen/array
-              ids[i] = undefined;
-              console.log("bubble "+doc.name+" removed");
-              return;
-            }
-            console.log("removed one instance from bubble "+doc.name+", count="+ids[i].count);
-            return;
-          }
-        }
+      if(ids[i] && ids[i].text == id.text) {
+        ids[i] = undefined;
+        console.log("bubble "+id.text+" removed");
+        return;
       }
     }
     console.log("tried to delete " + doc.name + ", but could not find it!.");
@@ -290,7 +278,7 @@ var pool = function() {
     // responsible for the creation of the contents of each <g>.
     // That is, we draw a bubble (circle with text).
     drawingSurface.selectAll(".scene_obj").data(ids, function(d) {
-      return d.text;
+      return d && d.text;
     })
     .enter()
     .append("g")
@@ -308,13 +296,13 @@ var pool = function() {
     // function. The 'this' context in the function is the current DOM element, here: the
     // recently created <g> element.
     selection.each(function(d) {
-      var group = d3.select(this);
-      var res = layout.getPositionAndSize(d.index);
-      var radius = 65;
-
       // for some items in the array there is no ID/data/bubble to be drawn
       if(!d)
         return;
+
+      var group = d3.select(this);
+      var res = layout.getPositionAndSize(d.index);
+      var radius = 65;
 
       if(!res)
         return group;
@@ -352,10 +340,8 @@ var pool = function() {
         touchMouseEvents(group, drawingSurface.node(), {
           "test": false,
           "click": function(d,x,y) {
-            // deleteID(d);
+            deleteID(d);
             addToMyIds(d, x, y);
-            console.log("delete ID __" + d.text + "__ at position x: " + x + ", y: " + y);
-
             draw();
           }
         });
