@@ -368,8 +368,6 @@ var pool = function() {
     // Create the document to be inserted into the collection.
     var myMatch = {
       fixed: true,
-      x: x,
-      y: y,
       children: [],
       name: d.text,
       createdBy: currentUser._id,
@@ -378,10 +376,24 @@ var pool = function() {
       matched: true
     };
 
-    Identifications.insert(myMatch, function(error, result) {
+    var myMatchId = Identifications.insert(myMatch, function(error, result) {
       if (error) {
         return throwError(error.reason);
       }
+    });
+
+    // Insert a document containing the matched ID as 'target' into the 'Links' collection.
+    // We specify the informationen needed for the 'source' field in order to meet our
+    // subscription rules from the 'myIds' template. The parent node (i.e. source) of a matched ID
+    // will always be the root node, which we will access from the 'myIds' template.
+    Links.insert({
+      source: {
+        createdBy: currentUser._id,
+        trainingId: currentTrainingId
+      },
+      target: Identifications.findOne({
+        "_id": myMatchId
+      })
     });
 
   }; //end addToMyIds()
