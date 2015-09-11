@@ -27,15 +27,6 @@ Template.myIds.onCreated(function() {
       deleteNodeAndLink(empty._id);
     });
   }
-
-  var matchedIds = Identifications.find({
-    createdBy: currentUser._id,
-    trainingId: currentTrainingId,
-    matched: true
-  });
-  if (matchedIds.count() > 0) {
-    matchedIds.forEach(integrateMatchedIds);
-  }
 });
 
 /**
@@ -121,6 +112,21 @@ Template.myIds.onRendered(function() {
       if (error) {
         return throwError("Error: " + error.reason);
       }
+    });
+  }
+
+  var matchedIds = Identifications.find({
+    createdBy: currentUser._id,
+    trainingId: currentTrainingId,
+    x: {
+      $exists: false
+    }
+  });
+  if (matchedIds.count() > 0) {
+    matchedIds.forEach(integrateMatchedIds, {
+      width: width,
+      height: height,
+      radius: radius
     });
   }
 
@@ -382,14 +388,20 @@ Template.myIds.onRendered(function() {
       }
     });
 
-    Links.update(newLinkId, {
-      $push: {
-        "source.children": newNodeId
-      }
-    }, function(error, result) {
-      if (error) {
-        return throwError(error.reason);
-      }
+    // Find all the links which have the parent node as 'source' and update each of which
+    // to contain the correct children values.
+    Links.find({
+      "source._id": node.parentId
+    }).forEach(function(link) {
+      Links.update(link._id, {
+        $addToSet: {
+          "source.children": newNodeId,
+        }
+      }, function(error, result) {
+        if (error) {
+          return throwError(error.reason);
+        }
+      });
     });
 
     // Set the new node as selectedNode.
@@ -861,8 +873,6 @@ Template.myIds.onDestroyed(function() {
 });
 
 
-// TODO calculate position for matchedIds
-
 /**
  * Processes a matched ID document so that it will be properly rendered as an immediate
  * child of the root node. Therefore, we need to update the 'Identifications' collection to
@@ -881,9 +891,14 @@ function integrateMatchedIds(d) {
     level: 0
   });
 
+  var randomPos = [Math.random() * this.width, Math.random() * this.height];
+  var position = detectBoundaries(randomPos, parent, this.radius, this.width);
+
   Identifications.update(d._id, {
     $set: {
       level: parent.level + 1,
+      x: position[0],
+      y: position[1],
       parentId: parent._id
     }
   }, function(error, result) {
@@ -892,8 +907,8 @@ function integrateMatchedIds(d) {
     }
   });
 
-  Identifications.update(d.parentId, {
-    $push: {
+  Identifications.update(parent._id, {
+    $addToSet: {
       children: d._id
     }
   }, function(error, result) {
@@ -902,27 +917,37 @@ function integrateMatchedIds(d) {
     }
   });
 
-  // Create a new link object for the edge between the parent (i.e. root) node and
-  // the matched node and add it to our 'Links' collection.
-  var link = {
-    source: parent,
-    target: d
-  };
-
-  var newLinkId = Links.insert(link, function(error, result) {
-    if (error) {
-      return throwError(error.reason);
-    }
+  Links.find({
+    "target._id": d._id
+  }).forEach(function(link) {
+    Links.update(link._id, {
+      $set: {
+        source: parent,
+        "target.level": parent.level + 1,
+        "target.x": position[0],
+        "target.y": position[1],
+        "target.parentId": parent._id
+      }
+    },
+      function(error, result) {
+      if (error) {
+        return throwError(error.reason);
+      }
+    });
   });
 
-  Links.update(newLinkId, {
-    $push: {
-      "source.children": d._id
-    }
-  }, function(error, result) {
-    if (error) {
-      return throwError(error.reason);
-    }
+  Links.find({
+    "source._id": parent._id
+  }).forEach(function(link) {
+    Links.update(link._id, {
+      $addToSet: {
+        "source.children": d._id,
+      }
+    }, function(error, result) {
+      if (error) {
+        return throwError(error.reason);
+      }
+    });
   });
 } //end integrateMatchedIds()
 
@@ -1068,6 +1093,19 @@ function deleteNodeAndLink(id) {
       if (error) {
         return throwError(error.reason);
       }
+    });
+    Links.find({
+      "source._id": nodeDoc.parentId
+    }).forEach(function(link) {
+      Links.update(link._id, {
+        $pull: {
+          "source.children": nodeId,
+        }
+      }, function(error, result) {
+        if (error) {
+          return throwError(error.reason);
+        }
+      });
     });
     Identifications.remove(nodeId, function(error, result) {
       if (error) {
