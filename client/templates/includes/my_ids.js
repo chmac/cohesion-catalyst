@@ -902,8 +902,8 @@ function integrateMatchedIds(d) {
     }
   });
 
-  // Create a new link object for the edge between the currentActiveNode and
-  // the newly created node and add it to our 'Links' collection.
+  // Create a new link object for the edge between the parent (i.e. root) node and
+  // the matched node and add it to our 'Links' collection.
   var link = {
     source: parent,
     target: d
