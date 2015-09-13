@@ -43,7 +43,8 @@ Meteor.publish("otherIdentifications", function(currentTraining) {
     Identifications.find({
       createdBy: {$ne: currentUserId},
       trainingId: currentTraining,
-      editCompleted: true
+      editCompleted: true,
+      matchedBy: {$nin: [currentUserId]}
     })
   ];
 });
