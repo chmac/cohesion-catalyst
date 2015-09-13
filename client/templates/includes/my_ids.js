@@ -157,8 +157,8 @@ Template.myIds.onRendered(function() {
     rootNodeData = d3.select(".root").datum();
 
     mousePos = [x,y];
-    dragX = detectBoundaries(mousePos, rootNodeData, radius, width)[0];
-    dragY = detectBoundaries(mousePos, rootNodeData, radius, width)[1];
+    dragX = detectCollision(mousePos, rootNodeData, radius, width)[0];
+    dragY = detectCollision(mousePos, rootNodeData, radius, width)[1];
 
     Identifications.update(nodeDataObject._id, {
       $set: {
@@ -286,8 +286,8 @@ Template.myIds.onRendered(function() {
       .attr("class", "drag-line")
       .attr("x1", currentActiveNode.x)
       .attr("y1", currentActiveNode.y)
-      .attr("x2", detectBoundaries([x,y], rootNodeData, radius, width)[0])
-      .attr("y2", detectBoundaries([x,y], rootNodeData, radius, width)[1]);
+      .attr("x2", detectCollision([x,y], rootNodeData, radius, width)[0])
+      .attr("y2", detectCollision([x,y], rootNodeData, radius, width)[1]);
 
   }; // end drawLineToMousePosition()
 
@@ -337,7 +337,7 @@ Template.myIds.onRendered(function() {
     dragLine.attr("class", "drag-line-hidden");
 
     // Get the current mouse position coordinates.
-    newNodePos = detectBoundaries([x,y], rootNodeData, radius, width);
+    newNodePos = detectCollision([x,y], rootNodeData, radius, width);
 
     // Create a new node object with the current mouse position coordinates.
     node = {
@@ -892,7 +892,7 @@ function integrateMatchedIds(d) {
   });
 
   var randomPos = [Math.random() * this.width, Math.random() * this.height];
-  var position = detectBoundaries(randomPos, parent, this.radius, this.width);
+  var position = detectCollision(randomPos, parent, this.radius, this.width);
 
   Identifications.update(d._id, {
     $set: {
@@ -985,37 +985,66 @@ function promptEmptyNode(currentNode) {
 
 
 /**
- * Constrains the dragging of nodes to the SVG viewport, i.e. the drawing surface.
+ * Constrains the dragging of nodes to the SVG viewport, i.e. the drawing surface
+ * and also detects colliding nodes.
  * For example, if the user is about to drag a node outside of the SVG canvas, the
  * coordinate is set to the bounding value, taking the node's radius into account.
  * At the bottom, the specified boundary is the position of the avatar icon.
- * @param {Array} mouseCoords The current {@code x} and {@code y} coordinates as two-element array.
+ * @param {Array} coords The current {@code x} and {@code y} coordinates as two-element array.
  * @param {Object} root The root node data object.
  * @param {number} radius The specified radius of the node (i.e. {@code <circle>}).
  * @param {number} width The specified width of the drawing surface.
  * @return {Array}
  */
-function detectBoundaries(mouseCoords, root, radius, width) {
-  var dragCoords = mouseCoords;
+function detectCollision(coords, root, radius, width) {
+  var coordinates = coords;
 
-  if (mouseCoords[0] < radius) {
-    dragCoords[0] = radius;
+  if (coords[0] < radius) {
+    coordinates[0] = radius;
   }
 
-  if (mouseCoords[0] > width - (radius * 2)) {
-    dragCoords[0] = width - (radius * 2);
+  if (coords[0] > width - (radius * 2)) {
+    coordinates[0] = width - (radius * 2);
   }
 
-  if (mouseCoords[1] < radius) {
-    dragCoords[1] = radius;
+  if (coords[1] < radius) {
+    coordinates[1] = radius;
   }
 
-  if (mouseCoords[1] > root.y) {
-    dragCoords[1] = root.y;
+  if (coords[1] > root.y) {
+    coordinates[1] = root.y;
   }
 
-  return dragCoords;
-} // end checkBoundaries()
+  // We check for collision with all other nodes on the drawing surface.
+  // Approach is borrowed from collision detection examples at
+  // http://bl.ocks.org/mbostock/3231298
+  // http://vallandingham.me/building_a_bubble_cloud.html
+  d3.selectAll("g.node").each(function(d, i) {
+    // We don't want to compare a node with itself so make sure to apply
+    // the comparison just for ID nodes in the selection which currently are not
+    // dragged or randomly positioned as matched IDs (Note that at this point a
+    // matched ID doesn't have its x or y coordinates yet because we are in the middle
+    // of determining it - hence the check of 'd.x').
+    if (d.x && !d3.select(this).classed("dragging")) {
+      // Using the distance equation we find the distance between the nodes.
+      var dx = coords[0] - d.x,
+        dy = coords[1] - d.y,
+        distance = Math.sqrt(dx * dx + dy * dy),
+        padding = radius,
+        // We specify the minimum distance between two nodes.
+        minDistance = (radius * 2) + padding;
+        // Drops the current distance below the allowed minimum distance?
+        if (distance < minDistance) {
+          // We scale the distance and displace the coordinates.
+          distance = (distance - minDistance) / distance * 0.6;
+          coordinates[0] -= dx * distance;
+          coordinates[1] -= dy * distance;
+        }
+    }
+  });
+
+  return coordinates;
+} // end detectCollision()
 
 /**
  * Selects (or deselects) a node element (i.e. an identification circle).
