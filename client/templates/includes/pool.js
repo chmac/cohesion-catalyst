@@ -89,7 +89,8 @@ var pool = function() {
         Identifications.find({
           createdBy: {$ne: currentUser._id},
           trainingId: currentTrainingId,
-          editCompleted: true
+          editCompleted: true,
+          matchedBy: {$nin: [currentUser._id]}
         }).forEach(function(d) { addID(d); });
         layout = new LayoutSameNumPerRow( function(){return ids.length;},
                                           {"baseBubbleRadius": 65});
@@ -183,7 +184,7 @@ var pool = function() {
         return;
       }
     }
-    console.log("tried to delete " + doc.name + ", but could not find it!.");
+    console.log("tried to delete " + id.name + ", but could not find it!.");
   };
 
   var XXX = function () {
@@ -394,6 +395,14 @@ var pool = function() {
       target: Identifications.findOne({
         "_id": myMatchId
       })
+    });
+
+    // Call the server method 'addIdMatch()' - @see identifications.js.
+    // We pass in the text of the matched ID to sync each ID of other users with the same text.
+    Meteor.call("addIdMatch", d.text, function(error, result) {
+      if (error) {
+        throwError(error.reason);
+      }
     });
 
   }; //end addToMyIds()
