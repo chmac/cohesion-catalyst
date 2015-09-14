@@ -91,9 +91,14 @@ var pool = function() {
           trainingId: currentTrainingId,
           editCompleted: true,
           matchedBy: {$nin: [currentUser._id]}
-        }).forEach(function(d) { addID(d); });
-        layout = new LayoutSameNumPerRow( function(){return ids.length;},
-                                          {"baseBubbleRadius": 65});
+        }).forEach(function(d) {
+          addID(d);
+        });
+        layout = new LayoutSameNumPerRow(function() {
+          return ids.length;
+        }, {
+          "baseBubbleRadius": 65
+        });
         // set width and height in layout
         layout.setDimensions(width,height);
 
@@ -104,7 +109,6 @@ var pool = function() {
 
     // set up autorunner to observe IDs that come, go, or change
     templateInstance.autorun(function() {
-
       // initial query to populate pool with current set of IDs
       handle = Identifications.find({
         createdBy: {$ne: currentUser._id},
@@ -112,6 +116,7 @@ var pool = function() {
         editCompleted: true
       }).observe({
         added: function(doc) {
+          console.log("observe: added");
           addID(doc);
           draw();
         },
@@ -120,13 +125,13 @@ var pool = function() {
           draw();
         },*/
         removed: function(oldDoc) {
+          console.log("observe: removed");
           deleteID(oldDoc);
           draw();
         }
       }); // observe
 
     }); // end autorun()
-
 
   });  // onRendered()
 
@@ -148,7 +153,7 @@ var pool = function() {
         }
         // this creator is new, so add it to this ID
         ids[i].count++;
-        ids[i].createdBy.push[doc.createdBy];
+        ids[i].createdBy.push(doc.createdBy);
         return;
       }
     }
@@ -156,14 +161,14 @@ var pool = function() {
     var id = {};
     id.text = doc.name;
     id.count = 1;
-    id.color = "purple";
+    id.color = "white";
     id.createdBy = [doc.createdBy];
     id.index = ids.length;
 
     // insert it at the first free slot
-    for(var i=0; i<ids.length; i++) {
-      if(ids[i] == undefined) {
-        ids[i] = id;
+    for(var k=0; k<ids.length; k++) {
+      if(ids[k] == undefined) {
+        ids[k] = id;
         return id;
       }
     }
@@ -267,23 +272,23 @@ var pool = function() {
     }
 
     // remove all scene objects from last rendered frame
-    drawingSurface.selectAll(".scene_obj").remove();
+    drawingSurface.selectAll(".scene-obj").remove();
 
     // For each element in the array, we want to create a <g> element.
     // We follow the D3 pattern 'selectAll() - data() - enter() - append()'.
-    // Therefore we create a D3 selection of elements with a class 'scene_obj' and bind
+    // Therefore we create a D3 selection of elements with a class 'scene-obj' and bind
     // the 'ids' array to this selection using the 'data()' method.
     // With 'enter()' we store placeholder DOM nodes for the <g> elements to be created.
     // Using 'append()' we instantiate the desired <g> elements.
     // Finally, at the end of the chain, we use 'selection.call()' to call a function that is
     // responsible for the creation of the contents of each <g>.
     // That is, we draw a bubble (circle with text).
-    drawingSurface.selectAll(".scene_obj").data(ids, function(d) {
+    drawingSurface.selectAll(".scene-obj").data(ids, function(d) {
       return d && d.text;
     })
     .enter()
     .append("g")
-    .classed("scene_obj", true)
+    .classed("scene-obj", true)
     .call(createBubble);
   }; // draw()
 
@@ -322,6 +327,7 @@ var pool = function() {
       // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
       group.append("foreignObject")
         .attr({
+          "class": "foreign-object",
           "width": radius * 2,
           "height": radius * 2,
           "transform": "scale(" + res.scale + " " + res.scale + ") translate(" + (-radius) + ", " + (-
@@ -341,15 +347,60 @@ var pool = function() {
         touchMouseEvents(group, drawingSurface.node(), {
           "test": false,
           "click": function(d,x,y) {
-            deleteID(d);
-            addToMyIds(d, x, y);
-            draw();
+            var color = pickRandomColor();
+            var id = _.extend(d, {
+              matchColor: color
+            });
+            animateOut(id, d3.select(this));
+            // deleteID(id);
+            addToMyIds(id, x, y);
+            // draw();
           }
         });
     }); // selection.each()
 
   }; // createBubble()
 
+/**
+ * Makes an ID bubble disappear from screen if the user clicks/tabs on it.
+ * Instead of making the bubble instantly invisible, a transition is applied which gives the
+ * user a visual feedback: we apply a random color before the bubble decreases in size and Finally
+ * disappears. The randomly picked color sticks to this matched ID across templates.
+ * Once the transition/animation has ended, we call the functions 'deleteID()' and 'draw()'.
+ * @param {Object} d The ID information.
+ * @param {Array} selection The current D3 selection.
+ *
+ */
+var animateOut = function(d, selection) {
+  var group = selection,
+    bubble,
+    fo;
+
+  bubble = group.select("circle");
+  fo = group.select(".foreign-object");
+
+  bubble
+    .style("fill", null)
+    .classed(d.matchColor, true)
+    .transition()
+    .duration(750)
+    .attr("r", 0)
+    .each("end", function(){
+      console.log("bubble");
+      deleteID(d);
+      draw();
+    });
+
+  fo
+    .transition()
+    .duration(750)
+    .attr("transform", "scale(0)");
+
+  fo.select("p.txt-pool")
+    .transition()
+    .duration(750)
+    .style("font-size", 0);
+};
 
   /**
    * Inserts the clicked-on ID bubble into the users 'Identifications' collection.
@@ -374,7 +425,8 @@ var pool = function() {
       createdBy: currentUser._id,
       trainingId: currentTrainingId,
       editCompleted: true,
-      matched: true
+      matched: true,
+      matchColor: d.matchColor
     };
 
     var myMatchId = Identifications.insert(myMatch, function(error, result) {
@@ -426,7 +478,7 @@ var pool = function() {
       while(i<1000 && ids[randomIdx] == undefined) {
         i++;
         randomIdx = Math.floor(Math.random() * (ids.length-1));
-      };
+      }
       if(i>=1000) {
         console.log("found nothing to remove");
         return;
