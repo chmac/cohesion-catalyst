@@ -39,10 +39,12 @@
  display: table; /* This is needed for vertical positioning of the text within <p> */
 }
 
+.child > circle {
+  stroke: #000;
+  stroke-width: 2;
+}
 .child > circle.filled {
  fill: #fff;
- stroke: #000;
- stroke-width: 2;
 }
 
 .child > circle.dashed,

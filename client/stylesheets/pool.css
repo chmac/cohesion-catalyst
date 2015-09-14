@@ -13,4 +13,6 @@
    font-size: 1.2em;
    line-height: 1.4em;
    padding: 0 3px;
+   cursor: default;
+   color: #000;
  }
