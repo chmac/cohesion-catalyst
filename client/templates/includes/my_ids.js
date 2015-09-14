@@ -542,6 +542,10 @@ Template.myIds.onRendered(function() {
       filledCircle = document.createElementNS(d3.ns.prefix.svg, "circle");
       filledCircle.setAttribute("r", radius);
       filledCircle.setAttribute("class", "filled");
+      if (d.matched && d.matchColor) {
+        filledCircle.classList.remove("filled");
+        filledCircle.classList.add(d.matchColor);
+      }
       return filledCircle;
     });
 
