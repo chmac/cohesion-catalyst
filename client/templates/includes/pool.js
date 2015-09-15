@@ -348,13 +348,12 @@ var pool = function() {
           "test": false,
           "click": function(d,x,y) {
             var color = pickRandomColor();
+            // We add the random color as a property to the 'd' object.
             var id = _.extend(d, {
               matchColor: color
             });
+            // We animate this bubble out of sight.
             animateOut(id, d3.select(this));
-            // deleteID(id);
-            addToMyIds(id, x, y);
-            // draw();
           }
         });
     }); // selection.each()
@@ -386,7 +385,7 @@ var animateOut = function(d, selection) {
     .duration(750)
     .attr("r", 0)
     .each("end", function(){
-      console.log("bubble");
+      addToMyIds(d);
       deleteID(d);
       draw();
     });
@@ -410,10 +409,8 @@ var animateOut = function(d, selection) {
    * The inserted document will be recognized once the user navigates back to the 'my IDs' screen.
    * @see my_ids.js 'integrateMatchedIds()' function.
    * @param {Object} d An object containing the information of this ID bubble.
-   * @param {number} x The current x-coordinate of the bubble on the drawing surface.
-   * @param {number} y The current y-coordinate of the bubble on the drawing surface.
    */
-  var addToMyIds = function(d, x, y) {
+  var addToMyIds = function(d) {
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
 
