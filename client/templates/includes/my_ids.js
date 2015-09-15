@@ -78,7 +78,7 @@ Template.myIds.onRendered(function() {
   width = 788 - margin.left - margin.right;
   height = 1044 - margin.top - margin.bottom;
   xPos = width / 2;
-  yPos = height / 3 * 1.5;
+  yPos = height / 3 * 1.5; // HACK Needs to be more RWD-ish!!! 
   radius = 35;
   placeHolderTxt = PLACEHOLDER_TXT;
   isFixed = true;
@@ -125,7 +125,7 @@ Template.myIds.onRendered(function() {
   if (matchedIds.count() > 0) {
     matchedIds.forEach(integrateMatchedIds, {
       width: width,
-      height: height,
+      height: yPos, // HACK Needs to be redefined
       radius: radius
     });
   }
