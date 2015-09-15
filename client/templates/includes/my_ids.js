@@ -78,7 +78,7 @@ Template.myIds.onRendered(function() {
   width = 788 - margin.left - margin.right;
   height = 1044 - margin.top - margin.bottom;
   xPos = width / 2;
-  yPos = height / 3 * 1.5; // HACK Needs to be more RWD-ish!!! 
+  yPos = height / 3 * 1.5; // HACK Needs to be more RWD-ish!!!
   radius = 35;
   placeHolderTxt = PLACEHOLDER_TXT;
   isFixed = true;
@@ -546,6 +546,10 @@ Template.myIds.onRendered(function() {
         filledCircle.classList.remove("filled");
         filledCircle.classList.add(d.matchColor);
       }
+      if (d.matchedBy && d.matchedBy.length > 0) {
+        filledCircle.classList.remove("filled");
+        filledCircle.classList.add(pickRandomColor());
+      }
       return filledCircle;
     });
 
@@ -853,6 +857,26 @@ Template.myIds.onRendered(function() {
     nodeElements = svgGroup.selectAll(".node");
     linkElements = svgGroup.selectAll(".link");
     updateLayout(identifications, fromTo);
+
+    // var colorQuery = Identifications.find({
+    //   createdBy: currentUser._id,
+    //   trainingId: currentTrainingId
+    // }, {
+    //   fields: {
+    //     matchedBy: 1
+    //   }
+    // });
+    // colorQuery.observeChanges({
+    //   added: function() {
+    //
+    //   },
+    //   changed: function() {
+    //
+    //   },
+    //   removed: function() {
+    //
+    //   }
+    // });
   });
 
 }); // end Template.myIds.onRendered()
