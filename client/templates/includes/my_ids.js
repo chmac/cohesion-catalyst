@@ -704,7 +704,7 @@ Template.myIds.onRendered(function() {
             });
 
             inputTxt.node().blur();
-            selectNodeElement(null);
+            deselectCurrentNode();
 
           } else {
             Identifications.update(d._id, {
@@ -737,12 +737,12 @@ Template.myIds.onRendered(function() {
                 multi: true
               });
             });
+            // We need to manually update the node data and the selection to make sure
+            // the check for empty nodes operates on up-to-date data.
+            d.name = newName;
+            Session.set("selectedElement", d);
+            selectNodeElement(d);
           }
-          // We need to manually update the node data and the selection to make sure
-          // the check for empty nodes operates on up-to-date data.
-          d.name = newName;
-          Session.set("selectedElement", d);
-          selectNodeElement(d);
         }
         // We use 'return' here to abort listening to this event on root level
         return;
