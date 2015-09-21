@@ -83,14 +83,16 @@ var pool = function() {
                      });
 
     // subscribe to other people's IDs, draw when ready
-    subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId,
-      function() {
+    // subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId,
+    templateInstance.autorun(function() {
+    subscription = templateInstance.subscribe("poolIdentifications", currentTrainingId);
+    if (subscription.ready()) {
         // initial query to populate pool with current set of IDs
-        Identifications.find({
-          createdBy: {$ne: currentUser._id},
-          trainingId: currentTrainingId,
-          editCompleted: true,
-          matchedBy: {$nin: [currentUser._id]}
+        MetaCollection.find({
+          // createdBy: {$ne: currentUser._id},
+          // trainingId: currentTrainingId,
+          // editCompleted: true,
+          createdBy: {$nin: [currentUser._id]}
         }).forEach(function(d) {
           addID(d);
         });
@@ -104,36 +106,50 @@ var pool = function() {
 
         // draw bubble pool
         draw();
-    });
+      } else {
+        console.log("Subscription not ready yet");
+      }
+    }); // end autorun()
+  }); // onRendered()
 
 
     // set up autorunner to observe IDs that come, go, or change
-    templateInstance.autorun(function() {
-      // initial query to populate pool with current set of IDs
-      handle = Identifications.find({
-        createdBy: {$ne: currentUser._id},
-        trainingId: currentTrainingId,
-        editCompleted: true
-      }).observe({
-        added: function(doc) {
-          console.log("observe: added");
-          addID(doc);
-          draw();
-        },
-        /*changed: function(newDoc, oldDoc) {
-          updateID(oldDoc.name, newDoc.name);
-          draw();
-        },*/
-        removed: function(oldDoc) {
-          console.log("observe: removed");
-          deleteID(oldDoc);
-          draw();
-        }
-      }); // observe
+    // templateInstance.autorun(function() {
+    //   // initial query to populate pool with current set of IDs
+    //   handle = Identifications.find({
+    //     // createdBy: {$ne: currentUser._id},
+    //     trainingId: currentTrainingId,
+    //     editCompleted: true
+    //   }).observe({
+    //     added: function(doc) {
+    //       console.log("observe: added");
+    //       // addID(doc);
+    //       Meteor.call("addMetaInfo", doc, function(error, result) {
+    //         if (error) {
+    //           throwError(error.reason);
+    //         }
+    //       });
+    //       draw();
+    //     },
+    //     /*changed: function(newDoc, oldDoc) {
+    //       updateID(oldDoc.name, newDoc.name);
+    //       draw();
+    //     },*/
+    //     removed: function(oldDoc) {
+    //       console.log("observe: removed");
+    //       Meteor.call("deleteMetaInfo", oldDoc, function(error, result) {
+    //         if (error) {
+    //           throwError(error.reason);
+    //         }
+    //       });
+    //       deleteID(oldDoc);
+    //       draw();
+    //     }
+    //   }); // observe
+    //
+    // }); // end autorun()
 
-    }); // end autorun()
-
-  });  // onRendered()
+  // });  // onRendered()
 
   /**
     *   add an ID, check if an ID with the same name is
