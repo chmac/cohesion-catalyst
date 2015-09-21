@@ -16,6 +16,9 @@ Meteor.publish("trainings", function() {
 // login, respectively.
 Meteor.publish("ownIdentificationsAndLinks", function(currentTraining) {
   var currentUserId = this.userId;
+  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
+  // The 'check(value, pattern)' function is provided by the 'check' package.
+  check(currentTraining, String);
 
   if (!currentUserId) {
     return this.ready();
@@ -34,6 +37,9 @@ Meteor.publish("ownIdentificationsAndLinks", function(currentTraining) {
 
 Meteor.publish("otherIdentifications", function(currentTraining) {
   var currentUserId = this.userId;
+  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
+  // The 'check(value, pattern)' function is provided by the 'check' package.
+  check(currentTraining, String);
 
   if (!currentUserId) {
     return this.ready();
@@ -49,8 +55,105 @@ Meteor.publish("otherIdentifications", function(currentTraining) {
   ];
 });
 
+Meteor.publish("poolIdentifications", function(currentTraining) {
+  var self = this,
+    currentUserId = self.userId,
+    // We use this flag to watch out for documents from the initial subscription
+    // that should not affect the 'added()' callback.
+    initializing = true;
+
+  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
+  // The 'check(value, pattern)' function is provided by the 'check' package.
+  check(currentTraining, String);
+
+  if (!currentUserId) {
+    return self.ready();
+  }
+
+  var handle = Identifications.find({
+    trainingId: currentTraining,
+    level: {
+      $gt: 0
+    },
+    editCompleted: true
+  }).observe({
+    added: function(doc) {
+      // if (!initializing) {
+      //   console.log("initializing ", initializing);
+      //   return;
+      // }
+      console.log("observe poolIDs added");
+      Meteor.call("addMetaInfo", doc, function(error, result) {
+        if (error) {
+          return throwError(error.reason);
+        }
+      });
+    // }
+    },
+    changed: function(oldDoc, newDoc) {
+
+    },
+    removed: function(doc) {
+      Meteor.call("deleteMetaInfo", doc, function(error, result) {
+        if (error) {
+          return throwError(error.reason);
+        }
+      });
+      // self.removed("metaCollection", doc._id, {});
+    }
+  });
+
+  initializing = true;
+
+  // Whenever the client subscription is closed we want to stop observing.
+  // Therefore, we call the 'stop()' method of the query handle object.
+  self.onStop(function() {
+    handle.stop();
+  });
+
+  return [
+    MetaCollection.find({
+      createdBy: {$nin: [currentUserId]}
+    })
+  ];
+});
+
+Meteor.publish("networkIdentifications", function(currentTraining) {
+  var currentUserId = this.userId;
+  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
+  // The 'check(value, pattern)' function is provided by the 'check' package.
+  check(currentTraining, String);
+
+  if (!currentUserId) {
+    return this.ready();
+  }
+  // MetaCollection.find( {createdBy : {$exists:true}, $where:"this.createdBy.length>1"} )
+  return [
+    MetaCollection.find({
+      $nor: [
+        {
+          createdBy: {
+            $exists: false
+          }
+        }, {
+          createdBy: {
+            $size: 0
+          }
+        }, {
+          createdBy: {
+            $size: 1
+          }
+        }
+      ]
+    })
+  ];
+});
+
 Meteor.publish("links", function(currentTraining) {
   var currentUserId = this.userId;
+  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
+  // The 'check(value, pattern)' function is provided by the 'check' package.
+  check(currentTraining, String);
   return Links.find({
     // TODO
   });
