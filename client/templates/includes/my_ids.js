@@ -703,6 +703,7 @@ Template.myIds.onRendered(function() {
               });
             });
 
+            // Meteor.call("addMetaInfo", d);
             inputTxt.node().blur();
             deselectCurrentNode();
 
