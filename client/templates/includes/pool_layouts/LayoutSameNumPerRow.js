@@ -2,21 +2,21 @@
 /**
  * layout to render the same numer of bubbles per row
  *
- * Use the constructor to init the cursor position and 
- * remember a reference to the (dynamically changing) 
+ * Use the constructor to init the cursor position and
+ * remember a reference to the (dynamically changing)
  * array of IDs to be rendered.
- * 
- * Use scroll() to specify any scrolling by the users, 
+ *
+ * Use scroll() to specify any scrolling by the users,
  * and specify the deltaY in pixels.
- * 
- * For drawing a single ID bubble, query its current 
+ *
+ * For drawing a single ID bubble, query its current
  * position and scale factor (for scaling bubble and text)
- * using getPositionAndSize(). 
+ * using getPositionAndSize().
  *
  */
 
-/** 
-  *  module returns constructor for LayoutSameNumPerRow 
+/**
+  *  module returns constructor for LayoutSameNumPerRow
   *  NOTE that the definition below is GLOBAL
   *  because only globally declared functions will be readable in other JS files!
   *  see: http://stackoverflow.com/questions/16166509/in-which-order-meteor-include-my-js-files
@@ -30,7 +30,7 @@ LayoutSameNumPerRow = function() {
   var Layout = function(queryNumberOfIDs, options) {
 
     // read options and provide default values
-    if(!options) 
+    if(!options)
       options = {};
     this.opt = {};
     this.opt.baseBubbleRadius = options.baseBubbleRadius || 60;
@@ -46,33 +46,35 @@ LayoutSameNumPerRow = function() {
 
     var numIDs = this.queryNumberOfIDs();
 
-    console.log("creating layout based on " + numIDs + " IDs.");
+    // console.log("creating layout based on " + numIDs + " IDs.");
 
-    // which bubble column is in the center? 
+    // which bubble column is in the center?
     this.centerColumn = Math.floor(this.opt.bubblesPerRow / 2);
 
     // in which column shall the first bubble be displayed?
-    this.firstOffset = numIDs % this.opt.bubblesPerRow; 
+    // this.firstOffset = numIDs % this.opt.bubblesPerRow;
+    this.firstOffset = 0;
 
     // which bubble is in the center
-    this.cursorRow = Math.floor(numIDs / this.opt.bubblesPerRow / 2);
+    // this.cursorRow = Math.floor(numIDs / this.opt.bubblesPerRow / 2);
+    this.cursorRow = 2;
 
     // cursorPixelPos describes how many pixels the central
-    // bubble is off-center, vertically 
+    // bubble is off-center, vertically
     this.cursorPixelPos = 0;
 
   };
 
-  /** 
+  /**
     *  set width and height of drawing area for subsequent calculations
-    */ 
+    */
   Layout.prototype.setDimensions = function(width,height) {
     this.opt.drawAreaWidth = width || 600;
     this.opt.drawAreaHeight = height || 400;
   };
 
-  /** 
-    * scroll down by a number of pixels. This only recalculates 
+  /**
+    * scroll down by a number of pixels. This only recalculates
     * the positions in the layout; you need to redraw afterwards
     */
   Layout.prototype.scroll = function(numPixels) {
@@ -85,7 +87,7 @@ LayoutSameNumPerRow = function() {
 
     // current pixel pos + pixels to be scrolled by
     var pixelPos = this.cursorPixelPos + numPixels;
-    
+
     // scroll by how many rows?
     var rows = Math.trunc(pixelPos/pixelsPerRow);
 
@@ -101,8 +103,8 @@ LayoutSameNumPerRow = function() {
     } else if(row >= maxRow) {
       row = maxRow;
       if(pixelPos<0)
-        pixelPos = 0; 
-    } 
+        pixelPos = 0;
+    }
 
     // set cursor to resulting values
     this.cursorRow = row;
@@ -112,8 +114,8 @@ LayoutSameNumPerRow = function() {
   };
 
   /**
-    *  given the index of an ID within the ids array, 
-    *  return position and size of bubble, or undefined 
+    *  given the index of an ID within the ids array,
+    *  return position and size of bubble, or undefined
     *  if bubble shall not be rendered at all
     */
   Layout.prototype.getPositionAndSize = function(bubbleIndex) {
@@ -135,7 +137,7 @@ LayoutSameNumPerRow = function() {
       w = this.cursorPixelPos/pixelsPerRow;
     }
 
-    // check for non-renderable bubbles 
+    // check for non-renderable bubbles
     if(res1 == undefined || res2 == undefined) {
       return undefined;
     }
@@ -148,7 +150,7 @@ LayoutSameNumPerRow = function() {
 
     return res;
   };
-   
+
   /**
     *  internal calculation of bubble position and size for full rows only
     *  (without in-between cursor positions several pixels off a full row)
@@ -182,11 +184,11 @@ LayoutSameNumPerRow = function() {
     var currentRowSpacing = this.opt.rowSpacing;
     var currentColSpacing = this.opt.colSpacing;
 
-    // for each row away,change x and y 
+    // for each row away,change x and y
     for(var i=0; i<Math.abs(rowDiff); i++) {
 
       // out of renderable area?
-      if(i>this.opt.maxRows) 
+      if(i>this.opt.maxRows)
         return undefined;
 
       // go away up/down from center, change spacing each time
@@ -197,17 +199,17 @@ LayoutSameNumPerRow = function() {
       currentColSpacing = 0.80*currentColSpacing;
 
       // make bubbles smaller, row by row. Allow 20% overlap max.
-      scale = Math.min(currentRowSpacing*1.2, currentColSpacing*1.2);
-      
+      scale = Math.min(currentRowSpacing*1.0, currentColSpacing*1.0);
+
     }
 
-    // go left/right from center, using spacing dependent 
+    // go left/right from center, using spacing dependent
     // on which row we are in
     x += colDiff  * currentColSpacing * this.opt.baseBubbleRadius*2;
 
-    // return x, y, and bubble size 
+    // return x, y, and bubble size
     return { "x": x, "y": y, "scale": scale};
-   
+
   }; // getPosForFullRow()
 
   // module returns constructor function
