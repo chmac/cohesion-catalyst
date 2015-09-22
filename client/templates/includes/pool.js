@@ -82,11 +82,18 @@ var pool = function() {
                        }
                      });
 
+   layout = new LayoutSameNumPerRow(function() {
+     return ids.length;
+   }, {
+     "baseBubbleRadius": 65
+   });
+   // set width and height in layout
+   layout.setDimensions(width,height);
+
     // subscribe to other people's IDs, draw when ready
-    // subscription = templateInstance.subscribe("otherIdentifications", currentTrainingId,
     templateInstance.autorun(function() {
     subscription = templateInstance.subscribe("poolIdentifications", currentTrainingId);
-    if (subscription.ready()) {
+    // if (subscription.ready()) {
         // initial query to populate pool with current set of IDs
         MetaCollection.find({
           // createdBy: {$ne: currentUser._id},
@@ -96,23 +103,34 @@ var pool = function() {
         }).forEach(function(d) {
           addID(d);
         });
-        layout = new LayoutSameNumPerRow(function() {
-          return ids.length;
-        }, {
-          "baseBubbleRadius": 65
-        });
-        // set width and height in layout
-        layout.setDimensions(width,height);
-
         // draw bubble pool
         draw();
-      } else {
-        console.log("Subscription not ready yet");
-      }
+      // } else {
+      //   console.log("Subscription not ready yet");
+      // }
     }); // end autorun()
+
+  MetaCollection.find({
+    // createdBy: {$ne: currentUser._id},
+    // trainingId: currentTrainingId,
+    // editCompleted: true,
+    createdBy: {$nin: [currentUser._id]}
+  }).observe({
+    added: function(doc) {
+      addID(doc);
+      draw();
+    },
+    changed: function(newDoc,oldDoc) {
+      // deleteID(oldDoc);
+      // addID(newDoc);
+      // draw();
+    },
+    removed: function(doc) {
+      deleteID(doc);
+      draw();
+    }
+  });
   }); // onRendered()
-
-
     // set up autorunner to observe IDs that come, go, or change
     // templateInstance.autorun(function() {
     //   // initial query to populate pool with current set of IDs
@@ -168,7 +186,6 @@ var pool = function() {
           }
         }
         // this creator is new, so add it to this ID
-        ids[i].count++;
         ids[i].createdBy.push(doc.createdBy);
         return;
       }
@@ -176,8 +193,7 @@ var pool = function() {
     // ID with such name not yet in array, so create new ID
     var id = {};
     id.text = doc.name;
-    id.count = 1;
-    id.color = "white";
+    id.color = doc.color;
     id.createdBy = [doc.createdBy];
     id.index = ids.length;
 
@@ -196,16 +212,16 @@ var pool = function() {
   /**
     *   delete ID from screen, identified by text
     */
-  var deleteID = function(id) {
-    console.log(id);
+  var deleteID = function(doc) {
+    console.log(doc);
     for(var i=0; i<ids.length; i++) {
-      if(ids[i] && ids[i].text == id.text) {
+      if(ids[i] && ids[i].text == doc.name) {
         ids[i] = undefined;
-        console.log("bubble "+id.text+" removed");
+        console.log("bubble "+doc.name+" removed");
         return;
       }
     }
-    console.log("tried to delete " + id.name + ", but could not find it!.");
+    console.log("tried to delete " + doc.name + ", but could not find it!.");
   };
 
   var XXX = function () {
@@ -217,7 +233,6 @@ var pool = function() {
       var id = ids[i];
       if(id.text == text) {
         id = {"text": newText || id.text,
-              "count": newCount || id.count,
               "color": newColor || id.color};
         return;
       }
@@ -338,7 +353,7 @@ var pool = function() {
       group.append("circle")
         .attr("r", radius)
         .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
-        .style("fill", d.color);
+        .attr("class", d.color);
 
       // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
       group.append("foreignObject")
@@ -363,7 +378,7 @@ var pool = function() {
         touchMouseEvents(group, drawingSurface.node(), {
           "test": false,
           "click": function(d,x,y) {
-            var color = pickRandomColor();
+            var color = pickRandomColorClass();
             // We add the random color as a property to the 'd' object.
             var id = _.extend(d, {
               matchColor: color

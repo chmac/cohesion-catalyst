@@ -55,6 +55,12 @@ Meteor.publish("otherIdentifications", function(currentTraining) {
   ];
 });
 
+function stdErrorFunc(error, result) {
+  if (error) {
+    return console.log(error.reason);
+  }
+};
+
 Meteor.publish("poolIdentifications", function(currentTraining) {
   var self = this,
     currentUserId = self.userId,
@@ -83,27 +89,19 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
       //   return;
       // }
       console.log("observe poolIDs added");
-      Meteor.call("addMetaInfo", doc, function(error, result) {
-        if (error) {
-          return throwError(error.reason);
-        }
-      });
+      Meteor.call("addMetaInfo", doc, stdErrorFunc);
     // }
     },
     changed: function(oldDoc, newDoc) {
-
+      // Meteor.call("deleteMetaInfo", oldDoc, stdErrorFunc);
+      Meteor.call("addMetaInfo", newDoc, stdErrorFunc);
     },
     removed: function(doc) {
-      Meteor.call("deleteMetaInfo", doc, function(error, result) {
-        if (error) {
-          return throwError(error.reason);
-        }
-      });
-      // self.removed("metaCollection", doc._id, {});
+      Meteor.call("deleteMetaInfo", doc, stdErrorFunc);
     }
   });
 
-  initializing = true;
+  initializing = false;
 
   // Whenever the client subscription is closed we want to stop observing.
   // Therefore, we call the 'stop()' method of the query handle object.
