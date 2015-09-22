@@ -82,10 +82,10 @@ if (Identifications.find().count() === 0) {
   });
   markus = Meteor.users.findOne(markusId);
 
-  var georgIds = ["Tierfreund", "Morgenmuffel", "Norwegen-Fan", "Essensliebhaber"];
+  var georgIds = ["Tierfreund", "Morgenmuffel", "Norwegen-Fan", "Essensliebhaber", "Kreuzberg"];
   var hannesIds = ["Berliner", "Sportler", "30er", "Informatiker", "Akademiker", "Müller", "Pragmatiker"];
   var laraIds = ["Gesang", "Chor", "Musik", "Bach", "Evan. Kirche", "Südafrika", "Joggen", "Kreuzberg"];
-  var yasminIds = ["Reisen", "Indien", "Australien", "Take That", "Homeland (TV)", "Apple-Fan", "Prenzlauer Berg"];
+  var yasminIds = ["Reisen", "Berliner", "Australien", "Take That", "Homeland (TV)", "Apple-Fan", "Prenzlauer Berg"];
   var markusIds = ["New York", "Depeche Mode", "SPD", "Fotografie", "Tschechien", "Berliner", "Politik", "Apple-Fan"];
 
   for (var i = 0; i < georgIds.length; i++) {
@@ -93,7 +93,8 @@ if (Identifications.find().count() === 0) {
       name: georgIds[i],
       createdBy: georgId,
       trainingId: daimlerId,
-      editCompleted: true
+      editCompleted: true,
+      level: 1
     });
   }
 
@@ -102,7 +103,8 @@ if (Identifications.find().count() === 0) {
       name: hannesIds[j],
       createdBy: hannesId,
       trainingId: daimlerId,
-      editCompleted: true
+      editCompleted: true,
+      level: 1
     });
   }
 
@@ -111,7 +113,8 @@ if (Identifications.find().count() === 0) {
       name: laraIds[k],
       createdBy: laraId,
       trainingId: daimlerId,
-      editCompleted: true
+      editCompleted: true,
+      level: 1
     });
   }
 
@@ -120,7 +123,8 @@ if (Identifications.find().count() === 0) {
       name: yasminIds[l],
       createdBy: yasminId,
       trainingId: daimlerId,
-      editCompleted: true
+      editCompleted: true,
+      level: 1
     });
   }
 
@@ -129,7 +133,8 @@ if (Identifications.find().count() === 0) {
       name: markusIds[m],
       createdBy: markusId,
       trainingId: daimlerId,
-      editCompleted: true
+      editCompleted: true,
+      level: 1
     });
   }
 
