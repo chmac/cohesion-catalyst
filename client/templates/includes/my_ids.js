@@ -548,6 +548,7 @@ Template.myIds.onRendered(function() {
       }
       if (d.matchedBy && d.matchedBy.length > 0) {
         filledCircle.classList.remove("filled");
+        // TODO maybe no random color?
         filledCircle.classList.add(pickRandomColorClass());
       }
       return filledCircle;
@@ -1140,13 +1141,13 @@ function deleteNodeAndLink(id) {
       return throwError(
         "You can not remove an identification bubble with attached child-bubbles.");
     }
-    // if (nodeDoc.matched) {
-    //   Meteor.call("deleteIdMatch", nodeDoc.name, function(error, result) {
-    //     if (error) {
-    //       throwError(error.reason);
-    //     }
-    //   });
-    // }
+    if (nodeDoc.matched) {
+      Meteor.call("deleteIdMatch", nodeDoc.name, function(error, result) {
+        if (error) {
+          throwError(error.reason);
+        }
+      });
+    }
     Links.remove(Links.findOne({
       "target._id": nodeId
     })._id, function(error, result) {
