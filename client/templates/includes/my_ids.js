@@ -548,7 +548,7 @@ Template.myIds.onRendered(function() {
       }
       if (d.matchedBy && d.matchedBy.length > 0) {
         filledCircle.classList.remove("filled");
-        filledCircle.classList.add(pickRandomColor());
+        filledCircle.classList.add(pickRandomColorClass());
       }
       return filledCircle;
     });
@@ -1113,11 +1113,6 @@ function selectNodeElement(element) {
   if (!element) {
     // nada
   } else {
-    Identifications.update(element._id, {
-      $set: {
-        editCompleted: false
-      }
-    });
     d3.select("#gid" + element._id).classed({
       "node-selected": true
     });
@@ -1145,13 +1140,13 @@ function deleteNodeAndLink(id) {
       return throwError(
         "You can not remove an identification bubble with attached child-bubbles.");
     }
-    if (nodeDoc.matched) {
-      Meteor.call("deleteIdMatch", nodeDoc.name, function(error, result) {
-        if (error) {
-          throwError(error.reason);
-        }
-      });
-    }
+    // if (nodeDoc.matched) {
+    //   Meteor.call("deleteIdMatch", nodeDoc.name, function(error, result) {
+    //     if (error) {
+    //       throwError(error.reason);
+    //     }
+    //   });
+    // }
     Links.remove(Links.findOne({
       "target._id": nodeId
     })._id, function(error, result) {
