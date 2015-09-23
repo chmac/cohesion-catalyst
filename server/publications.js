@@ -1,3 +1,4 @@
+(function() {
 Meteor.publish("avatars", function() {
   return Avatars.find();
 });
@@ -55,15 +56,10 @@ Meteor.publish("otherIdentifications", function(currentTraining) {
   ];
 });
 
-function stdErrorFunc(error, result) {
-  if (error) {
-    return console.log(error.reason);
-  }
-};
 
 Meteor.publish("poolIdentifications", function(currentTraining) {
-  var self = this,
-    currentUserId = self.userId,
+  var pubSubHandle = this,
+    currentUserId = pubSubHandle.userId,
     // We use this flag to watch out for documents from the initial subscription
     // that should not affect the 'added()' callback.
     initializing = true;
@@ -73,10 +69,10 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
   check(currentTraining, String);
 
   if (!currentUserId) {
-    return self.ready();
+    return pubSubHandle.ready();
   }
 
-  var handle = Identifications.find({
+  var queryHandle = Identifications.find({
     trainingId: currentTraining,
     level: {
       $gt: 0
@@ -84,20 +80,22 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
     editCompleted: true
   }).observe({
     added: function(doc) {
-      // if (!initializing) {
+      // if (initializing) {
       //   console.log("initializing ", initializing);
       //   return;
       // }
-      console.log("observe poolIDs added");
-      Meteor.call("addMetaInfo", doc, stdErrorFunc);
+      console.log("Publish observe: added ", doc.name);
+      Meteor.call("addMetaInfo", doc, errorFunc);
     // }
     },
-    changed: function(oldDoc, newDoc) {
-      // Meteor.call("deleteMetaInfo", oldDoc, stdErrorFunc);
-      Meteor.call("addMetaInfo", newDoc, stdErrorFunc);
+    changed: function(newDoc, oldDoc) {
+      console.log("Publish observe: changed from ", oldDoc.name , "to ", newDoc.name);
+      Meteor.call("deleteMetaInfo", oldDoc, errorFunc);
+      Meteor.call("addMetaInfo", newDoc, errorFunc);
     },
     removed: function(doc) {
-      Meteor.call("deleteMetaInfo", doc, stdErrorFunc);
+      console.log("Publish observe: remove ", doc.name);
+      Meteor.call("deleteMetaInfo", doc, errorFunc);
     }
   });
 
@@ -105,15 +103,12 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
 
   // Whenever the client subscription is closed we want to stop observing.
   // Therefore, we call the 'stop()' method of the query handle object.
-  self.onStop(function() {
-    handle.stop();
+  pubSubHandle.onStop(function() {
+    queryHandle.stop();
   });
 
-  return [
-    MetaCollection.find({
-      createdBy: {$nin: [currentUserId]}
-    })
-  ];
+  return MetaCollection.find({createdBy: {$nin: [currentUserId]}});
+  // return MetaCollection.find();
 });
 
 Meteor.publish("networkIdentifications", function(currentTraining) {
@@ -156,3 +151,5 @@ Meteor.publish("links", function(currentTraining) {
     // TODO
   });
 });
+
+}()); // end function closure
