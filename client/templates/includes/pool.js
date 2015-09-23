@@ -40,6 +40,20 @@ var pool = function() {
     // initial dummy layout, do now draw anything until all bubbles in pool are known
     layout = new LayoutSameNumPerRow(function(){return 0;});
 
+    // subscribe to other people's IDs, draw when ready
+    subscription = Meteor.subscribe("poolIdentifications", currentTrainingId, function() {
+      // set up autorunner to observe IDs that come, go, or change
+      templateInstance.autorun(function() {
+        // initial query to populate pool with current set of IDs
+        MetaCollection.find({
+          createdBy: {$nin: [currentUser._id]}
+        }).forEach(function(d) {
+          addID(d);
+        });
+        // draw bubble pool
+        draw();
+      }); // end autorun()
+    }); // subscribe()
   }); // onCreated()
 
   /**
@@ -90,84 +104,29 @@ var pool = function() {
    // set width and height in layout
    layout.setDimensions(width,height);
 
-    // subscribe to other people's IDs, draw when ready
-    templateInstance.autorun(function() {
-    subscription = templateInstance.subscribe("poolIdentifications", currentTrainingId);
-    // if (subscription.ready()) {
-        // initial query to populate pool with current set of IDs
-        MetaCollection.find({
-          // createdBy: {$ne: currentUser._id},
-          // trainingId: currentTrainingId,
-          // editCompleted: true,
-          createdBy: {$nin: [currentUser._id]}
-        }).forEach(function(d) {
-          addID(d);
-        });
-        // draw bubble pool
+    // observe IDs that come, go, or change
+    MetaCollection.find({
+      // createdBy: {$ne: currentUser._id},
+      // trainingId: currentTrainingId,
+      // editCompleted: true,
+      createdBy: {$nin: [currentUser._id]}
+    }).observe({
+      added: function(doc) {
+        addID(doc);
         draw();
-      // } else {
-      //   console.log("Subscription not ready yet");
-      // }
-    }); // end autorun()
-
-  MetaCollection.find({
-    // createdBy: {$ne: currentUser._id},
-    // trainingId: currentTrainingId,
-    // editCompleted: true,
-    createdBy: {$nin: [currentUser._id]}
-  }).observe({
-    added: function(doc) {
-      addID(doc);
-      draw();
-    },
-    changed: function(newDoc,oldDoc) {
-      // deleteID(oldDoc);
-      // addID(newDoc);
-      // draw();
-    },
-    removed: function(doc) {
-      deleteID(doc);
-      draw();
-    }
-  });
+      },
+      changed: function(newDoc,oldDoc) {
+        deleteID(oldDoc);
+        addID(newDoc);
+        draw();
+      },
+      removed: function(doc) {
+        deleteID(doc);
+        console.log("Observed remove");
+        draw();
+      }
+    });
   }); // onRendered()
-    // set up autorunner to observe IDs that come, go, or change
-    // templateInstance.autorun(function() {
-    //   // initial query to populate pool with current set of IDs
-    //   handle = Identifications.find({
-    //     // createdBy: {$ne: currentUser._id},
-    //     trainingId: currentTrainingId,
-    //     editCompleted: true
-    //   }).observe({
-    //     added: function(doc) {
-    //       console.log("observe: added");
-    //       // addID(doc);
-    //       Meteor.call("addMetaInfo", doc, function(error, result) {
-    //         if (error) {
-    //           throwError(error.reason);
-    //         }
-    //       });
-    //       draw();
-    //     },
-    //     /*changed: function(newDoc, oldDoc) {
-    //       updateID(oldDoc.name, newDoc.name);
-    //       draw();
-    //     },*/
-    //     removed: function(oldDoc) {
-    //       console.log("observe: removed");
-    //       Meteor.call("deleteMetaInfo", oldDoc, function(error, result) {
-    //         if (error) {
-    //           throwError(error.reason);
-    //         }
-    //       });
-    //       deleteID(oldDoc);
-    //       draw();
-    //     }
-    //   }); // observe
-    //
-    // }); // end autorun()
-
-  // });  // onRendered()
 
   /**
     *   add an ID, check if an ID with the same name is
@@ -182,7 +141,7 @@ var pool = function() {
         for(var j=0; j<ids[i].createdBy.length; j++) {
           if(ids[i].createdBy[j] == doc.createdBy) {
             // already in, so just ignore this addID call
-            return "already in array";
+            return console.log("already in array");
           }
         }
         // this creator is new, so add it to this ID
@@ -378,13 +337,8 @@ var pool = function() {
         touchMouseEvents(group, drawingSurface.node(), {
           "test": false,
           "click": function(d,x,y) {
-            var color = pickRandomColorClass();
-            // We add the random color as a property to the 'd' object.
-            var id = _.extend(d, {
-              matchColor: color
-            });
-            // We animate this bubble out of sight.
-            animateOut(id, d3.select(this));
+            // // We animate this bubble out of sight.
+            animateOut(d, d3.select(this));
           }
         });
     }); // selection.each()
@@ -410,8 +364,6 @@ var animateOut = function(d, selection) {
   fo = group.select(".foreign-object");
 
   bubble
-    .style("fill", null)
-    .classed(d.matchColor, true)
     .transition()
     .duration(750)
     .attr("r", 0)
@@ -454,14 +406,10 @@ var animateOut = function(d, selection) {
       trainingId: currentTrainingId,
       editCompleted: true,
       matched: true,
-      matchColor: d.matchColor
+      matchColor: d.color
     };
 
-    var myMatchId = Identifications.insert(myMatch, function(error, result) {
-      if (error) {
-        return throwError(error.reason);
-      }
-    });
+    var myMatchId = Identifications.insert(myMatch, errorFunc);
 
     // Insert a document containing the matched ID as 'target' into the 'Links' collection.
     // We specify the informationen needed for the 'source' field in order to meet our
@@ -487,37 +435,13 @@ var animateOut = function(d, selection) {
 
   }; //end addToMyIds()
 
-  // Test adding and removing ids
-  Template.idPool.events({
-    "click #add-id": function(event, instance) {
-      event.preventDefault();
-      var fakeID = "fake1149"+Math.trunc(Math.random()*10000);
-      Identifications.insert({
-        createdBy: fakeID,
-        name: "Berlin"+Math.trunc(Math.random()*10000),
-        editCompleted: true,
-        trainingId: Meteor.user().profile.currentTraining
-      });
-    } ,
-    "click #remove-id": function(event, instance) {
-      event.preventDefault();
-      var randomIdx = Math.floor(Math.random() * (ids.length-1));
-      var i=0;
-      while(i<1000 && ids[randomIdx] == undefined) {
-        i++;
-        randomIdx = Math.floor(Math.random() * (ids.length-1));
-      }
-      if(i>=1000) {
-        console.log("found nothing to remove");
-        return;
-      }
-      var name = ids[randomIdx].text;
-      var createdBy = ids[randomIdx].createdBy[0];
-      console.log("remove idx="+randomIdx+" name="+name+" createdBy="+createdBy);
-      deleteID({"name": name, "createdBy": createdBy});
-      draw();
+  // Dummy helpers
+  Template.idPool.helpers({
+    count: function() {
+      return MetaCollection.find({
+        createdBy: {$nin: [Meteor.userId()]}
+      }).count();
     }
-
-  }); // events()
+  }); // helpers()
 
 }(); // module
