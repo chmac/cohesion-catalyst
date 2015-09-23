@@ -1,12 +1,11 @@
 <template name="idPool">
   <div class="ids-container" id="ids-graph">
-    <!--
-    <input type="button" class="btn btn-info" id="add-id" value="Add ID">
-    <input type="button" class="btn btn-info" id="remove-id" value="Remove ID">
-    -->
-    {{#each testids}}
-    <p>{{this.name}}</p>
-    {{/each}}
-    {{!-- Visualization will go here --}}
+    {{#if Template.subscriptionsReady}}
+    <p>{{count}}</p>
+      {{!-- This is displayed when all data is ready. --}}
+      {{!-- Visualization will go here --}}
+    {{else}}
+      <div>{{> spinner}}</div>
+    {{/if}}
   </div>
 </template>
