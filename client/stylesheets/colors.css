@@ -6,74 +6,89 @@
 /* white */
 .c00 {
   fill: #fff;
+  color: #fff;
 }
 
 /* orange*/
 .c1 {
   fill: #ff7f0e;
+  color: #ff7f0e;
 }
 
 /* light orange */
 .c2 {
   fill: #ffbb78;
+  color: #ffbb78;
 }
 
 /* green */
 .c3 {
   fill: #2ca02c;
+  color: #2ca02c;
 }
 
 /* light green */
 .c4 {
   fill: #98df8a;
+  color: #98df8a;
 }
 
 /* purple */
 .c5 {
   fill: #9467bd;
+  color: #9467bd;
 }
 
 /* light purple */
 .c6 {
   fill: #c5b0d5;
+  color: #c5b0d5;
 }
 
 /* olive */
 .c7 {
   fill: #bcbd22;
+  color: #bcbd22;
 }
 
 /* light olive */
 .c8 {
   fill: #dbdb8d;
+  color: #dbdb8d;
 }
 
 /* pink */
 .c9 {
  fill: #e377c2;
+ color: #e377c2;
 }
 
 /* light pink*/
 .c10 {
   fill: #f7b6d2;
+  color: #f7b6d2;
 }
 
 /* brown */
 .c11 {
   fill: #8c564b;
+  color: #8c564b;
 }
 
 /* light brown */
 .c12 {
   fill: #c49c94;
+  color: #c49c94;
 }
 
 /* turquois */
 .c13 {
   fill: #17becf;
+  color: #17becf;
 }
 
 /* light turquois */
 .c14 {
   fill: #9edae5;
+  color: #9edae5;
 }
