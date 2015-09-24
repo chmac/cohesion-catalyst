@@ -676,7 +676,7 @@ Template.myIds.onRendered(function() {
             Identifications.update(d._id, {
               $set: {
                 name: newName,
-                editCompleted: true
+                editCompleted: !isEmptyNode(d)
               }
             });
             Links.find({
@@ -685,7 +685,7 @@ Template.myIds.onRendered(function() {
               Links.update(link._id, {
                 $set: {
                   "source.name": newName,
-                  "source.editCompleted": true
+                  "source.editCompleted": !isEmptyNode(d)
                 }
               }, {
                 multi: true
@@ -697,14 +697,13 @@ Template.myIds.onRendered(function() {
               Links.update(link._id, {
                 $set: {
                   "target.name": newName,
-                  "target.editCompleted": true
+                  "target.editCompleted": !isEmptyNode(d)
                 }
               }, {
                 multi: true
               });
             });
 
-            // Meteor.call("addMetaInfo", d);
             inputTxt.node().blur();
             deselectCurrentNode();
 
@@ -1095,12 +1094,21 @@ function selectNodeElement(element) {
       promptEmptyNode(selectedElement);
       return;
     }
+    // we are already on the selected node which indicates we are editing
+    if (element && element._id === selectedElement._id) {
+      Identifications.update(selectedElement._id, {
+        $set: {
+          editCompleted: false
+        }
+      });
+    } else {
+      Identifications.update(selectedElement._id, {
+        $set: {
+          editCompleted: true
+        }
+      });
+    }
     // deselect previously selected elements
-    Identifications.update(selectedElement._id, {
-      $set: {
-        editCompleted: true
-      }
-    });
     d3.select("#gid" + selectedElement._id).classed({
       "node-selected": false,
       "node-empty": false,
