@@ -115,11 +115,11 @@ var pool = function() {
         addID(doc);
         draw();
       },
-      changed: function(newDoc,oldDoc) {
-        deleteID(oldDoc);
-        addID(newDoc);
-        draw();
-      },
+      // changed: function(newDoc,oldDoc) {
+      //   deleteID(oldDoc);
+      //   addID(newDoc);
+      //   draw();
+      // },
       removed: function(doc) {
         deleteID(doc);
         console.log("Observed remove");
