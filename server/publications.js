@@ -36,30 +36,17 @@ Meteor.publish("ownIdentificationsAndLinks", function(currentTraining) {
   ];
 });
 
-Meteor.publish("otherIdentifications", function(currentTraining) {
-  var currentUserId = this.userId;
-  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
-  // The 'check(value, pattern)' function is provided by the 'check' package.
-  check(currentTraining, String);
-
-  if (!currentUserId) {
-    return this.ready();
-  }
-
-  return [
-    Identifications.find({
-      createdBy: {$ne: currentUserId},
-      trainingId: currentTraining,
-      editCompleted: true,
-      matchedBy: {$nin: [currentUserId]}
-    })
-  ];
-});
-
-
+// The publication 'poolIdentifications' consists of documents that represent
+// identifications created by others so that the current user can select matching IDs
+// from this pool of identifications. Since the 'Identifications' collection may consist of
+// multiple documents with the same name but from different creators we populate a separate
+// collection called 'MetaCollection' with normalized data retrieved from the 'Identifications'
+// collection.
+// We also want the result set to be reactive so we observe the 'Identifications' documents
+// that come and go in order to update the 'MetaCollection'.
 Meteor.publish("poolIdentifications", function(currentTraining) {
-  var pubSubHandle = this,
-    currentUserId = pubSubHandle.userId,
+  var subscription = this,
+    currentUserId = this.userId,
     // We use this flag to watch out for documents from the initial subscription
     // that should not affect the 'added()' callback.
     initializing = true;
@@ -69,9 +56,13 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
   check(currentTraining, String);
 
   if (!currentUserId) {
-    return pubSubHandle.ready();
+    return subscription.ready();
   }
 
+  // We define the query to only take into account the documents in question, which means that
+  // we filter for documents where the 'level' field is 'greater than '0' thus excluding the
+  // avatar/smiley entries. We also only want to use documents belonging to the current training and
+  // where the 'editCompleted' field  is 'true'.
   var queryHandle = Identifications.find({
     trainingId: currentTraining,
     level: {
@@ -80,22 +71,17 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
     editCompleted: true
   }).observe({
     added: function(doc) {
-      // if (initializing) {
-      //   console.log("initializing ", initializing);
-      //   return;
-      // }
-      console.log("Publish observe: added ", doc.name);
-      Meteor.call("addMetaInfo", doc, errorFunc);
+      if (initializing) {
+        console.log("initializing ", initializing);
+        return;
+      }
+      console.log("Publish poolIdentifications observe: added ", doc.name);
+      Meteor.call("addMetaDoc", doc, errorFunc);
     // }
     },
-    changed: function(newDoc, oldDoc) {
-      console.log("Publish observe: changed from ", oldDoc.name , "to ", newDoc.name);
-      Meteor.call("deleteMetaInfo", oldDoc, errorFunc);
-      Meteor.call("addMetaInfo", newDoc, errorFunc);
-    },
     removed: function(doc) {
-      console.log("Publish observe: remove ", doc.name);
-      Meteor.call("deleteMetaInfo", doc, errorFunc);
+      console.log("Publish poolIdentifications observe: remove ", doc.name);
+      Meteor.call("deleteMetaDoc", doc, errorFunc);
     }
   });
 
@@ -103,14 +89,18 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
 
   // Whenever the client subscription is closed we want to stop observing.
   // Therefore, we call the 'stop()' method of the query handle object.
-  pubSubHandle.onStop(function() {
+  subscription.onStop(function() {
+    console.log("Client has unsubscribed.");
     queryHandle.stop();
   });
 
   return MetaCollection.find({createdBy: {$nin: [currentUserId]}});
-  // return MetaCollection.find();
 });
 
+// Define the publication named 'networkIdentifications'.
+// The resulting record set includes documents of the 'MetaCollection'
+// where the 'createdBy' field (which is an array) consists of at least two entries,
+// thus representing a minimum of two affiliates.  
 Meteor.publish("networkIdentifications", function(currentTraining) {
   var currentUserId = this.userId;
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
@@ -141,6 +131,7 @@ Meteor.publish("networkIdentifications", function(currentTraining) {
     })
   ];
 });
+
 
 Meteor.publish("links", function(currentTraining) {
   var currentUserId = this.userId;
