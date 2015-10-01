@@ -25,35 +25,9 @@ var pool = function() {
     * init code for the "ID Pool" screen
     */
   Template.idPool.onCreated(function() {
-
-    // init database subscription
-    var currentUser,
-      currentTrainingId,
-      templateInstance,
-      subscription;
-
-    currentUser = Meteor.user();
-    currentTrainingId = currentUser.profile.currentTraining;
-
-    templateInstance = this;
-
     // initial dummy layout, do now draw anything until all bubbles in pool are known
     layout = new LayoutSameNumPerRow(function(){return 0;});
-
-    // subscribe to other people's IDs, draw when ready
-    subscription = Meteor.subscribe("poolIdentifications", currentTrainingId, function() {
-      // set up autorunner to observe IDs that come, go, or change
-      templateInstance.autorun(function() {
-        // initial query to populate pool with current set of IDs
-        MetaCollection.find({
-          createdBy: {$nin: [currentUser._id]}
-        }).forEach(function(d) {
-          addID(d);
-        });
-        // draw bubble pool
-        draw();
-      }); // end autorun()
-    }); // subscribe()
+    ids = [];
   }); // onCreated()
 
   /**
@@ -94,71 +68,62 @@ var pool = function() {
                          layout.scroll(dy); // use only Y component for scrolling the "wheel"
                          draw();            // update screen after scrolling
                        }
-                     });
+                     }
+    );
 
-   layout = new LayoutSameNumPerRow(function() {
-     return ids.length;
-   }, {
-     "baseBubbleRadius": 65
-   });
-   // set width and height in layout
-   layout.setDimensions(width,height);
-
-    // observe IDs that come, go, or change
-    MetaCollection.find({
-      // createdBy: {$ne: currentUser._id},
-      // trainingId: currentTrainingId,
-      // editCompleted: true,
-      createdBy: {$nin: [currentUser._id]}
-    }).observe({
-      added: function(doc) {
-        addID(doc);
-        draw();
-      },
-      // changed: function(newDoc,oldDoc) {
-      //   deleteID(oldDoc);
-      //   addID(newDoc);
-      //   draw();
-      // },
-      removed: function(doc) {
-        deleteID(doc);
-        console.log("Observed remove");
-        draw();
-      }
+    layout = new LayoutSameNumPerRow(function() {
+      return ids.length;
+    }, {
+      "baseBubbleRadius": 65
     });
+    // set width and height in layout
+    layout.setDimensions(width, height);
+
+    // set up autorunner (i.e. reactive computation) to observe MetaIDs that come, go, or change
+    templateInstance.autorun(function() {
+      MetaCollection.find({
+        createdBy: {$nin: [currentUser._id]}
+      }).observe({
+        added: function(doc) {
+          console.log("Observe added");
+          addMetaID(doc);
+          draw();
+        },
+        changed: function(newDoc,oldDoc) {
+          console.log("Observe changed: from ", oldDoc, " to ", newDoc);
+        },
+        removed: function(doc) {
+          deleteID(doc);
+          console.log("Observed remove");
+          draw();
+        }
+      });
+    }); // autorun()
+
   }); // onRendered()
 
   /**
     *   add an ID, check if an ID with the same name is
-    *   already in the pool (and update its count), or
-    *   whether this is an entierly new ID
+    *   already in the pool or
+    *   whether this is an entirely new ID
     */
-  var addID = function(doc) {
+  var addMetaID = function(doc) {
 
     for(var i=0; i<ids.length; i++) {
       if(ids[i] && ids[i].text == doc.name) {
-        // ID with such name already in array, check who created it
-        for(var j=0; j<ids[i].createdBy.length; j++) {
-          if(ids[i].createdBy[j] == doc.createdBy) {
-            // already in, so just ignore this addID call
-            return console.log("already in array");
-          }
-        }
-        // this creator is new, so add it to this ID
-        ids[i].createdBy.push(doc.createdBy);
-        return;
+        // already in, so just ignore this addMetaID call
+        return console.log("already in array");
       }
     }
     // ID with such name not yet in array, so create new ID
     var id = {};
     id.text = doc.name;
     id.color = doc.color;
-    id.createdBy = [doc.createdBy];
     id.index = ids.length;
 
     // insert it at the first free slot
     for(var k=0; k<ids.length; k++) {
-      if(ids[k] == undefined) {
+      if(ids[k] === undefined) {
         ids[k] = id;
         return id;
       }
@@ -172,7 +137,6 @@ var pool = function() {
     *   delete ID from screen, identified by text
     */
   var deleteID = function(doc) {
-    console.log(doc);
     for(var i=0; i<ids.length; i++) {
       if(ids[i] && ids[i].text == doc.name) {
         ids[i] = undefined;
@@ -182,23 +146,6 @@ var pool = function() {
     }
     console.log("tried to delete " + doc.name + ", but could not find it!.");
   };
-
-  var XXX = function () {
-  /**
-    *   update information for an ID, identified by text
-    */
-  var updateID = function(text, newText, newCount, newColor) {
-    for(var i=0; i<ids.length; i++) {
-      var id = ids[i];
-      if(id.text == text) {
-        id = {"text": newText || id.text,
-              "color": newColor || id.color};
-        return;
-      }
-    }
-  };
-
-  }; // XXX
 
   /**
     * add the SVG container to draw into
@@ -256,7 +203,7 @@ var pool = function() {
   draw = function() {
 
     // do we know where to draw to?
-    if(drawingSurface == undefined) {
+    if(drawingSurface === undefined) {
       console.log("no drawing surface yet");
       return;
     }
@@ -369,8 +316,6 @@ var animateOut = function(d, selection) {
     .attr("r", 0)
     .each("end", function(){
       addToMyIds(d);
-      deleteID(d);
-      draw();
     });
 
   fo
@@ -399,6 +344,7 @@ var animateOut = function(d, selection) {
 
     // Create the document to be inserted into the collection.
     var myMatch = {
+      level: 1,
       fixed: true,
       children: [],
       name: d.text,
@@ -409,23 +355,11 @@ var animateOut = function(d, selection) {
       matchColor: d.color
     };
 
-    var myMatchId = Identifications.insert(myMatch, errorFunc);
+    // Call the method 'createIdForMatch()' - @see identifications.js.
+    // We pass the 'myMatch' object to be inserted into the 'Identifications' collection.
+    Meteor.call("createIdForMatch", myMatch, errorFunc);
 
-    // Insert a document containing the matched ID as 'target' into the 'Links' collection.
-    // We specify the informationen needed for the 'source' field in order to meet our
-    // subscription rules from the 'myIds' template. The parent node (i.e. source) of a matched ID
-    // will always be the root node, which we will access from the 'myIds' template.
-    Links.insert({
-      source: {
-        createdBy: currentUser._id,
-        trainingId: currentTrainingId
-      },
-      target: Identifications.findOne({
-        "_id": myMatchId
-      })
-    });
-
-    // Call the server method 'addIdMatch()' - @see identifications.js.
+    // Call the method 'addIdMatch()' - @see identifications.js.
     // We pass in the text of the matched ID to sync each ID of other users with the same text.
     Meteor.call("addIdMatch", d.text, function(error, result) {
       if (error) {
@@ -434,14 +368,5 @@ var animateOut = function(d, selection) {
     });
 
   }; //end addToMyIds()
-
-  // Dummy helpers
-  Template.idPool.helpers({
-    count: function() {
-      return MetaCollection.find({
-        createdBy: {$nin: [Meteor.userId()]}
-      }).count();
-    }
-  }); // helpers()
 
 }(); // module
