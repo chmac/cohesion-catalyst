@@ -925,7 +925,6 @@ function integrateMatchedIds(d) {
 
   Identifications.update(d._id, {
     $set: {
-      level: parent.level + 1,
       x: position[0],
       y: position[1],
       parentId: parent._id
@@ -952,7 +951,6 @@ function integrateMatchedIds(d) {
     Links.update(link._id, {
       $set: {
         source: parent,
-        "target.level": parent.level + 1,
         "target.x": position[0],
         "target.y": position[1],
         "target.parentId": parent._id
