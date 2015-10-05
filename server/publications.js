@@ -46,10 +46,7 @@ Meteor.publish("ownIdentificationsAndLinks", function(currentTraining) {
 // that come and go in order to update the 'MetaCollection'.
 Meteor.publish("poolIdentifications", function(currentTraining) {
   var subscription = this,
-    currentUserId = this.userId,
-    // We use this flag to watch out for documents from the initial subscription
-    // that should not affect the 'added()' callback.
-    initializing = true;
+    currentUserId = this.userId;
 
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
   // The 'check(value, pattern)' function is provided by the 'check' package.
@@ -71,10 +68,6 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
     editCompleted: true
   }).observe({
     added: function(doc) {
-      if (initializing) {
-        console.log("initializing ", initializing);
-        return;
-      }
       console.log("Publish poolIdentifications observe: added ", doc.name);
       Meteor.call("addMetaDoc", doc, errorFunc);
     // }
@@ -85,12 +78,10 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
     }
   });
 
-  initializing = false;
-
   // Whenever the client subscription is closed we want to stop observing.
   // Therefore, we call the 'stop()' method of the query handle object.
   subscription.onStop(function() {
-    console.log("Client has unsubscribed.");
+    console.log("*************** Client has unsubscribed. *****************");
     queryHandle.stop();
   });
 
@@ -100,7 +91,7 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
 // Define the publication named 'networkIdentifications'.
 // The resulting record set includes documents of the 'MetaCollection'
 // where the 'createdBy' field (which is an array) consists of at least two entries,
-// thus representing a minimum of two affiliates.  
+// thus representing a minimum of two affiliates.
 Meteor.publish("networkIdentifications", function(currentTraining) {
   var currentUserId = this.userId;
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
