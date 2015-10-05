@@ -130,7 +130,6 @@ Template.myIds.onRendered(function() {
     });
   }
 
-
   /**
    * Handles the dragging (i.e. re-positioning) of an existing node element (an identification bubble).
    */
@@ -879,7 +878,6 @@ Template.myIds.onRendered(function() {
     //   }
     // });
   });
-
 }); // end Template.myIds.onRendered()
 
 
@@ -1026,26 +1024,16 @@ function promptEmptyNode(currentNode) {
 function detectCollision(coords, root, radius, width) {
   var coordinates = coords;
 
-  if (coords[0] < radius) {
-    coordinates[0] = radius;
-  }
-
-  if (coords[0] > width - (radius * 2)) {
-    coordinates[0] = width - (radius * 2);
-  }
-
-  if (coords[1] < radius) {
-    coordinates[1] = radius;
-  }
-
-  if (coords[1] > root.y) {
-    coordinates[1] = root.y;
-  }
+  // We regulate the bounding area of the drawing surface.
+  // Borrowed here [as of 2015-10-05]: http://bl.ocks.org/mbostock/1557377
+  coordinates[0] = Math.max(radius, Math.min(width - radius, coords[0]));
+  coordinates[1] = Math.max(radius * 2, Math.min(root.y, coords[1]));
 
   // We check for collision with all other nodes on the drawing surface.
   // Approach is borrowed from collision detection examples at
   // http://bl.ocks.org/mbostock/3231298
   // http://vallandingham.me/building_a_bubble_cloud.html
+  // TODO replace we find-operation in DB
   d3.selectAll("g.node").each(function(d, i) {
     // We don't want to compare a node with itself so make sure to apply
     // the comparison just for ID nodes in the selection which currently are not
@@ -1054,19 +1042,20 @@ function detectCollision(coords, root, radius, width) {
     // of determining it - hence the check of 'd.x').
     if (d.x && !d3.select(this).classed("dragging")) {
       // Using the distance equation we find the distance between the nodes.
-      var dx = coords[0] - d.x,
-        dy = coords[1] - d.y,
+      var dx = coordinates[0] - d.x,
+        dy = coordinates[1] - d.y,
         distance = Math.sqrt(dx * dx + dy * dy),
         padding = radius,
         // We specify the minimum distance between two nodes.
         minDistance = (radius * 2) + padding;
         // Drops the current distance below the allowed minimum distance?
         if (distance < minDistance) {
+          console.log(d.name);
           // We scale the distance and displace the coordinates.
-          distance = (distance - minDistance) / distance * 0.6;
-          coordinates[0] -= dx * distance;
-          coordinates[1] -= dy * distance;
-        }
+          distance = (minDistance - distance) / distance * 0.8;
+            coordinates[0] += dx * distance;
+            coordinates[1] += dy * distance;
+          }
     }
   });
 
@@ -1120,9 +1109,22 @@ function selectNodeElement(element) {
   if (!element) {
     // nada
   } else {
-    d3.select("#gid" + element._id).classed({
+    // Always bring the selected <g> element to the front in case of overlapping elements.
+    // We can accomplish that by reordering the element in the DOM tree.
+    // Hence, we append the current selected <g> at the end of its parent because
+    // with SVG, the last element in the document tree is drawn on top
+    // cf. [as of 2015-10-05] http://bl.ocks.org/alignedleft/9612839
+    // cf. [as of 2015-10-05] http://www.adamwadeharris.com/how-to-bring-svg-elements-to-the-front/
+    var domSelection = d3.select("#gid" + element._id);
+    if (domSelection.node()) {
+      domSelection.node().parentNode.appendChild(domSelection.node());
+    }
+    domSelection.classed({
       "node-selected": true
     });
+    // d3.select("#gid" + element._id).classed({
+    //   "node-selected": true
+    // });
   }
 
   // Set the Session variable to the passed in value (which may be null).
