@@ -17,6 +17,9 @@ Template.navigation.helpers({
     // Use the 'boolean && string' JavaScript pattern, where 'false && myString' returns 'false'
     // but 'true && myString' returns 'myString'.
     return active && "active";
+  },
+  username: function() {
+    return Meteor.user().profile.name;
   }
 });
 
