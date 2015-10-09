@@ -339,6 +339,8 @@ var animateOut = function(d, selection) {
    * @param {Object} d An object containing the information of this ID bubble.
    */
   var addToMyIds = function(d) {
+    // TODO calculate random position
+    // TODO ? findRoot for collision detection and for parentId
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
 
