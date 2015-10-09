@@ -84,6 +84,10 @@ Template.myIds.onRendered(function() {
   isFixed = true;
   selectedNode = null;
 
+  Session.set("myIdsDrawingWidth", width);
+  Session.set("myIdsDrawingHeight", yPos);
+  Session.set("myIdscurrentRadius", radius);
+
 
   currentUser = Meteor.user();
   currentTrainingId = currentUser.profile.currentTraining;
@@ -91,28 +95,15 @@ Template.myIds.onRendered(function() {
     type: currentUser.profile.avatar
   });
 
-  if (currentTrainingId && Identifications.find({
-    createdBy: currentUser._id,
-    trainingId: currentTrainingId
-  }).count() === 0) {
+  if (currentTrainingId && Identifications.findMyIdentifications(currentUser._id, currentTrainingId).count() === 0) {
     console.log("No IDs yet, inserting the rootNode...");
     rootNode = {
       level: 0,
-      fixed: true,
       x: xPos,
-      y: yPos,
-      px: xPos,
-      py: yPos,
-      children: [],
-      createdBy: currentUser._id,
-      trainingId: currentTrainingId
+      y: yPos
     };
 
-    Identifications.insert(rootNode, function(error, result) {
-      if (error) {
-        return throwError("Error: " + error.reason);
-      }
-    });
+    Meteor.call("insertRoot", rootNode, errorFunc);
   }
 
   var matchedIds = Identifications.find({
@@ -341,89 +332,40 @@ Template.myIds.onRendered(function() {
     // Create a new node object with the current mouse position coordinates.
     node = {
       level: currentActiveNode.level + 1,
-      fixed: isFixed,
       x: newNodePos[0],
       y: newNodePos[1],
-      px: newNodePos[0],
-      py: newNodePos[1],
       parentId: currentActiveNode._id,
-      children: [],
       name: placeHolderTxt,
-      createdBy: currentUser._id,
-      trainingId: currentTrainingId,
       editCompleted: false
     };
 
-    // Add the new node to our 'Identifications' collection and
-    // push the returned '_id' to its parent 'children' array.
-    newNodeId = Identifications.insert(node, function(error, result) {
+    Meteor.call("insertIdentification", node, function(error, result) {
       if (error) {
-        return throwError(error.reason);
+        return throwError("Error: " + error.reason);
       }
-    });
+      // on success
+      newNodeId = result._id;
 
-    Identifications.update(node.parentId, {
-      $push: {
-        children: newNodeId
-      }
-    }, function(error, result) {
-      if (error) {
-        return throwError(error.reason);
-      }
-    });
+      // Set the new node as selectedNode.
+      selectedNode = Identifications.findOneById(newNodeId);
+      selectNodeElement(selectedNode);
 
-    // Create a new link object for the edge between the currentActiveNode and
-    // the newly created node and add it to our 'Links' collection.
-    link = {
-      source: currentActiveNode,
-      target: Identifications.findOne({
-        "_id": newNodeId
-      })
-    };
+      updateLayout(Identifications.find().fetch(), Links.find().fetch());
 
-    newLinkId = Links.insert(link, function(error, result) {
-      if (error) {
-        return throwError(error.reason);
-      }
-    });
+      // Select the editable <p> element.
+      newEditableElem = d3.selectAll(".node.child").filter(function(d) {
+        return d && d._id === selectedNode._id;
+      }).select("p.txt-input").node();
 
-    // Find all the links which have the parent node as 'source' and update each of which
-    // to contain the correct children values.
-    Links.find({
-      "source._id": node.parentId
-    }).forEach(function(link) {
-      Links.update(link._id, {
-        $addToSet: {
-          "source.children": newNodeId,
-        }
-      }, function(error, result) {
-        if (error) {
-          return throwError(error.reason);
-        }
-      });
-    });
+      // Give the <p> element instant focus.
+      newEditableElem.focus();
 
-    // Set the new node as selectedNode.
-    selectedNode = Identifications.findOne({
-      "_id": newNodeId
-    });
-    selectNodeElement(selectedNode);
-
-    updateLayout(Identifications.find().fetch(), Links.find().fetch());
-
-    // Select the editable <p> element.
-    newEditableElem = d3.selectAll(".node.child").filter(function(d) {
-      return d && d._id === selectedNode._id;
-    }).select("p.txt-input").node();
-
-    // Give the <p> element instant focus.
-    newEditableElem.focus();
-
-    // We want to select all of the text content within the currently active editable element
-    // to allow for instant text entering. The default text selection color is customized
-    // via CSS pseudo-element ::selection (@see CSS file)
-    // cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
-    document.execCommand("selectAll", false, null);
+      // We want to select all of the text content within the currently active editable element
+      // to allow for instant text entering. The default text selection color is customized
+      // via CSS pseudo-element ::selection (@see CSS file)
+      // cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
+      document.execCommand("selectAll", false, null);
+    }); // end Meteor.call()
   }; // end createNodeAtMousePosition()
 
   /**
@@ -912,6 +854,7 @@ function integrateMatchedIds(d) {
   var currentUser = Meteor.user();
   var currentTrainingId = currentUser.profile.currentTraining;
 
+  // TODO check if still needed, if so replace with findRoot
   var parent = Identifications.findOne({
     createdBy: currentUser._id,
     trainingId: currentTrainingId,
