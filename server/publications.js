@@ -15,7 +15,7 @@ Meteor.publish("trainings", function() {
 // parameter which is specified when we subscribe to this publication client-side.
 // The id of 'currentTraining' is stored in the user's profile on account creation or
 // login, respectively.
-Meteor.publish("ownIdentificationsAndLinks", function(currentTraining) {
+Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
   var currentUserId = this.userId;
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
   // The 'check(value, pattern)' function is provided by the 'check' package.
@@ -26,7 +26,8 @@ Meteor.publish("ownIdentificationsAndLinks", function(currentTraining) {
   }
 
   return [
-    Identifications.find({createdBy: currentUserId, trainingId: currentTraining}),
+    // Identifications.find({createdBy: currentUserId, trainingId: currentTraining}),
+    Identifications.findMyIdentifications(currentUserId, currentTraining),
     Links.find({
       "source.createdBy": currentUserId,
       "source.trainingId": currentTraining,
@@ -87,6 +88,13 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
 
   return MetaCollection.find({createdBy: {$nin: [currentUserId]}});
 });
+
+
+Meteor.publish("root", function(currentTraining) {
+  var currentUserId = this.userId;
+  return Identifications.findRoot(currentUserId, currentTraining);
+});
+
 
 // Define the publication named 'networkIdentifications'.
 // The resulting record set includes documents of the 'MetaCollection'
