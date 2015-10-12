@@ -315,7 +315,7 @@ var animateOut = function(d, selection) {
     .duration(750)
     .attr("r", 0)
     .each("end", function(){
-      addToMyIds(d);
+      addToMyIdsWithRandomPosition(d);
     });
 
   fo
@@ -330,36 +330,54 @@ var animateOut = function(d, selection) {
 };
 
   /**
-   * Inserts the clicked-on ID bubble into the users 'Identifications' collection.
+   * Calls the Meteor methods to insert the clicked-on ID bubble into the users 'Identifications' collection.
    * The document which will be inserted into the DB has an additional 'matched' field
    * to indicate this item as one the user selected from the pool of other users' identifications.
    *
-   * The inserted document will be recognized once the user navigates back to the 'my IDs' screen.
-   * @see my_ids.js 'integrateMatchedIds()' function.
+   * Inside the 'my IDs' template we want the matched ID to be rendered as an immediate child of
+   * the root node, so we find the root node and get its '_id'. The root node is also needed to
+   * to perform the 'detectCollision' calculation.
    * @param {Object} d An object containing the information of this ID bubble.
    */
-  var addToMyIds = function(d) {
-    // TODO calculate random position
-    // TODO ? findRoot for collision detection and for parentId
+  var addToMyIdsWithRandomPosition = function(d) {
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
+    var root = Identifications.findRoot(currentUser._id, currentTrainingId).fetch()[0];
+    var width = Session.get("myIdsDrawingWidth");
+    var radius = Session.get("myIdsCurrentRadius");
+
+    // Determine a random value for positioning the match in the 'my IDs' template
+    var randomPos = [Math.random() * width, Math.random() * root.y];
 
     // Create the document to be inserted into the collection.
     var myMatch = {
       level: 1,
-      fixed: true,
-      children: [],
+      x: randomPos[0],
+      y: randomPos[1],
+      parentId: root._id,
       name: d.text,
-      createdBy: currentUser._id,
-      trainingId: currentTrainingId,
       editCompleted: true,
       matched: true,
       matchColor: d.color
     };
 
-    // Call the method 'createIdForMatch()' - @see identifications.js.
-    // We pass the 'myMatch' object to be inserted into the 'Identifications' collection.
-    Meteor.call("createIdForMatch", myMatch, errorFunc);
+    // We call the method 'insertIdentification' defined at {@see identifications.js}
+    // and we pass the 'myMatch' object to be inserted into the 'Identifications' collection.
+    Meteor.call("insertIdentification", myMatch, function(error, result) {
+      if (error) {
+        return throwError("Error: " + error.reason);
+      }
+      // on success
+      var myMatchId = result._id;
+      // We use the newly inserted identification to detect collisions with already existing
+      // identifications and we call the 'updatePosition' method defined at {@see identifications.js}.
+      var position = detectCollision(myMatchId, randomPos, root, radius, width);
+      Meteor.call("updatePosition", myMatchId, position, function(error, result) {
+        if (error) {
+          return throwError("Error: " + error.reason);
+        }
+      });
+    });
 
     // Call the method 'addIdMatch()' - @see identifications.js.
     // We pass in the text of the matched ID to sync each ID of other users with the same text.
