@@ -68,6 +68,9 @@ Template.myIds.onRendered(function() {
     currentTrainingId,
     currentAvatar;
 
+  // We create the force layout object.
+  force = d3.layout.force();
+
   margin = {
     top: 10,
     right: 10,
@@ -84,9 +87,9 @@ Template.myIds.onRendered(function() {
   isFixed = true;
   selectedNode = null;
 
+  // We set the global Session variables to make them accessible across templates.
   Session.set("myIdsDrawingWidth", width);
-  Session.set("myIdsDrawingHeight", yPos);
-  Session.set("myIdscurrentRadius", radius);
+  Session.set("myIdsCurrentRadius", radius);
 
 
   currentUser = Meteor.user();
@@ -95,7 +98,7 @@ Template.myIds.onRendered(function() {
     type: currentUser.profile.avatar
   });
 
-  if (currentTrainingId && Identifications.findMyIdentifications(currentUser._id, currentTrainingId).count() === 0) {
+  if (currentTrainingId && Identifications.findCurrentIdentifications(currentUser._id, currentTrainingId).count() === 0) {
     console.log("No IDs yet, inserting the rootNode...");
     rootNode = {
       level: 0,
@@ -104,21 +107,6 @@ Template.myIds.onRendered(function() {
     };
 
     Meteor.call("insertRoot", rootNode, errorFunc);
-  }
-
-  var matchedIds = Identifications.find({
-    createdBy: currentUser._id,
-    trainingId: currentTrainingId,
-    x: {
-      $exists: false
-    }
-  });
-  if (matchedIds.count() > 0) {
-    matchedIds.forEach(integrateMatchedIds, {
-      width: width,
-      height: yPos, // HACK Needs to be redefined
-      radius: radius
-    });
   }
 
   /**
@@ -147,40 +135,12 @@ Template.myIds.onRendered(function() {
     rootNodeData = d3.select(".root").datum();
 
     mousePos = [x,y];
-    dragX = detectCollision(mousePos, rootNodeData, radius, width)[0];
-    dragY = detectCollision(mousePos, rootNodeData, radius, width)[1];
+    dragPos = detectCollision(nodeDataObject._id, mousePos, rootNodeData, radius, width);
 
-    Identifications.update(nodeDataObject._id, {
-      $set: {
-        x: dragX,
-        y: dragY
+    Meteor.call("updatePosition", nodeDataObject._id, dragPos, function(error, result) {
+      if (error) {
+        return throwError("Error: " + error.reason);
       }
-    });
-
-    Links.find({
-      "source._id": nodeDataObject._id
-    }).forEach(function(link) {
-      Links.update(link._id, {
-        $set: {
-          "source.x": dragX,
-          "source.y": dragY
-        }
-      }, {
-        multi: true
-      });
-    });
-
-    Links.find({
-      "target._id": nodeDataObject._id
-    }).forEach(function(link) {
-      Links.update(link._id, {
-        $set: {
-          "target.x": dragX,
-          "target.y": dragY
-        }
-      }, {
-        multi: true
-      });
     });
 
   }; // end dragNodeToMousePosition()
@@ -276,8 +236,8 @@ Template.myIds.onRendered(function() {
       .attr("class", "drag-line")
       .attr("x1", currentActiveNode.x)
       .attr("y1", currentActiveNode.y)
-      .attr("x2", detectCollision([x,y], rootNodeData, radius, width)[0])
-      .attr("y2", detectCollision([x,y], rootNodeData, radius, width)[1]);
+      .attr("x2", detectCollision(undefined, [x,y], rootNodeData, radius, width)[0])
+      .attr("y2", detectCollision(undefined, [x,y], rootNodeData, radius, width)[1]);
 
   }; // end drawLineToMousePosition()
 
@@ -300,8 +260,6 @@ Template.myIds.onRendered(function() {
       newY,
       node,
       newNodeId,
-      link,
-      newLinkId,
       newEditableElem;
 
     var currentActiveNode = Session.get("selectedElement");
@@ -327,7 +285,7 @@ Template.myIds.onRendered(function() {
     dragLine.attr("class", "drag-line-hidden");
 
     // Get the current mouse position coordinates.
-    newNodePos = detectCollision([x,y], rootNodeData, radius, width);
+    newNodePos = detectCollision(undefined, [x,y], rootNodeData, radius, width);
 
     // Create a new node object with the current mouse position coordinates.
     node = {
@@ -343,29 +301,31 @@ Template.myIds.onRendered(function() {
       if (error) {
         return throwError("Error: " + error.reason);
       }
-      // on success
-      newNodeId = result._id;
+      // On success of the 'insertIdentification' method, we'll use the result value
+      if (result) {
+        newNodeId = result._id;
+        // Set the new node as selectedNode.
+        selectedNode = Identifications.findOneById(newNodeId);
+        selectNodeElement(selectedNode);
 
-      // Set the new node as selectedNode.
-      selectedNode = Identifications.findOneById(newNodeId);
-      selectNodeElement(selectedNode);
+        // TODO Is this call of 'updateLayout()' still necessary???????
+        // updateLayout(Identifications.find().fetch(), Links.find().fetch());
 
-      updateLayout(Identifications.find().fetch(), Links.find().fetch());
+        // Select the editable <p> element.
+        newEditableElem = d3.selectAll(".node.child").filter(function(d) {
+          return d && d._id === selectedNode._id;
+        }).select("p.txt-input").node();
 
-      // Select the editable <p> element.
-      newEditableElem = d3.selectAll(".node.child").filter(function(d) {
-        return d && d._id === selectedNode._id;
-      }).select("p.txt-input").node();
+        // Give the <p> element instant focus.
+        newEditableElem.focus();
 
-      // Give the <p> element instant focus.
-      newEditableElem.focus();
-
-      // We want to select all of the text content within the currently active editable element
-      // to allow for instant text entering. The default text selection color is customized
-      // via CSS pseudo-element ::selection (@see CSS file)
-      // cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
-      document.execCommand("selectAll", false, null);
-    }); // end Meteor.call()
+        // We want to select all of the text content within the currently active editable element
+        // to allow for instant text entering. The default text selection color is customized
+        // via CSS pseudo-element ::selection (@see CSS file)
+        // cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
+        document.execCommand("selectAll", false, null);
+      }
+    }); // end Meteor.call("insertIdentification")
   }; // end createNodeAtMousePosition()
 
   /**
@@ -604,81 +564,23 @@ Template.myIds.onRendered(function() {
           inputTxt = d3.select(this).select("p.txt-input");
           newName = inputTxt.text();
 
-          // When the user hits 'ENTER' (i.e. keycode 13) we update the 'name' field and the
-          // 'editCompleted' field of the current document in the 'Identifications'
-          // collection and deselect the node element.
-          // The 'editCompleted' field allows for database queries only for documents
-          // that a user has finished editing. Therefore, on 'ENTER' it will be set to 'true'.
-          // In any other case, i.e. all along while the user is still typing, the 'editCompleted'
-          // field remains 'false'.
-          // NOTE: We also have to update the 'Links' collection due to the somewhat inconvenient
-          // data model.
+          // When the user hits 'ENTER' (i.e. keycode 13) we call the 'editIdentification' method
+          // defined at {@see identifications.js} to update the fields 'name' and
+          // 'editCompleted' of the current document in the 'Identifications'
+          // collection. The value of 'editCompleted' is set to 'true' if we  on what is returned
+          // from the check
           if (d3.event.keyCode === 13) {
-            Identifications.update(d._id, {
-              $set: {
-                name: newName,
-                editCompleted: !isEmptyNode(d)
-              }
-            });
-            Links.find({
-              "source._id": d._id
-            }).forEach(function(link) {
-              Links.update(link._id, {
-                $set: {
-                  "source.name": newName,
-                  "source.editCompleted": !isEmptyNode(d)
-                }
-              }, {
-                multi: true
-              });
-            });
-            Links.find({
-              "target._id": d._id
-            }).forEach(function(link) {
-              Links.update(link._id, {
-                $set: {
-                  "target.name": newName,
-                  "target.editCompleted": !isEmptyNode(d)
-                }
-              }, {
-                multi: true
-              });
-            });
+
+            Meteor.call("editIdentification", d._id, newName, !isEmptyNode(d));
 
             inputTxt.node().blur();
             deselectCurrentNode();
 
+          // User is still editing, so the 'editCompleted' field
           } else {
-            Identifications.update(d._id, {
-              $set: {
-                name: newName,
-                editCompleted: false
-              }
-            });
-            Links.find({
-              "source._id": d._id
-            }).forEach(function(link) {
-              Links.update(link._id, {
-                $set: {
-                  "source.name": newName,
-                  "source.editCompleted": false
-                }
-              }, {
-                multi: true
-              });
-            });
-            Links.find({
-              "target._id": d._id
-            }).forEach(function(link) {
-              Links.update(link._id, {
-                $set: {
-                  "target.name": newName,
-                  "target.editCompleted": false
-                }
-              }, {
-                multi: true
-              });
-            });
+
+            Meteor.call("editIdentification", d._id, newName, false);
+
             // We need to manually update the node data and the selection to make sure
             // the check for empty nodes operates on up-to-date data.
             d.name = newName;
@@ -725,12 +627,11 @@ Template.myIds.onRendered(function() {
 
 
   /**
-   * Creates the force layout object and sets some configuration properties.
+   * We set some configuration properties of the force layout object.
    * On initialization the layout's associated nodes will be set to the rood node while
    * the layout's associated links will be initialized with an empty array.
    */
-  force = d3.layout.force()
-    .size([width, height])
+   force.size([width, height])
     .nodes(Identifications.find({
       createdBy: currentUser._id,
       trainingId: currentTrainingId
@@ -786,10 +687,7 @@ Template.myIds.onRendered(function() {
     var identifications,
       fromTo;
 
-    identifications = Identifications.find({
-      createdBy: currentUser._id,
-      trainingId: currentTrainingId
-    }).fetch();
+    identifications = Identifications.findCurrentIdentifications(currentUser._id, currentTrainingId).fetch();
     fromTo = Links.find({
       "source.createdBy": currentUser._id,
       "source.trainingId": currentTrainingId,
@@ -841,83 +739,6 @@ Template.myIds.onDestroyed(function() {
   }
 });
 
-
-/**
- * Processes a matched ID document so that it will be properly rendered as an immediate
- * child of the root node. Therefore, we need to update the 'Identifications' collection to
- * hold the 'parent' and 'child' data. In order to draw a link, we insert the relevant data
- * into the 'Links' collection.
- * @param {Oject} d A document of the user's 'Identifications' collection which the user
- *    selected from the 'ID pool'.
- */
-function integrateMatchedIds(d) {
-  var currentUser = Meteor.user();
-  var currentTrainingId = currentUser.profile.currentTraining;
-
-  // TODO check if still needed, if so replace with findRoot
-  var parent = Identifications.findOne({
-    createdBy: currentUser._id,
-    trainingId: currentTrainingId,
-    level: 0
-  });
-
-  var randomPos = [Math.random() * this.width, Math.random() * this.height];
-  var position = detectCollision(randomPos, parent, this.radius, this.width);
-
-  Identifications.update(d._id, {
-    $set: {
-      x: position[0],
-      y: position[1],
-      parentId: parent._id
-    }
-  }, function(error, result) {
-    if (error) {
-      return throwError(error.reason);
-    }
-  });
-
-  Identifications.update(parent._id, {
-    $addToSet: {
-      children: d._id
-    }
-  }, function(error, result) {
-    if (error) {
-      return throwError(error.reason);
-    }
-  });
-
-  Links.find({
-    "target._id": d._id
-  }).forEach(function(link) {
-    Links.update(link._id, {
-      $set: {
-        source: parent,
-        "target.x": position[0],
-        "target.y": position[1],
-        "target.parentId": parent._id
-      }
-    },
-      function(error, result) {
-      if (error) {
-        return throwError(error.reason);
-      }
-    });
-  });
-
-  Links.find({
-    "source._id": parent._id
-  }).forEach(function(link) {
-    Links.update(link._id, {
-      $addToSet: {
-        "source.children": d._id,
-      }
-    }, function(error, result) {
-      if (error) {
-        return throwError(error.reason);
-      }
-    });
-  });
-} //end integrateMatchedIds()
 
 /**
  * Checks the text content of the current node.
@@ -1011,9 +832,6 @@ function selectNodeElement(element) {
     domSelection.classed({
       "node-selected": true
     });
-    // d3.select("#gid" + element._id).classed({
-    //   "node-selected": true
-    // });
   }
 
   // Set the Session variable to the passed in value (which may be null).
@@ -1022,8 +840,8 @@ function selectNodeElement(element) {
 } // end selectNodeElement()
 
 /**
- * Deletes a node document (i.e. an identification document) and its associated
- * link documents from the respective collection.
+ * Calls the respective Meteor methods to delete a node document (i.e. an identification document)
+ * and its associated link documents from the respective collection.
  * @param {string} id The current datum of the '_id' field bound to the current element.
  */
 function deleteNodeAndLink(id) {
@@ -1033,50 +851,29 @@ function deleteNodeAndLink(id) {
   nodeId = id;
 
   if (nodeId) {
-    nodeDoc = Identifications.findOne(nodeId);
+
+    nodeDoc = Identifications.findOneById(nodeId);
+
+    // Is this an ID node with children?
+    // Then we do not allow deletion of this node.
     if (nodeDoc.children.length) {
       return throwError(
         "You can not remove an identification bubble with attached child-bubbles.");
     }
+
+    // Is this an ID node that was matched from the 'ID pool'?
+    // Then we delete this ID node from its associates.
     if (nodeDoc.matched) {
       Meteor.call("deleteIdMatch", nodeDoc.name, function(error, result) {
-        if (error) {
-          throwError(error.reason);
-        }
-      });
-    }
-    Links.remove(Links.findOne({
-      "target._id": nodeId
-    })._id, function(error, result) {
-      if (error) {
-        return throwError(error.reason);
-      }
-    });
-    Links.find({
-      "source._id": nodeDoc.parentId
-    }).forEach(function(link) {
-      Links.update(link._id, {
-        $pull: {
-          "source.children": nodeId,
-        }
-      }, function(error, result) {
         if (error) {
           return throwError(error.reason);
         }
       });
-    });
-    Identifications.remove(nodeId, function(error, result) {
+    }
+
+    Meteor.call("removeIdentificationAndLink", nodeDoc, function(error, result) {
       if (error) {
-        return throwError(error.reason);
-      }
-    });
-    Identifications.update(nodeDoc.parentId, {
-      $pull: {
-        children: nodeId
-      }
-    }, function(error, result) {
-      if (error) {
-        return throwError(error.reason);
+        return throwError("Error: " + error.reason);
       }
     });
 
