@@ -26,8 +26,7 @@ Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
   }
 
   return [
-    // Identifications.find({createdBy: currentUserId, trainingId: currentTraining}),
-    Identifications.findMyIdentifications(currentUserId, currentTraining),
+    Identifications.findCurrentIdentifications(currentUserId, currentTraining),
     Links.find({
       "source.createdBy": currentUserId,
       "source.trainingId": currentTraining,
@@ -86,13 +85,21 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
     queryHandle.stop();
   });
 
-  return MetaCollection.find({createdBy: {$nin: [currentUserId]}});
-});
-
-
-Meteor.publish("root", function(currentTraining) {
-  var currentUserId = this.userId;
-  return Identifications.findRoot(currentUserId, currentTraining);
+  return [
+    MetaCollection.find({createdBy: {$nin: [currentUserId]}}),
+    Identifications.find({
+      createdBy: currentUserId,
+      trainingId: currentTraining
+    }, {
+      fields: {
+        createdBy: 1,
+        trainingId: 1,
+        level: 1,
+        x: 1,
+        y: 1
+      }
+    })
+  ];
 });
 
 
