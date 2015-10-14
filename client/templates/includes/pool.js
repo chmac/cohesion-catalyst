@@ -315,7 +315,7 @@ var animateOut = function(d, selection) {
     .duration(750)
     .attr("r", 0)
     .each("end", function(){
-      addToMyIdsWithRandomPosition(d);
+      addToCurrentIdsWithRandomPosition(d);
     });
 
   fo
@@ -339,7 +339,7 @@ var animateOut = function(d, selection) {
    * to perform the 'detectCollision' calculation.
    * @param {Object} d An object containing the information of this ID bubble.
    */
-  var addToMyIdsWithRandomPosition = function(d) {
+  var addToCurrentIdsWithRandomPosition = function(d) {
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
     var root = Identifications.findRoot(currentUser._id, currentTrainingId).fetch()[0];
@@ -372,6 +372,7 @@ var animateOut = function(d, selection) {
       // We use the newly inserted identification to detect collisions with already existing
       // identifications and we call the 'updatePosition' method defined at {@see identifications.js}.
       var position = detectCollision(myMatchId, randomPos, root, radius, width);
+      // console.log(position);
       Meteor.call("updatePosition", myMatchId, position, function(error, result) {
         if (error) {
           return throwError("Error: " + error.reason);
@@ -379,11 +380,26 @@ var animateOut = function(d, selection) {
       });
     });
 
-    // Call the method 'addIdMatch()' - @see identifications.js.
+
+    // We create the modifier object for the update operation.
+    // NOTE This seems somewhat dumb but other approaches for
+    // dynamically passing a modifier did not do the trick :(
+    var addModifier = {
+        general: {
+          $addToSet: {"matchedBy":  currentUser._id}
+        },
+        source: {
+          $addToSet: {"source.matchedBy":  currentUser._id}
+        },
+        target: {
+          $addToSet: {"target.matchedBy":  currentUser._id}
+        }
+    };
+
     // We pass in the text of the matched ID to sync each ID of other users with the same text.
-    Meteor.call("addIdMatch", d.text, function(error, result) {
+    Meteor.call("updateIdMatches", d.text, addModifier, function(error, result) {
       if (error) {
-        throwError(error.reason);
+        throwError("Error: " + error.error);
       }
     });
 
