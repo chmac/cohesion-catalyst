@@ -220,7 +220,7 @@ touchMouseEvents = function() {
         if (mode == "DRAG") {
           cfg.dragMove && cfg.dragMove.apply(this, [d, pos[0],pos[1], deltaPos[0],deltaPos[1]]);
         } else if (mode == "LONGDRAG") {
-          cfg.longDragMove.apply(this, [d, pos[0],pos[1], deltaPos[0],deltaPos[1]]);
+          cfg.longDragMove && cfg.longDragMove.apply(this, [d, pos[0],pos[1], deltaPos[0],deltaPos[1]]);
         }
 
       } // if mode DRAG or LONGDRAG
