@@ -79,7 +79,6 @@ Template.loginForm.events({
             }
         });
         Session.set("formContainer", null);
-        Session.set("currentTraining", trainingId);
         Router.go("intro");
       });
     }
@@ -168,7 +167,6 @@ Template.createAccountForm.events({
             return throwError("Error while creating account: " + error.reason);
           }
           Session.set("formContainer", null);
-          Session.set("currentTraining", trainingId);
           Router.go("intro");
         });
     }
