@@ -48,13 +48,18 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
   var subscription = this,
     currentUserId = this.userId;
 
+  if (!currentUserId) {
+    return subscription.ready();
+  }
+
+  // for debugging purposes
+  var currentUserName = Meteor.users.findOne({_id: currentUserId}).profile.name;
+  console.log("*************** Cient - " + currentUserName + " - subscribes ***************");
+
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
   // The 'check(value, pattern)' function is provided by the 'check' package.
   check(currentTraining, String);
 
-  if (!currentUserId) {
-    return subscription.ready();
-  }
 
   // We define the query to only take into account the documents in question, which means that
   // we filter for documents where the 'level' field is 'greater than '0' thus excluding the
@@ -68,21 +73,22 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
     editCompleted: true
   }).observe({
     added: function(doc) {
-      console.log("Publish poolIdentifications observe: added ", doc.name);
       Meteor.call("addMetaDoc", doc, errorFunc);
-    // }
     },
     removed: function(doc) {
-      console.log("Publish poolIdentifications observe: remove ", doc.name);
       Meteor.call("deleteMetaDoc", doc, errorFunc);
+    },
+    changed: function(newDoc, oldDoc){
+      console.log("SERVER -- Observe changed: from ", oldDoc, " to ", newDoc);
     }
   });
 
-  // Whenever the client subscription is closed we want to stop observing.
-  // Therefore, we call the 'stop()' method of the query handle object.
+  // HEADS UP: We want to continue observing regardless of the client stopping/closing
+  // the subscription - therefore we do not call the 'stop()' method of the query handle object.
+  // NOTE Keeping the console.log() for debugging purposes
   subscription.onStop(function() {
-    console.log("*************** Client has unsubscribed. *****************");
-    queryHandle.stop();
+    console.log("*************** Client - " + currentUserName + " - has unsubscribed. *****************");
+    //queryHandle.stop();
   });
 
   return [
