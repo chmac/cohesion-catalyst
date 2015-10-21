@@ -5,7 +5,7 @@
     {{#if Template.subscriptionsReady}}
     <!-- This is displayed when all data is ready. -->
       {{#each ids}}
-        <p class="{{color}}">{{name}}</p>
+        <p class="{{color}}">{{name}}  #{{createdBy.length}}</p>
         {{/each}}
     {{else}}
     <div>{{> spinner}}</div>
