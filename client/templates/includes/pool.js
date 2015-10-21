@@ -85,16 +85,17 @@ var pool = function() {
         createdBy: {$nin: [currentUser._id]}
       }).observe({
         added: function(doc) {
-          console.log("Observe added");
+          console.log("CLIENT -- Observe added");
           addMetaID(doc);
           draw();
         },
         changed: function(newDoc,oldDoc) {
-          console.log("Observe changed: from ", oldDoc, " to ", newDoc);
+          console.log("CLIENT -- Observe changed: from ", oldDoc, " to ", newDoc);
+          draw();
         },
         removed: function(doc) {
-          deleteID(doc);
-          console.log("Observed remove");
+          deleteMetaID(doc);
+          console.log("CLIENT -- Observe removed");
           draw();
         }
       });
@@ -136,7 +137,7 @@ var pool = function() {
   /**
     *   delete ID from screen, identified by text
     */
-  var deleteID = function(doc) {
+  var deleteMetaID = function(doc) {
     for(var i=0; i<ids.length; i++) {
       if(ids[i] && ids[i].text == doc.name) {
         ids[i] = undefined;
@@ -297,10 +298,9 @@ var pool = function() {
  * Instead of making the bubble instantly invisible, a transition is applied which gives the
  * user a visual feedback: we apply a random color before the bubble decreases in size and Finally
  * disappears. The randomly picked color sticks to this matched ID across templates.
- * Once the transition/animation has ended, we call the functions 'deleteID()' and 'draw()'.
+ * Once the transition/animation has ended, we call the function 'addToCurrentIdsWithRandomPosition()'.
  * @param {Object} d The ID information.
  * @param {Array} selection The current D3 selection.
- *
  */
 var animateOut = function(d, selection) {
   var group = selection,
@@ -340,7 +340,7 @@ var animateOut = function(d, selection) {
    * @param {Object} d An object containing the information of this ID bubble.
    */
   var addToCurrentIdsWithRandomPosition = function(d) {
-    var currentUser = Meteor.user();
+    var currentUser = Meteor.user(); // At this point, a user must exist.
     var currentTrainingId = currentUser.profile.currentTraining;
     var root = Identifications.findRoot(currentUser._id, currentTrainingId).fetch()[0];
     var width = Session.get("myIdsDrawingWidth");
