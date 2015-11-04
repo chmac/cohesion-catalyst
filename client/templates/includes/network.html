@@ -1,12 +1,12 @@
 <template name="idNetwork">
-  <div class="centering" style="text-align:center;">
-    <p>** Network visualization goes here **</p>
-    <br />
+  <div id="ids-graph">
+    {{!-- Network visualization goes here --}}
+
     {{#if Template.subscriptionsReady}}
     <!-- This is displayed when all data is ready. -->
-      {{#each ids}}
+      <!-- {{#each ids}}
         <p class="{{color}}">{{name}}  #{{createdBy.length}}</p>
-        {{/each}}
+        {{/each}} -->
     {{else}}
     <div>{{> spinner}}</div>
     {{/if}}
