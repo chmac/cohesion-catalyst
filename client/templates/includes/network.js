@@ -27,13 +27,12 @@ var network = function() {
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
 
+    var avatarSize = 150;
     var clientWidth = document.documentElement.clientWidth;
     var clientHeight = document.documentElement.clientHeight;
 
-    var avatarSize = 150;
-
     var playersConfig =  {
-      radius: Math.min(clientWidth, clientHeight) / 2 - avatarSize / 2,
+      radius: Math.min(clientWidth, clientHeight-avatarSize/2) / 2 - avatarSize / 2,
       centerX: clientWidth / 2,
       centerY: clientHeight / 2,
       size: avatarSize
@@ -47,7 +46,7 @@ var network = function() {
     var radialPlayers = calculateRadialPlayers(currentPlayers, playersConfig);
     createPlayersCircle(radialPlayers, playersConfig);
 
-    var currentIdBubbles = MetaCollection.find({
+    var currentNetworkIds = MetaCollection.find({
       $nor: [
         {
           createdBy: {
@@ -66,20 +65,10 @@ var network = function() {
     }).fetch();
 
 
-    console.log("radialPlayers ", radialPlayers);
-    console.log("currentIdBubbles ", currentIdBubbles);
+    var dataset = arrangeData(radialPlayers, currentNetworkIds);
 
-    var links = [];
-    for (var i=0; i<currentIdBubbles.length; i++) {
-      for (var j=0; j<currentIdBubbles[i].createdBy.length; j++) {
-        var creatorId = currentIdBubbles[i].createdBy[j];
-        var creator = _.findWhere(radialPlayers, {_id: creatorId});
-        // links.push({source:currentIdBubbles[i]._id, target: currentIdBubbles[i].createdBy[j]});
-        links.push({source:currentIdBubbles[i], target: creator});
-      }
-    }
-
-    createBubbleCloud(clientWidth, clientHeight, playersConfig, currentIdBubbles, drawingSurface);
+    // createBubbleCloud(clientWidth, clientHeight, playersConfig, currentNetworkIds, drawingSurface);
+    createBubbleCloud(clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
 
     // set up mouse events
     touchMouseEvents(drawingSurface, // target
@@ -137,11 +126,11 @@ var network = function() {
       .attr("class", "drawing-surface");
 
     // FOR DEBUGGING: circle in the center
-    drawingSurface.append("circle").attr({
-      cx: width/2,
-      cy: height/2,
-      r: 5
-    }).style("fill", "white");
+    // drawingSurface.append("circle").attr({
+    //   cx: width/2,
+    //   cy: height/2,
+    //   r: 5
+    // }).style("fill", "white");
 
     return drawingSurface;
 
@@ -161,10 +150,24 @@ var network = function() {
     return radialPlayers;
   };
 
+  var arrangeData = function(playerData, networkData) {
+    var data = {
+      nodes: networkData,
+      links: []
+    };
+
+    for (var i = 0; i < networkData.length; i++) {
+      for (var j = 0; j < networkData[i].createdBy.length; j++) {
+        var creatorId = networkData[i].createdBy[j];
+        var creator = _.findWhere(playerData, {_id: creatorId});
+        data.links.push({source:networkData[i], target: creator});
+      }
+    }
+
+    return data;
+  }; // arrangeData()
 
   var createPlayersCircle = function(players, config) {
-    // console.log(players);
-    // var theta = 2 * Math.PI / players.length;
     var playerElements = drawingSurface.selectAll(".player").data(players, function(d, i) {
       return d._id;
     });
@@ -182,10 +185,6 @@ var network = function() {
       })
       .attr("class", "player")
       .attr("transform", function(d, i) {
-        // d.x = config.centerX + config.radius * Math.cos(i * theta);
-        // d.y = config.centerY + config.radius * Math.sin(i * theta);
-        // return "translate(" + (config.centerX + config.radius * Math.cos(i * theta)) + "," +
-        //   (config.centerY + config.radius * Math.sin(i * theta)) + ")";
         return "translate(" + d.x + "," + d.y + ")";
       });
 
@@ -213,7 +212,8 @@ var network = function() {
   var createBubbleCloud = function(width, height, config, dataset, canvas) {
     var bubbleRadius = 40;
     var force = d3.layout.force()
-      .nodes(dataset)
+      .nodes(dataset.nodes)
+      .links([])
       .size([width - config.size, height - config.size])
       .gravity(-0.01)
       .charge(function(d) {
@@ -223,9 +223,29 @@ var network = function() {
       .on("tick", assembleAroundCenter)
       .start();
 
-    var bubbles = canvas.selectAll(".id-circle").data(dataset, function(d) {
+    var bubbles = canvas.selectAll(".id-circle").data(dataset.nodes, function(d) {
       return d._id;
     });
+
+    var connections = canvas.selectAll("line").data(dataset.links, function(d) {
+      return d.source._id + "-" + d.target._id;
+    });
+
+    connections.enter().insert("line", "g")
+      .attr("class", "link")
+      .style("opacity", 0)
+      .attr("x1", function(d) {
+        return d.source.x;
+      })
+      .attr("y1", function(d) {
+        return d.source.y;
+      })
+      .attr("x2", function(d) {
+        return d.target.x;
+      })
+      .attr("y2", function(d) {
+        return d.target.y;
+      });
 
     bubbles.enter().append("g")
       .attr("class", "id-circle")
@@ -272,20 +292,40 @@ var network = function() {
     touchMouseEvents(bubbles, canvas.node(), {
       "test": false,
       "click": function(d,x,y) {
-        console.log(d, d3.select(this));
+        d3.selectAll("line").filter(function(l) {
+          return l.source._id !== d._id;
+        }).style("opacity", 0);
+        d3.selectAll("line").filter(function(l) {
+          return l.source._id === d._id;
+        }).style("opacity", 1);
       }
     });
 
     function assembleAroundCenter(event) {
-      dataset.forEach(function(datum, i) {
-        datum.x = datum.x + (config.centerX - datum.x) * (0.1 + 0.02) * event.alpha;
-        datum.y = datum.y + (config.centerY - datum.y) * (0.1 + 0.02) * event.alpha;
+      var damping = 0.1;
+
+      dataset.nodes.forEach(function(datum, i) {
+        datum.x = datum.x + (config.centerX - datum.x) * (damping + 0.02) * event.alpha;
+        datum.y = datum.y + (config.centerY - datum.y) * (damping + 0.02) * event.alpha;
       });
 
       bubbles.attr("transform", function(d) {
         return "translate(" + d.x + "," + d.y + ")";
       });
-    }
+
+      connections.attr("x1", function(d) {
+          return d.source.x;
+        })
+        .attr("y1", function(d) {
+          return d.source.y;
+        })
+        .attr("x2", function(d) {
+          return d.target.x;
+        })
+        .attr("y2", function(d) {
+          return d.target.y;
+        });
+    } // assembleAroundCenter()
   };
 
   Template.idNetwork.helpers({
