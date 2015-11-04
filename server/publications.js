@@ -145,6 +145,26 @@ Meteor.publish("networkIdentifications", function(currentTraining) {
 });
 
 
+Meteor.publish("currentPlayers", function(currentTraining) {
+  var currentUserId = this.userId;
+  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
+  // The 'check(value, pattern)' function is provided by the 'check' package.
+  check(currentTraining, String);
+
+  if (!currentUserId) {
+    return this.ready();
+  }
+
+  return Meteor.users.find({
+    "profile.currentTraining": currentTraining
+  }, {
+    fields: {
+      profile: 1
+    }
+  });
+});
+
+
 Meteor.publish("links", function(currentTraining) {
   var currentUserId = this.userId;
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
