@@ -255,11 +255,6 @@ var network = function() {
         return "translate(" + d.x + "," + d.y + ")";
       });
 
-    bubbles.append("title")
-      .text(function(d) {
-        return d.name;
-      });
-
     bubbles.append("circle")
       .attr("r", 0)
       .attr("class", function(d) {
