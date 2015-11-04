@@ -1,0 +1,16 @@
+/*
+ * network-vis.css
+ *
+ * Layout affecting the 'network.html' template.
+ */
+
+ #network-vis {
+   display: block;
+   margin: auto;
+   border: 1px dashed #fff;
+ }
+
+ .player > text {
+  fill: #fff;
+  font-size: 1.125em;
+ }
