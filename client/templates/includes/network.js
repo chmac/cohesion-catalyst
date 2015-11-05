@@ -214,7 +214,7 @@ var network = function() {
     var force = d3.layout.force()
       .nodes(dataset.nodes)
       .links([])
-      .size([width - config.size, height - config.size])
+      .size([width - config.size - bubbleRadius, height - config.size - bubbleRadius])
       .gravity(-0.01)
       .charge(function(d) {
         return -Math.pow(bubbleRadius, 2);
