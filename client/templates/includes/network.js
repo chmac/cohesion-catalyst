@@ -26,6 +26,7 @@ var network = function() {
 
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
+    var currentPlayers = Meteor.users.find({"profile.currentTraining": currentTrainingId}).fetch();
 
     var avatarSize = 150;
     var clientWidth = document.documentElement.clientWidth;
@@ -37,14 +38,6 @@ var network = function() {
       centerY: clientHeight / 2,
       size: avatarSize
     };
-
-    // create the drawingSurface to render into
-    drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
-
-    // var currentPlayers = Meteor.users.find({"profile.currentTraining": currentTrainingId}).fetch();
-    var currentPlayers = Meteor.users.find().fetch();
-    var radialPlayers = calculateRadialPlayers(currentPlayers, playersConfig);
-    createPlayersCircle(radialPlayers, playersConfig);
 
     var currentNetworkIds = MetaCollection.find({
       $nor: [
@@ -64,10 +57,13 @@ var network = function() {
       ]
     }).fetch();
 
+    var dataset = arrangeData(currentPlayers, currentNetworkIds);
 
-    var dataset = arrangeData(radialPlayers, currentNetworkIds);
+    // create the drawingSurface to render into
+    drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
 
-    // createBubbleCloud(clientWidth, clientHeight, playersConfig, currentNetworkIds, drawingSurface);
+    createPlayersCircle(currentPlayers, playersConfig);
+
     createBubbleCloud(clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
 
     // set up mouse events
@@ -79,6 +75,19 @@ var network = function() {
                        }
                      }
     );
+
+    // d3.select(window).on("resize", function() {
+    //   clientWidth = document.documentElement.clientWidth;
+    //   clientHeight = document.documentElement.clientHeight;
+    //
+    //   playersConfig.radius = Math.min(clientWidth, clientHeight-avatarSize/2) / 2 - avatarSize / 2;
+    //   playersConfig.centerX = clientWidth / 2;
+    //   playersConfig.centerY= clientHeight / 2;
+    //
+    //   drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
+    //   createPlayersCircle(currentPlayers, playersConfig);
+    //   createBubbleCloud(clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
+    // });
   }); // onRendered()
 
 
@@ -126,18 +135,22 @@ var network = function() {
       .attr("class", "drawing-surface");
 
     // FOR DEBUGGING: circle in the center
-    // drawingSurface.append("circle").attr({
-    //   cx: width/2,
-    //   cy: height/2,
-    //   r: 5
-    // }).style("fill", "white");
+    drawingSurface.append("circle").attr({
+      cx: currentWidth/2,
+      cy: currentHeight/2,
+      r: 5
+    }).style("fill", "white");
 
     return drawingSurface;
 
   };
 
-  // http://stackoverflow.com/questions/14790702/d3-js-plot-elements-using-polar-coordinates
   var calculateRadialPlayers = function(players, config) {
+    // We want the players to form a circular ring around the center of our canvas,
+    // so we convert polar coordinates to cartesian (x,y) coordinates.
+    // We base the polar coordinates on the desired radius of the circular ring and an
+    // angle value retrieved by dividing the size of a full circle by the number of players.
+    // cf. [as of 2015-11-3] http://stackoverflow.com/questions/14790702/d3-js-plot-elements-using-polar-coordinates
     var theta = 2 * Math.PI / players.length;
     var radialPlayers = [];
     players.forEach(function(p, i, players) {
@@ -149,6 +162,7 @@ var network = function() {
     });
     return radialPlayers;
   };
+
 
   var arrangeData = function(playerData, networkData) {
     var data = {
@@ -167,8 +181,28 @@ var network = function() {
     return data;
   }; // arrangeData()
 
+
   var createPlayersCircle = function(players, config) {
-    var playerElements = drawingSurface.selectAll(".player").data(players, function(d, i) {
+    var theta = 2 * Math.PI / players.length;
+    var radialPlayers = [];
+    players.forEach(function(p, i, players) {
+      var radialPlayer, x, y;
+      x = config.centerX + config.radius * Math.cos(i * theta);
+      y = config.centerY + config.radius * Math.sin(i * theta);
+      radialPlayer = _.extend(p, {x:x}, {y:y});
+      radialPlayers.push(radialPlayer);
+    });
+
+    // FOR DEBUGGING: big circle in the center
+    drawingSurface.append("circle")
+      .attr({
+        r: config.radius,
+        cx: config.centerX,
+        cy: config.centerY
+      })
+      .style("fill", "rgba(206, 206, 206, 0.5)");
+
+    var playerElements = drawingSurface.selectAll(".player").data(radialPlayers, function(d, i) {
       return d._id;
     });
 
@@ -210,12 +244,12 @@ var network = function() {
 
 
   var createBubbleCloud = function(width, height, config, dataset, canvas) {
-    var bubbleRadius = 40;
+    var bubbleRadius = 30;
     var force = d3.layout.force()
       .nodes(dataset.nodes)
       .links([])
-      .size([width - config.size - bubbleRadius, height - config.size - bubbleRadius])
-      .gravity(-0.01)
+      .size([width, height])
+      .gravity(0.08)
       .charge(function(d) {
         return -Math.pow(bubbleRadius, 2);
       })
@@ -344,6 +378,11 @@ var network = function() {
         ]
       });
     }
+  });
+
+
+  Template.idNetwork.onDestroyed(function() {
+    d3.select(window).on("resize",  null);
   });
 
 }(); // 'network' module
