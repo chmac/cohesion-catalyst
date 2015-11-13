@@ -54,7 +54,7 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
 
   // for debugging purposes
   var currentUserName = Meteor.users.findOne({_id: currentUserId}).profile.name;
-  console.log("*************** Cient - " + currentUserName + " - subscribes ***************");
+  // console.log("*************** Cient - " + currentUserName + " - subscribes ***************");
 
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
   // The 'check(value, pattern)' function is provided by the 'check' package.
@@ -79,7 +79,7 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
       Meteor.call("deleteMetaDoc", doc, errorFunc);
     },
     changed: function(newDoc, oldDoc){
-      console.log("SERVER -- Observe changed: from ", oldDoc, " to ", newDoc);
+      // console.log("SERVER -- Observe changed: from ", oldDoc, " to ", newDoc);
     }
   });
 
@@ -87,7 +87,7 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
   // the subscription - therefore we do not call the 'stop()' method of the query handle object.
   // NOTE Keeping the console.log() for debugging purposes
   subscription.onStop(function() {
-    console.log("*************** Client - " + currentUserName + " - has unsubscribed. *****************");
+    // console.log("*************** Client - " + currentUserName + " - has unsubscribed. *****************");
     //queryHandle.stop();
   });
 
