@@ -7,37 +7,37 @@
 var network = function() {
 
   /** drawing surface to render into */
-  var drawingSurface;
+  var drawingSurface,
+    force;
 
   Template.idNetwork.onCreated(function() {
-    // var currentUser,
-    //   currentTrainingId;
-    //
-    // currentUser = Meteor.user();
-    // currentTrainingId = currentUser.profile.currentTraining;
 
-    // Meteor.subscribe("networkIdentifications", currentTrainingId);
-    // Meteor.subscribe("currentPlayers", currentTrainingId);
   }); // onCreated()
 
 
 
   Template.idNetwork.onRendered(function() {
-
-    var currentUser = Meteor.user();
-    var currentTrainingId = currentUser.profile.currentTraining;
-    var currentPlayers = Meteor.users.find({"profile.currentTraining": currentTrainingId}).fetch();
+    var templateInstance = this;
 
     var avatarSize = 150;
     var clientWidth = document.documentElement.clientWidth;
     var clientHeight = document.documentElement.clientHeight;
+    var outerRadius = Math.min(clientWidth, clientHeight-avatarSize/2) / 2 - avatarSize / 2;
+    var bubbleRadius = Math.floor(outerRadius * 0.1);
+
+    templateInstance.autorun(function() {
+    var currentUser = Meteor.user();
+    var currentTrainingId = currentUser.profile.currentTraining;
+    var currentPlayers = Meteor.users.find({"profile.currentTraining": currentTrainingId}).fetch();
 
     var playersConfig =  {
-      radius: Math.min(clientWidth, clientHeight-avatarSize/2) / 2 - avatarSize / 2,
+      radius: outerRadius,
       centerX: clientWidth / 2,
       centerY: clientHeight / 2,
       size: avatarSize
     };
+
+    console.log(playersConfig.radius);
 
     var currentNetworkIds = MetaCollection.find({
       $nor: [
@@ -64,8 +64,8 @@ var network = function() {
 
     createPlayersCircle(currentPlayers, playersConfig);
 
-    createBubbleCloud(clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
-
+    createBubbleCloud(bubbleRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
+  });
     // set up mouse events
     touchMouseEvents(drawingSurface, // target
                      drawingSurface.node(), // container for position calculation
@@ -135,32 +135,15 @@ var network = function() {
       .attr("class", "drawing-surface");
 
     // FOR DEBUGGING: circle in the center
-    drawingSurface.append("circle").attr({
-      cx: currentWidth/2,
-      cy: currentHeight/2,
-      r: 5
-    }).style("fill", "white");
+    // drawingSurface.append("circle").attr({
+    //   cx: currentWidth/2,
+    //   cy: currentHeight/2,
+    //   r: 5
+    // }).style("fill", "white");
+
 
     return drawingSurface;
 
-  };
-
-  var calculateRadialPlayers = function(players, config) {
-    // We want the players to form a circular ring around the center of our canvas,
-    // so we convert polar coordinates to cartesian (x,y) coordinates.
-    // We base the polar coordinates on the desired radius of the circular ring and an
-    // angle value retrieved by dividing the size of a full circle by the number of players.
-    // cf. [as of 2015-11-3] http://stackoverflow.com/questions/14790702/d3-js-plot-elements-using-polar-coordinates
-    var theta = 2 * Math.PI / players.length;
-    var radialPlayers = [];
-    players.forEach(function(p, i, players) {
-      var radialPlayer, x, y;
-      x = config.centerX + config.radius * Math.cos(i * theta);
-      y = config.centerY + config.radius * Math.sin(i * theta);
-      radialPlayer = _.extend(p, {x:x}, {y:y});
-      radialPlayers.push(radialPlayer);
-    });
-    return radialPlayers;
   };
 
 
@@ -181,7 +164,15 @@ var network = function() {
     return data;
   }; // arrangeData()
 
-
+  /**
+   * Creates the outer circle of the player avatars.
+   *
+   * We want the players to form a circular ring around the center of our canvas,
+   * so we convert polar coordinates to cartesian (x,y) coordinates.
+   * We base the polar coordinates on the desired radius of the circular ring and an
+   * angle value retrieved by dividing the size of a full circle by the number of players.
+   * cf. [as of 2015-11-3] http://stackoverflow.com/questions/14790702/d3-js-plot-elements-using-polar-coordinates
+   */
   var createPlayersCircle = function(players, config) {
     var theta = 2 * Math.PI / players.length;
     var radialPlayers = [];
@@ -194,13 +185,13 @@ var network = function() {
     });
 
     // FOR DEBUGGING: big circle in the center
-    drawingSurface.append("circle")
-      .attr({
-        r: config.radius,
-        cx: config.centerX,
-        cy: config.centerY
-      })
-      .style("fill", "rgba(206, 206, 206, 0.5)");
+    // drawingSurface.append("circle")
+    //   .attr({
+    //     r: config.radius,
+    //     cx: config.centerX,
+    //     cy: config.centerY
+    //   })
+    //   .style("fill", "rgba(206, 206, 206, 0.5)");
 
     var playerElements = drawingSurface.selectAll(".player").data(radialPlayers, function(d, i) {
       return d._id;
@@ -243,19 +234,7 @@ var network = function() {
   }; // createPlayersCircle()
 
 
-  var createBubbleCloud = function(width, height, config, dataset, canvas) {
-    var bubbleRadius = 30;
-    var force = d3.layout.force()
-      .nodes(dataset.nodes)
-      .links([])
-      .size([width, height])
-      .gravity(0.08)
-      .charge(function(d) {
-        return -Math.pow(bubbleRadius, 2);
-      })
-      .friction(0.7)
-      .on("tick", assembleAroundCenter)
-      .start();
+  var createBubbleCloud = function(radius, width, height, config, dataset, canvas) {
 
     var bubbles = canvas.selectAll(".id-circle").data(dataset.nodes, function(d) {
       return d._id;
@@ -287,6 +266,20 @@ var network = function() {
         d.x = Math.random() * (width - config.size);
         d.y = Math.random() * (height - config.size);
         return "translate(" + d.x + "," + d.y + ")";
+      })
+      .on("mouseover", function(d,x,y) {
+        d3.selectAll("line").filter(function(link) {
+          return link.source._id !== d._id;
+        }).style("opacity", 0);
+        d3.selectAll("line").filter(function(link) {
+          return link.source._id === d._id;
+        }).style("opacity", 1);
+        d3.selectAll(".id-circle circle").filter(function(circle) {
+          return circle._id !== d._id;
+        }).style("opacity", 0.4);
+        d3.selectAll(".id-circle circle").filter(function(circle) {
+          return circle._id === d._id;
+        }).style("opacity", 1);
       });
 
     bubbles.append("circle")
@@ -294,23 +287,23 @@ var network = function() {
       .attr("class", function(d) {
         return d.color;
       })
-      .transition().duration(2000).attr("r", bubbleRadius);
+      .transition().duration(2000).attr("r", radius);
 
     // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
     bubbles.append("foreignObject")
       .attr({
         "class": "foreign-object",
-        "width": bubbleRadius * 2,
-        "height": bubbleRadius * 2,
-        "transform": "scale(0.9) translate(" + (-bubbleRadius) + ", " + (-bubbleRadius) + ")"
+        "width": radius * 2,
+        "height": radius * 2,
+        "transform": "scale(0.9) translate(" + (-radius) + ", " + (-radius) + ")"
       })
       .append("xhtml:p")
       .classed("txt-pool", true)
       .style({
-        "width": bubbleRadius *  2 + "px",
-        "height": bubbleRadius *  2 + "px",
-        "max-width": bubbleRadius *  2 + "px",
-        "max-height": bubbleRadius *  2  + "px",
+        "width": radius *  2 + "px",
+        "height": radius *  2 + "px",
+        "max-width": radius *  2 + "px",
+        "max-height": radius *  2  + "px",
         "font-size": "1em" // making it inline to override CSS rules
       })
       .text(function(d) {
@@ -320,12 +313,12 @@ var network = function() {
     // Call the function to handle touch and mouse events, respectively.
     touchMouseEvents(bubbles, canvas.node(), {
       "test": false,
-      "click": function(d,x,y) {
-        d3.selectAll("line").filter(function(l) {
-          return l.source._id !== d._id;
+      "down": function(d,x,y) {
+        d3.selectAll("line").filter(function(link) {
+          return link.source._id !== d._id;
         }).style("opacity", 0);
-        d3.selectAll("line").filter(function(l) {
-          return l.source._id === d._id;
+        d3.selectAll("line").filter(function(link) {
+          return link.source._id === d._id;
         }).style("opacity", 1);
       }
     });
@@ -355,7 +348,19 @@ var network = function() {
           return d.target.y;
         });
     } // assembleAroundCenter()
-  };
+
+    force = d3.layout.force()
+      .nodes(dataset.nodes)
+      .links([])
+      .size([width, height])
+      .gravity(0.08)
+      .charge(function(d) {
+        return -Math.pow(radius, 2);
+      })
+      .friction(0.7)
+      .on("tick", assembleAroundCenter)
+      .start();
+  }; // createBubbleCloud()
 
   Template.idNetwork.helpers({
     ids: function() {
