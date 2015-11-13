@@ -101,9 +101,23 @@ touchMouseEvents = function() {
 
   // get mouse / touch pos
   var getCurrentPos = function(container) {
-    var pos = hasTouch() ? d3.touches(container)[0] : d3.mouse(container);
+    var pos;
+    if(hasTouch()) {
+      pos = d3.touches(container)[0];
+    } else {
+      pos = d3.mouse(container);
+    }
+    // it seems that after an "up" event there is no position on an iOS device (?)
+    // There is a 'changedTouches' property which holds descriptions of the position of
+    // a touch - but maybe this is wrapped in the d3.touches() function - TODO Research!
+    // cf. 'JS The Definite Guide' (p.456)
+    if(!pos) {
+      pos = [-1,-1];
+    }
+
     pos[0]=Math.round(pos[0]);
     pos[1]=Math.round(pos[1]);
+
     return pos;
   };
 
@@ -229,10 +243,10 @@ touchMouseEvents = function() {
 
     /** this event listener is called whenever the mouse/touch is released */
     var up = function(d) {
-
       // up event triggered multiple times?
       if (mode=="UP") {
-        // do the same as before, up was fired multiple times
+        // up was fired multiple times
+        return;
       } else {
         prevMode = mode;
         mode = "UP";
@@ -240,6 +254,13 @@ touchMouseEvents = function() {
 
       // current mouse pos
       var pos = getCurrentPos(container);
+      if(pos[0]==-1) {
+        if(prevMode=="DOWN") {
+          pos = downPos;
+        } else {
+          pos = lastDragPos;
+        }
+      }
 
       // trigger "up" callback
       cfg.up && cfg.up.apply(this, [d, pos[0],pos[1]]);
@@ -253,12 +274,16 @@ touchMouseEvents = function() {
         return;
       }
 
+      console.log(pos[0]);
+      console.log(lastDragPos[0]);
       // calculate delta position from last known position
       var deltaPos = [ pos[0]-lastDragPos[0],
                        pos[1]-lastDragPos[1] ];
 
       // trigger "drag end" callback
       if (prevMode == "DRAG") {
+        console.log("prevMode = DRAG - this: ", this);
+        console.log("prevMode = DRAG - cfg object: ", cfg);
          cfg.dragEnd && cfg.dragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
       } else if (prevMode == "LONGDRAG") {
          cfg.longDragEnd && cfg.longDragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
