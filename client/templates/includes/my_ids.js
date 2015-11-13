@@ -113,6 +113,7 @@ Template.myIds.onRendered(function() {
    * Handles the dragging (i.e. re-positioning) of an existing node element (an identification bubble).
    */
   dragNodeToMousePosition = function(d, x, y, dx, dy) {
+    d3.event.preventDefault();
     var rootNodeData,
       mousePos,
       currentActiveNode;
@@ -189,6 +190,7 @@ Template.myIds.onRendered(function() {
    * processed nodes to null.
    */
   deselectCurrentNode = function() {
+    d3.event.preventDefault();
     var currentActiveNode = Session.get("selectedElement");
     if (isEmptyNode(currentActiveNode)) {
       promptEmptyNode(currentActiveNode);
@@ -213,6 +215,7 @@ Template.myIds.onRendered(function() {
    * @param {number} dy
    */
   drawLineToMousePosition = function(d, x, y, dx, dy) {
+    d3.event.preventDefault();
     var rootNodeData,
       currentActiveNode = Session.get("selectedElement");
 
@@ -499,11 +502,19 @@ Template.myIds.onRendered(function() {
     // events on background
     touchMouseEvents(drawingSurface, drawingSurface.node(), {
       "test": false,
-      "down": deselectCurrentNode,
       "dragMove": drawLineToMousePosition,
+      // TODO
+      // Inspect why the event 'dragEnd' is needed both on this target 'drawingSurface'
+      // and on the target 'nodeEnterGroup' (see below).
+      // Removing in from target 'drawingSurface' crashes functionality on desktop browser.
+      // Removing in from target 'nodeEnterGroup', crashes functionality on mobile browser.
       "dragEnd": createNodeAtMousePosition,
-      "longDragMove": dragNodeToMousePosition,
-      "longDragEnd": longDragEnd
+      // TODO
+      // Inspect why the events 'longDragMove' and 'longDragEnd' are also
+      // working when only on target 'nodeEnterGroup' or vice versa
+      // "longDragMove": dragNodeToMousePosition,
+      // "longDragEnd": longDragEnd,
+      "down": deselectCurrentNode
     });
 
     // events on IDs
@@ -542,7 +553,8 @@ Template.myIds.onRendered(function() {
         d3.event.stopPropagation();
       },
       "longDragMove": dragNodeToMousePosition,
-      "longDragEnd": longDragEnd
+      "longDragEnd": longDragEnd,
+      "dragEnd": createNodeAtMousePosition // needs to be added because of mobile device TODO check why!!
     });
 
     nodeEnterGroup
