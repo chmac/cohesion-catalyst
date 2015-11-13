@@ -284,8 +284,8 @@ var pool = function() {
         // Call the function to handle touch and mouse events, respectively.
         touchMouseEvents(group, drawingSurface.node(), {
           "test": false,
-          "click": function(d,x,y) {
-            // // We animate this bubble out of sight.
+          "up": function(d,x,y) {
+            // We animate this bubble out of sight.
             animateOut(d, d3.select(this));
           }
         });
