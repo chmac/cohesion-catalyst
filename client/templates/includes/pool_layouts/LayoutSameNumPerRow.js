@@ -138,7 +138,7 @@ LayoutSameNumPerRow = function() {
     }
 
     // check for non-renderable bubbles
-    if(res1 == undefined || res2 == undefined) {
+    if(res1 === undefined || res2 === undefined) {
       return undefined;
     }
 
