@@ -85,18 +85,14 @@ var pool = function() {
         createdBy: {$nin: [currentUser._id]}
       }).observe({
         added: function(doc) {
-          console.log("CLIENT -- Observe added");
           addMetaID(doc);
           draw();
         },
         changed: function(newDoc,oldDoc) {
-          console.log("CLIENT -- Observe changed: from ", oldDoc, " to ", newDoc);
           draw();
         },
         removed: function(doc) {
           deleteMetaID(doc);
-          console.log("CLIENT -- Observe removed");
-          draw();
         }
       });
     }); // autorun()
@@ -118,6 +114,7 @@ var pool = function() {
     }
     // ID with such name not yet in array, so create new ID
     var id = {};
+    id._id = doc._id;
     id.text = doc.name;
     id.color = doc.color;
     id.index = ids.length;
@@ -138,10 +135,25 @@ var pool = function() {
     *   delete ID from screen, identified by text
     */
   var deleteMetaID = function(doc) {
+    var durationTime = 750;
+    var delayTime = 0;
+
     for(var i=0; i<ids.length; i++) {
       if(ids[i] && ids[i].text == doc.name) {
-        ids[i] = undefined;
-        console.log("bubble "+doc.name+" removed");
+        if (i == ids.length - 1) {
+          animate("OUT", delayTime, durationTime, draw, ids[i]);
+          ids.pop();
+          // console.log("bubble "+doc.name+" popped.");
+        } else {
+          // animateOut(ids[i]._id, 0, function(){});
+          // animateOut(ids[ids.length - 1]._id, 0, function(){});
+          // animateIn(ids[i],ids[ids.length - 1], 750, draw);
+          animate("OUT-IN", delayTime, durationTime, draw, ids[i], ids[ids.length - 1]);
+          ids[i] = ids[ids.length - 1];
+          ids[i].index = i;
+          ids.pop();
+          console.log("bubble "+doc.name+" replaced by " , ids[i] );
+        }
         return;
       }
     }
@@ -226,6 +238,9 @@ var pool = function() {
     })
     .enter()
     .append("g")
+    .attr("id", function(d) {
+      return "gid" + d._id;
+    })
     .classed("scene-obj", true)
     .call(createBubble);
   }; // draw()
@@ -251,7 +266,7 @@ var pool = function() {
       if(!res)
         return group;
 
-      //console.log("draw bubble " + id.text + " at " + x + " / " + y + " scale " + scale);
+      // console.log("draw bubble " + d.text + " at " + res.x + " / " + res.y + " scale " + res.scale);
 
       // Move each <g> to its calculated position.
       group.attr("transform", "translate(" + (res.x) + "," + (res.y) + ")");
@@ -285,48 +300,162 @@ var pool = function() {
         touchMouseEvents(group, drawingSurface.node(), {
           "test": false,
           "up": function(d,x,y) {
-            // We animate this bubble out of sight.
-            animateOut(d, d3.select(this));
+            addToCurrentIdsWithRandomPosition(d);
           }
         });
     }); // selection.each()
 
   }; // createBubble()
 
+
 /**
- * Makes an ID bubble disappear from screen if the user clicks/tabs on it.
- * Instead of making the bubble instantly invisible, a transition is applied which gives the
- * user a visual feedback: we apply a random color before the bubble decreases in size and Finally
- * disappears. The randomly picked color sticks to this matched ID across templates.
- * Once the transition/animation has ended, we call the function 'addToCurrentIdsWithRandomPosition()'.
- * @param {Object} d The ID information.
- * @param {Array} selection The current D3 selection.
+ * Makes an ID bubble appear/disappear from screen if the user clicks/tabs on it.
+ * Instead of making the bubble instantly visible/invisible, a transition is applied which gives the
+ * user a visual feedback.
+ * @param {string} io The type of animation: "IN" or "OUT" or "OUT_IN".
+ * @param {number} delay The time (in milliseconds)  specifying the begin of the transition animation.
+ * @param {number} duration The time (in milliseconds) specyfiying how long the transition takes place.
+ * @param {Object} endOfTransFunc A function to be executed at the end of a transition. The function
+    may be an empty function, in which case nothing should happen.
+ * @param {Object} idA The ID information.
+ * @param {Object} idB Optional information of a second ID.
  */
-var animateOut = function(d, selection) {
-  var group = selection,
+var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
+  var group,
+    groupB,
     bubble,
-    fo;
+    bubbleB,
+    fo,
+    foB,
+    p,
+    pB,
+    currentRadius,
+    currentRadiusB,
+    currentScale,
+    currentScaleB,
+    currentPosition;
 
+  group = d3.select("#gid" + idA._id);
   bubble = group.select("circle");
+  currentRadius = bubble.attr("r");
+  currentScale = d3.transform(bubble.attr("transform")).scale[0];
   fo = group.select(".foreign-object");
+  p = fo.select("p.txt-pool");
+  // console.log(p.style("font-size"));
+  // currentPosition = d3.transform(group.attr("transform")).translate;
+  console.log(currentScale);
+  //   group.attr("transform", "translate(" +( currentPosition[0]) + ", " + (currentPosition[1]) + ")");
 
-  bubble
-    .transition()
-    .duration(750)
-    .attr("r", 0)
-    .each("end", function(){
-      addToCurrentIdsWithRandomPosition(d);
-    });
+  if (idB) {
+    groupB = d3.select("#gid" + idB._id);
+    bubbleB = groupB.select("circle");
+    currentRadiusB = bubbleB.attr("r");
+    currentScaleB = d3.transform(bubbleB.attr("transform")).scale[0];
+    foB = groupB.select(".foreign-object");
+    pB = foB.select("p.txt-pool");
+  }
 
-  fo
-    .transition()
-    .duration(750)
-    .attr("transform", "scale(0)");
+  if (io == "OUT-IN") {
+    bubble
+      .transition()
+      .delay(delay)
+      .duration(duration)
+      .attr("r", 0)
+      .each("end", function() {
+        d3.select(this)
+          .transition()
+          .delay(delay)
+          .duration(duration)
+          .each("start", function() {
+            d3.select(this).attr("class", idB.color);
+          })
+          .attr("r", currentRadius)
+          .each("end", endOfTransFunc);
+      });
 
-  fo.select("p.txt-pool")
-    .transition()
-    .duration(750)
-    .style("font-size", 0);
+    fo
+      .transition()
+      .delay(delay)
+      .duration(duration)
+      .attr("transform", "scale(0)")
+      .each("end", function() {
+        d3.select(this)
+          .transition()
+          .delay(delay)
+          .duration(duration)
+          .each("start", function() {
+            d3.select(this).select("p.txt-pool").text(idB.text);
+          })
+          .attr("transform", "scale(" + currentScale + ")");
+      });
+
+    p
+      .transition()
+      .delay(delay)
+      .duration(duration)
+      .style("width", 0)
+      .style("height", 0)
+      .style("font-size", 0)
+      .each("end", function() {
+        d3.select(this)
+          .transition()
+          .delay(delay)
+          .duration(duration)
+          .each("start", function() {
+            d3.select(this).text(idB.text);
+          })
+          .style("width", currentRadius * 2)
+          .style("height", currentRadius * 2)
+          .style("font-size", p.style("font-size"));
+      });
+
+
+    bubbleB
+      .transition()
+      .delay(250)
+      .duration(500)
+      .attr("r", 0);
+
+    foB
+      .transition()
+      // .attr("transform", "scale(" + currentScale + ")")
+      .delay(250)
+      .duration(500)
+      .attr("transform", "scale(0)");
+
+    pB
+      .transition()
+      .delay(250)
+      .duration(500)
+      .style("font-size", 0);
+
+  } // "OUT_IN"
+
+
+  if (io == "OUT") {
+    bubble
+      .transition()
+      .delay(delay)
+      .duration(750)
+      .attr("r", 0)
+      .each("end", endOfTransFunc);
+
+    fo
+      .transition()
+      .delay(delay)
+      .duration(750)
+      .attr("transform", "scale(0)");
+
+    fo.select("p.txt-pool")
+      .transition()
+      .delay(delay)
+      .duration(750)
+      .style("font-size", 0);
+
+  } // "OUT"
+
+
+
 };
 
   /**
@@ -343,8 +472,14 @@ var animateOut = function(d, selection) {
     var currentUser = Meteor.user(); // At this point, a user must exist.
     var currentTrainingId = currentUser.profile.currentTraining;
     var root = Identifications.findRoot(currentUser._id, currentTrainingId).fetch()[0];
-    var width = Session.get("myIdsDrawingWidth");
-    var radius = Session.get("myIdsCurrentRadius");
+
+    // HEADS UP: After a page reload or if we navigate to the 'ID pool' route
+    // before visiting the 'my IDs' route, the Session variable will be undefined,
+    // resulting in a NaN error.
+    // Therefore we need to assign a default value - for now this is solved with
+    // hardcoded values and is kind of a HACK!
+    var width = Session.get("myIdsDrawingWidth") ? Session.get("myIdsDrawingWidth") : 768;
+    var radius = Session.get("myIdsCurrentRadius") ? Session.get("myIdsCurrentRadius") : 35;
 
     // Determine a random value for positioning the match in the 'my IDs' template
     var randomPos = [Math.random() * width, Math.random() * root.y];
@@ -372,7 +507,6 @@ var animateOut = function(d, selection) {
       // We use the newly inserted identification to detect collisions with already existing
       // identifications and we call the 'updatePosition' method defined at {@see identifications.js}.
       var position = detectCollision(myMatchId, randomPos, root, radius, width);
-      // console.log(position);
       Meteor.call("updatePosition", myMatchId, position, function(error, result) {
         if (error) {
           return throwError("Error: " + error.reason);
