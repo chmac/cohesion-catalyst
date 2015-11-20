@@ -8,10 +8,15 @@ var network = function() {
 
   /** drawing surface to render into */
   var drawingSurface,
-    force;
+    force,
+    bubbles,
+    connections,
+    bubbleGroup,
+    currentNetworkIds = [],
+    dataset = [];
 
   Template.idNetwork.onCreated(function() {
-
+  //  force  = d3.layout.force();
   }); // onCreated()
 
 
@@ -21,11 +26,17 @@ var network = function() {
 
     var avatarSize = 150;
     var clientWidth = document.documentElement.clientWidth;
-    var clientHeight = document.documentElement.clientHeight;
-    var outerRadius = Math.min(clientWidth, clientHeight-avatarSize/2) / 2 - avatarSize / 2;
-    var bubbleRadius = Math.floor(outerRadius * 0.1);
+    var clientHeight = document.documentElement.clientHeight - avatarSize;
+    var outerRadius = Math.min(clientWidth, clientHeight - avatarSize / 2) / 2 - avatarSize / 2;
+    // var bubbleRadius = Math.floor(outerRadius * 0.1);
 
-    templateInstance.autorun(function() {
+
+
+    // create the drawingSurface to render into
+    drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
+     bubbles = drawingSurface.selectAll(".id-circle");
+     connections = drawingSurface.selectAll("line");
+
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
     var currentPlayers = Meteor.users.find({"profile.currentTraining": currentTrainingId}).fetch();
@@ -38,8 +49,29 @@ var network = function() {
     };
 
     console.log(playersConfig.radius);
+    createPlayersCircle(currentPlayers, playersConfig);
 
-    var currentNetworkIds = MetaCollection.find({
+    templateInstance.autorun(function() {
+
+    // var currentNetworkIds = MetaCollection.find({
+    //   $nor: [
+    //     {
+    //       createdBy: {
+    //         $exists: false
+    //       }
+    //     }, {
+    //       createdBy: {
+    //         $size: 0
+    //       }
+    //     }, {
+    //       createdBy: {
+    //         $size: 1
+    //       }
+    //     }
+    //   ]
+    // }).fetch();
+
+    var currentNetworkCursor = MetaCollection.find({
       $nor: [
         {
           createdBy: {
@@ -55,16 +87,30 @@ var network = function() {
           }
         }
       ]
-    }).fetch();
+    });
 
-    var dataset = arrangeData(currentPlayers, currentNetworkIds);
+    currentNetworkCursor.observe({
+      added: function(doc) {
+        addToNetworkIds(doc);
+        dataset = arrangeData(currentPlayers, currentNetworkIds);
+        createBubbleCloud(outerRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
+      },
+      changed: function(newDoc,oldDoc) {
 
-    // create the drawingSurface to render into
-    drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
+      },
+      removed: function(doc) {
+        removeFromNetworkIds(doc);
+        dataset = arrangeData(currentPlayers, currentNetworkIds);
+        createBubbleCloud(outerRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
+      }
+    });
 
-    createPlayersCircle(currentPlayers, playersConfig);
 
-    createBubbleCloud(bubbleRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
+    console.log(currentNetworkIds);
+
+
+    // createBubbleCloud(bubbleRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
+
   });
     // set up mouse events
     touchMouseEvents(drawingSurface, // target
@@ -90,6 +136,58 @@ var network = function() {
     // });
   }); // onRendered()
 
+
+  function assembleAroundCenter(event) {
+    var damping = 0.1;
+
+    // currentNetworkIds.forEach(function(datum, i) {
+    //   datum.x = datum.x + (config.centerX - datum.x) * (damping + 0.02) * event.alpha;
+    //   datum.y = datum.y + (config.centerY - datum.y) * (damping + 0.02) * event.alpha;
+    // });
+
+    // bubbleGroup.attr("transform", function(d) {
+    bubbles.attr("transform", function(d) {
+      return "translate(" + d.x + "," + d.y + ")";
+    });
+
+    connections.attr("x1", function(d) {
+        return d.source.x;
+      })
+      .attr("y1", function(d) {
+        return d.source.y;
+      })
+      .attr("x2", function(d) {
+        return d.target.x;
+      })
+      .attr("y2", function(d) {
+        return d.target.y;
+      });
+  } // assembleAroundCenter()
+
+
+  var addToNetworkIds = function(metaId) {
+        // console.log(metaId);
+    for (var i = 0; i < currentNetworkIds.length; i++) {
+        // console.log(currentNetworkIds[i]);
+        // console.log(metaId);
+      if (currentNetworkIds[i].name == metaId.name) {
+        return console.log("already in");
+      }
+
+    }
+        var newNetworkId = _.extend(metaId, {matchCount: metaId.createdBy.length});
+        // console.log(newNetworkId);
+        currentNetworkIds.push(newNetworkId);
+        return currentNetworkIds;
+  };
+
+  var removeFromNetworkIds = function(metaId) {
+    currentNetworkIds.forEach(function(networkId, i, network) {
+      if (network[i] && network[i]._id === metaId._id) {
+        currentNetworkIds.splice(i, 1);
+      }
+    });
+  };
 
   /**
     * Create the SVG drawing container
@@ -235,14 +333,39 @@ var network = function() {
 
 
   var createBubbleCloud = function(radius, width, height, config, dataset, canvas) {
+    var count = _.pluck(currentNetworkIds, "matchCount");
+    var bubbleRadius = d3.scale.sqrt()
+      .domain([d3.min(count), d3.max(count)])
+      .range([radius * 0.1, radius * 0.2]);
 
-    var bubbles = canvas.selectAll(".id-circle").data(dataset.nodes, function(d) {
+      if(!force) {
+        force = d3.layout.force()
+          .nodes(currentNetworkIds)
+          // .links([])
+          .size([width, height])
+          .gravity(0.8)
+          .charge(function(d) {
+            // return -Math.pow(radius, 2);
+            return -Math.pow(bubbleRadius(d.matchCount) * 2, 2.0);
+          })
+      .on("tick", assembleAroundCenter)
+          .friction(0.7);
+
+      }
+      force
+        .start();
+
+    bubbles = bubbles.data(currentNetworkIds, function(d) {
       return d._id;
     });
 
-    var connections = canvas.selectAll("line").data(dataset.links, function(d) {
+    bubbles.exit().remove();
+
+    connections = connections.data(dataset.links, function(d) {
       return d.source._id + "-" + d.target._id;
     });
+
+    connections.exit().remove();
 
     connections.enter().insert("line", "g")
       .attr("class", "link")
@@ -260,7 +383,8 @@ var network = function() {
         return d.target.y;
       });
 
-    bubbles.enter().append("g")
+    bubbleGroup = bubbles.enter().append("g")
+    // bubbles = bubbles.enter().append("g")
       .attr("class", "id-circle")
       .attr("transform", function(d) {
         d.x = Math.random() * (width - config.size);
@@ -282,28 +406,47 @@ var network = function() {
         }).style("opacity", 1);
       });
 
-    bubbles.append("circle")
+    bubbleGroup.append("circle")
+    // bubbles.append("circle")
       .attr("r", 0)
       .attr("class", function(d) {
         return d.color;
       })
-      .transition().duration(2000).attr("r", radius);
+      // .transition().duration(2000).attr("r", radius);
+      .transition().duration(2000).attr("r", function(d) {
+        return bubbleRadius(d.matchCount);
+      });
 
     // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
-    bubbles.append("foreignObject")
+    bubbleGroup.append("foreignObject")
+    // bubbles.append("foreignObject")
       .attr({
         "class": "foreign-object",
-        "width": radius * 2,
-        "height": radius * 2,
-        "transform": "scale(0.9) translate(" + (-radius) + ", " + (-radius) + ")"
+        "width": function(d) {
+          return bubbleRadius(d.matchCount) * 2;
+        },
+        "height": function(d) {
+          return bubbleRadius(d.matchCount) * 2;
+        },
+        "transform": function(d) {
+          return "scale(0.9) translate(" + (-bubbleRadius(d.matchCount)) + ", " + (-bubbleRadius(d.matchCount)) + ")";
+        }
       })
       .append("xhtml:p")
       .classed("txt-pool", true)
       .style({
-        "width": radius *  2 + "px",
-        "height": radius *  2 + "px",
-        "max-width": radius *  2 + "px",
-        "max-height": radius *  2  + "px",
+        "width": function(d) {
+          return bubbleRadius(d.matchCount) *  2 + "px";
+        },
+        "height": function(d) {
+          return bubbleRadius(d.matchCount) *  2 + "px";
+        },
+        "max-width": function(d) {
+          return bubbleRadius(d.matchCount)  *  2 + "px";
+        },
+        "max-height": function(d) {
+          return  bubbleRadius *  2  + "px";
+        },
         "font-size": "1em" // making it inline to override CSS rules
       })
       .text(function(d) {
@@ -311,7 +454,8 @@ var network = function() {
       });
 
     // Call the function to handle touch and mouse events, respectively.
-    touchMouseEvents(bubbles, canvas.node(), {
+    touchMouseEvents(bubbleGroup, canvas.node(), {
+    // touchMouseEvents(bubbles, canvas.node(), {
       "test": false,
       "down": function(d,x,y) {
         d3.selectAll("line").filter(function(link) {
@@ -323,43 +467,49 @@ var network = function() {
       }
     });
 
-    function assembleAroundCenter(event) {
-      var damping = 0.1;
+    // function assembleAroundCenter(event) {
+    //   var damping = 0.1;
+    //
+    //   // currentNetworkIds.forEach(function(datum, i) {
+    //   //   datum.x = datum.x + (config.centerX - datum.x) * (damping + 0.02) * event.alpha;
+    //   //   datum.y = datum.y + (config.centerY - datum.y) * (damping + 0.02) * event.alpha;
+    //   // });
+    //
+    //   bubbleGroup.attr("transform", function(d) {
+    //     return "translate(" + d.x + "," + d.y + ")";
+    //   });
+    //
+    //   connections.attr("x1", function(d) {
+    //       return d.source.x;
+    //     })
+    //     .attr("y1", function(d) {
+    //       return d.source.y;
+    //     })
+    //     .attr("x2", function(d) {
+    //       return d.target.x;
+    //     })
+    //     .attr("y2", function(d) {
+    //       return d.target.y;
+    //     });
+    // } // assembleAroundCenter()
 
-      dataset.nodes.forEach(function(datum, i) {
-        datum.x = datum.x + (config.centerX - datum.x) * (damping + 0.02) * event.alpha;
-        datum.y = datum.y + (config.centerY - datum.y) * (damping + 0.02) * event.alpha;
-      });
+    // if(!force) {
+    //   force = d3.layout.force()
+    //     .nodes(currentNetworkIds)
+    //     // .links([])
+    //     .size([width, height])
+    //     .gravity(0.1)
+    //     .charge(function(d) {
+    //       // return -Math.pow(radius, 2);
+    //       return -Math.pow(bubbleRadius(d.matchCount) * 2, 2.0);
+    //     })
+    //     .friction(0.7)
+    //     .on("tick", assembleAroundCenter);
+    // }
+    // force
+    //   .start();
 
-      bubbles.attr("transform", function(d) {
-        return "translate(" + d.x + "," + d.y + ")";
-      });
-
-      connections.attr("x1", function(d) {
-          return d.source.x;
-        })
-        .attr("y1", function(d) {
-          return d.source.y;
-        })
-        .attr("x2", function(d) {
-          return d.target.x;
-        })
-        .attr("y2", function(d) {
-          return d.target.y;
-        });
-    } // assembleAroundCenter()
-
-    force = d3.layout.force()
-      .nodes(dataset.nodes)
-      .links([])
-      .size([width, height])
-      .gravity(0.08)
-      .charge(function(d) {
-        return -Math.pow(radius, 2);
-      })
-      .friction(0.7)
-      .on("tick", assembleAroundCenter)
-      .start();
+    console.log("force.nodes() ", force.nodes());
   }; // createBubbleCloud()
 
   Template.idNetwork.helpers({
