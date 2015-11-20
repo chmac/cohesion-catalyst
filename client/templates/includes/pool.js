@@ -89,7 +89,7 @@ var pool = function() {
           draw();
         },
         changed: function(newDoc,oldDoc) {
-          draw();
+          // draw();
         },
         removed: function(doc) {
           deleteMetaID(doc);
@@ -136,18 +136,14 @@ var pool = function() {
     */
   var deleteMetaID = function(doc) {
     var durationTime = 750;
-    var delayTime = 0;
+    var delayTime = 500;
 
     for(var i=0; i<ids.length; i++) {
       if(ids[i] && ids[i].text == doc.name) {
         if (i == ids.length - 1) {
           animate("OUT", delayTime, durationTime, draw, ids[i]);
           ids.pop();
-          // console.log("bubble "+doc.name+" popped.");
         } else {
-          // animateOut(ids[i]._id, 0, function(){});
-          // animateOut(ids[ids.length - 1]._id, 0, function(){});
-          // animateIn(ids[i],ids[ids.length - 1], 750, draw);
           animate("OUT-IN", delayTime, durationTime, draw, ids[i], ids[ids.length - 1]);
           ids[i] = ids[ids.length - 1];
           ids[i].index = i;
@@ -272,11 +268,32 @@ var pool = function() {
       group.attr("transform", "translate(" + (res.x) + "," + (res.y) + ")");
 
       // Append a <circle> to the <g>.
-      group.append("circle")
-        .attr("r", radius)
-        .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
-        .attr("class", d.color);
+      // group.append("circle")
+      //   .attr("r", radius)
+      //   .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
+      //   .attr("class", d.color);
 
+      // TODO See if other solution is possible for "entering" circles
+      // This is a workaround experiment:
+      // Only apply a transition if we are not dragging (We call draw() while dragging and we
+      // remove all elements in draw() which makes all elements to entering elements again)
+      // Also, only apply it to the circle in the last spot - but this will cause that circle
+      // to be animated multiple times.
+      if (touchMouseEvents.currentMode() !== "DRAG" && ids.length-1 == d.index) {
+        group.append("circle")
+          .attr("r", 0)
+          .transition()
+          .duration(500)
+          .attr("r", radius)
+          .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
+          .attr("class", d.color);
+      } else {
+        group.append("circle")
+          .attr("r", radius)
+          .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
+          .attr("class", d.color);
+      }
+      
       // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
       group.append("foreignObject")
         .attr({
@@ -333,18 +350,15 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     currentRadiusB,
     currentScale,
     currentScaleB,
-    currentPosition;
+    currentFontSize;
 
   group = d3.select("#gid" + idA._id);
   bubble = group.select("circle");
-  currentRadius = bubble.attr("r");
-  currentScale = d3.transform(bubble.attr("transform")).scale[0];
   fo = group.select(".foreign-object");
   p = fo.select("p.txt-pool");
-  // console.log(p.style("font-size"));
-  // currentPosition = d3.transform(group.attr("transform")).translate;
-  console.log(currentScale);
-  //   group.attr("transform", "translate(" +( currentPosition[0]) + ", " + (currentPosition[1]) + ")");
+  currentRadius = bubble.attr("r");
+  currentScale = d3.transform(bubble.attr("transform")).scale[0];
+  currentFontSize = p.style("font-size");
 
   if (idB) {
     groupB = d3.select("#gid" + idB._id);
@@ -357,99 +371,101 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
 
   if (io == "OUT-IN") {
     bubble
-      .transition()
-      .delay(delay)
+      .transition() // apply first transition ("OUT")
+      .delay(0)
       .duration(duration)
       .attr("r", 0)
       .each("end", function() {
         d3.select(this)
+          // at the end of transition #1, apply immediate change
+          .attr("class", idB.color)
+          // then apply second transition ("IN")
           .transition()
-          .delay(delay)
+          .delay(0)
           .duration(duration)
-          .each("start", function() {
-            d3.select(this).attr("class", idB.color);
-          })
           .attr("r", currentRadius)
           .each("end", endOfTransFunc);
       });
 
     fo
-      .transition()
-      .delay(delay)
+      .transition() // apply first transition ("OUT")
+      .delay(0)
       .duration(duration)
       .attr("transform", "scale(0)")
       .each("end", function() {
         d3.select(this)
+          // at the end of transition #1, apply immediate change
+          .attr("transform", "scale(" + currentScale + ") translate(0,0)")
+          // then apply second transition ("IN")
           .transition()
-          .delay(delay)
+          .delay(0)
           .duration(duration)
-          .each("start", function() {
-            d3.select(this).select("p.txt-pool").text(idB.text);
-          })
-          .attr("transform", "scale(" + currentScale + ")");
+          .attr("transform", "scale(" + currentScale + ") translate(" + (-currentRadius) + ", " +
+            (-currentRadius) + ")");
       });
 
     p
-      .transition()
-      .delay(delay)
+      .transition() // apply first transition ("OUT")
+      .delay(0)
       .duration(duration)
       .style("width", 0)
       .style("height", 0)
       .style("font-size", 0)
       .each("end", function() {
         d3.select(this)
+          // at the end of transition #1, apply immediate change
+          .text(idB.text)
+          // then apply second transition ("IN")
           .transition()
-          .delay(delay)
+          .delay(0)
           .duration(duration)
-          .each("start", function() {
-            d3.select(this).text(idB.text);
-          })
-          .style("width", currentRadius * 2)
-          .style("height", currentRadius * 2)
-          .style("font-size", p.style("font-size"));
+          .style("width", currentRadius * 2 + "px")
+          .style("height", currentRadius * 2 + "px")
+          .style("font-size", currentFontSize);
       });
 
-
+    // We only apply "OUT" transitions for the bubble which will
+    // switch positions from the last spot to the newly empty spot.
     bubbleB
       .transition()
-      .delay(250)
-      .duration(500)
+      .delay(delay)
+      .duration(duration)
       .attr("r", 0);
 
     foB
       .transition()
-      // .attr("transform", "scale(" + currentScale + ")")
-      .delay(250)
-      .duration(500)
+      .delay(delay)
+      .duration(duration)
       .attr("transform", "scale(0)");
 
     pB
       .transition()
-      .delay(250)
-      .duration(500)
+      .delay(delay)
+      .duration(duration)
       .style("font-size", 0);
 
-  } // "OUT_IN"
+  } // "OUT-IN"
 
-
+  // This transition only affects one bubble, namely the one in the last spot,
+  // which will be transitioned "OUT".
   if (io == "OUT") {
     bubble
       .transition()
-      .delay(delay)
-      .duration(750)
+      .delay(0)
+      .duration(duration)
       .attr("r", 0)
       .each("end", endOfTransFunc);
 
     fo
       .transition()
-      .delay(delay)
-      .duration(750)
+      .delay(0)
+      .duration(duration)
       .attr("transform", "scale(0)");
 
     fo.select("p.txt-pool")
       .transition()
-      .delay(delay)
-      .duration(750)
+      .delay(0)
+      .duration(duration)
       .style("font-size", 0);
 
   } // "OUT"
