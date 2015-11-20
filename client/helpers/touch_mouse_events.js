@@ -274,19 +274,18 @@ touchMouseEvents = function() {
         return;
       }
 
-      console.log(pos[0]);
-      console.log(lastDragPos[0]);
       // calculate delta position from last known position
       var deltaPos = [ pos[0]-lastDragPos[0],
                        pos[1]-lastDragPos[1] ];
 
       // trigger "drag end" callback
       if (prevMode == "DRAG") {
-        console.log("prevMode = DRAG - this: ", this);
-        console.log("prevMode = DRAG - cfg object: ", cfg);
-         cfg.dragEnd && cfg.dragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
+        // DEBUG console for inspecting event target on mobile device vs. desktop
+        // console.log("prevMode = DRAG - this: ", this);
+        // console.log("prevMode = DRAG - cfg object: ", cfg);
+        cfg.dragEnd && cfg.dragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
       } else if (prevMode == "LONGDRAG") {
-         cfg.longDragEnd && cfg.longDragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
+        cfg.longDragEnd && cfg.longDragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
       }
 
     }; // up()
@@ -304,6 +303,10 @@ touchMouseEvents = function() {
 
   }; // events()
 
+  events.currentMode = function() {
+    return mode;
+  };
+  
   // module returns events function
   return events;
 
