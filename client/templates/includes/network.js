@@ -34,8 +34,8 @@ var network = function() {
 
     // create the drawingSurface to render into
     drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
-     bubbles = drawingSurface.selectAll(".id-circle");
-     connections = drawingSurface.selectAll("line");
+    bubbles = drawingSurface.selectAll(".id-circle");
+    connections = drawingSurface.selectAll("line");
 
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
