@@ -8,9 +8,12 @@ var network = function() {
 
   /** drawing surface to render into */
   var drawingSurface,
+    linksContainer,
+    bubblesContainer,
+    playersContainer,
     force,
     bubbles,
-    connections,
+    links,
     bubbleGroup,
     currentNetworkIds = [],
     dataset = [];
@@ -38,8 +41,8 @@ var network = function() {
     linksContainer = drawingSurface.append("g").attr("id", "links-group");
     bubblesContainer = drawingSurface.append("g").attr("id", "bubbles-group");
     playersContainer = drawingSurface.append("g").attr("id", "players-group");
-    bubbles = drawingSurface.selectAll(".id-circle");
-    connections = drawingSurface.selectAll("line");
+    bubbles = bubblesContainer.selectAll(".id-circle");
+    links = linksContainer.selectAll("line");
 
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
@@ -96,7 +99,7 @@ var network = function() {
     currentNetworkCursor.observe({
       added: function(doc) {
         addToNetworkIds(doc);
-        dataset = arrangeData(currentPlayers, currentNetworkIds);
+        dataset = setupLinksData(currentPlayers, currentNetworkIds);
         createBubbleCloud(outerRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
       },
       changed: function(newDoc,oldDoc) {
@@ -104,7 +107,7 @@ var network = function() {
       },
       removed: function(doc) {
         removeFromNetworkIds(doc);
-        dataset = arrangeData(currentPlayers, currentNetworkIds);
+        dataset = setupLinksData(currentPlayers, currentNetworkIds);
         createBubbleCloud(outerRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
       }
     });
@@ -154,7 +157,7 @@ var network = function() {
       return "translate(" + d.x + "," + d.y + ")";
     });
 
-    connections.attr("x1", function(d) {
+    links.attr("x1", function(d) {
         return d.source.x;
       })
       .attr("y1", function(d) {
@@ -249,19 +252,19 @@ var network = function() {
   };
 
 
-  var arrangeData = function(playerData, networkData) {
-    var linkData = [];
+  var setupLinksData = function(playerData, networkData) {
+    var linksData = [];
 
     for (var i = 0; i < networkData.length; i++) {
       for (var j = 0; j < networkData[i].createdBy.length; j++) {
         var creatorId = networkData[i].createdBy[j];
         var creator = _.findWhere(playerData, {_id: creatorId});
-        linkData.push({source:networkData[i], target: creator});
+        linksData.push({source:networkData[i], target: creator});
       }
     }
 
-    return linkData;
-  }; // arrangeData()
+    return linksData;
+  }; // setupLinksData()
 
   /**
    * Creates the outer circle of the player avatars.
@@ -292,7 +295,7 @@ var network = function() {
     //   })
     //   .style("fill", "rgba(206, 206, 206, 0.5)");
 
-    var playerElements = drawingSurface.selectAll(".player").data(radialPlayers, function(d, i) {
+    var playerElements = playersContainer.selectAll(".player").data(radialPlayers, function(d, i) {
       return d._id;
     });
 
@@ -346,7 +349,6 @@ var network = function() {
           .size([width, height])
           .gravity(0.8)
           .charge(function(d) {
-            // return -Math.pow(radius, 2);
             return -Math.pow(bubbleRadius(d.matchCount) * 2, 2.0);
           })
       .on("tick", assembleAroundCenter)
@@ -361,13 +363,13 @@ var network = function() {
 
     bubbles.exit().remove();
 
-    connections = connections.data(dataset, function(d) {
+    links = links.data(dataset, function(d) {
       return d.source._id + "-" + d.target._id;
     });
 
-    connections.exit().remove();
+    links.exit().remove();
 
-    connections.enter().insert("line", "g")
+    links.enter().insert("line", "g")
       .attr("class", "link")
       .style("opacity", 0)
       .attr("x1", function(d) {
@@ -384,7 +386,6 @@ var network = function() {
       });
 
     bubbleGroup = bubbles.enter().append("g")
-    // bubbles = bubbles.enter().append("g")
       .attr("class", "id-circle")
       .attr("transform", function(d) {
         d.x = Math.random() * (width - config.size);
@@ -407,19 +408,16 @@ var network = function() {
       });
 
     bubbleGroup.append("circle")
-    // bubbles.append("circle")
       .attr("r", 0)
       .attr("class", function(d) {
         return d.color;
       })
-      // .transition().duration(2000).attr("r", radius);
       .transition().duration(2000).attr("r", function(d) {
         return bubbleRadius(d.matchCount);
       });
 
     // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
     bubbleGroup.append("foreignObject")
-    // bubbles.append("foreignObject")
       .attr({
         "class": "foreign-object",
         "width": function(d) {
@@ -455,7 +453,6 @@ var network = function() {
 
     // Call the function to handle touch and mouse events, respectively.
     touchMouseEvents(bubbleGroup, canvas.node(), {
-    // touchMouseEvents(bubbles, canvas.node(), {
       "test": false,
       "down": function(d,x,y) {
         d3.selectAll("line").filter(function(link) {
