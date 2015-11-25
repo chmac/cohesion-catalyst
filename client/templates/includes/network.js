@@ -397,6 +397,7 @@ var network = function() {
       })
       .on("mouseover", function(d,x,y) {
         showAffiliates(d);
+        fadeNonAffiliates(d);
       });
 
     bubbleGroup.append("circle")
@@ -488,14 +489,8 @@ var network = function() {
       idBubbles;
 
     nonAffiliatedPlayers = playersContainer.selectAll(".player").filter(function(player) {
-        // for (var i=0; i < d.createdBy.length; i++) {
-        //    if (d.createdBy[i] == player._id) {
-        //     return false;
-        //    }
-        // }
-        // return true;
-          return !_.contains(d.createdBy, player._id);
-      });
+      return !_.contains(d.createdBy, player._id);
+    });
 
     nonAffiliatedPlayers.selectAll("use")
       .attr("class", "c00");
@@ -504,12 +499,12 @@ var network = function() {
       .attr("class", "c00");
 
     bubblesContainer.selectAll(".id-circle circle").filter(function(circle) {
-        return circle._id !== d._id;
-      }).attr("class", "c00");
+      return circle._id !== d._id;
+    }).attr("class", "c00");
 
     bubblesContainer.selectAll(".id-circle circle").filter(function(circle) {
-        return circle._id === d._id;
-      }).attr("class", d.color );
+      return circle._id === d._id;
+    }).attr("class", d.color );
   };
 
 }(); // 'network' module
