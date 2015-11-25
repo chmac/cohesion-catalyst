@@ -6,7 +6,7 @@
 
 .node {
  cursor: crosshair;
- fill: #fff;
+ /*fill: #fff;*/
 }
 
 .node.dragging {
@@ -15,6 +15,15 @@
 
 .root {
  outline: none;
+}
+
+/* HEADS UP: The CSS 'color' property is not applicable to SVG elements.
+* We use it here to customize the 'fill' and 'stroke' color values of the avatar icon's SVG
+* elements which use the CSS variable 'currenColor' within the original symbol definition
+* in the file avatars.svg.
+*/
+.root > use {
+  color: #fff;
 }
 
 .root > circle.filled {
@@ -136,14 +145,14 @@ p.txt-input::-moz-selection {
 
 /* HEADS UP: The CSS 'color' property is not applicable to SVG elements.
 * We use it here to customize the 'fill' color value of the icon's <path> and <line>
-* elements which use the CSS variable 'currenColor' within the original symbol definition
+* elements which use the CSS variable 'currentColor' within the original symbol definition
 * in the file icons.svg.
 */
 .delete-icon {
  cursor: pointer;
  fill: #000;
  fill-opacity: 0.6;
- color: #4593e3; /* blue color for selected nodes */
+ /*color: #4593e3;*/ /* blue color for selected nodes */
  stroke: #4593e3;
  stroke-width: 1;
 }

@@ -330,6 +330,7 @@ var network = function() {
     playerGroup.append("text")
       .attr("text-anchor", "middle")
       .attr("transform", "translate(0," + (config.size / 2 + 5) + ")")
+      .style("fill", "currentColor")
       .text(function(d) {
         return d.profile.name;
       });
@@ -369,9 +370,11 @@ var network = function() {
 
     links.exit().remove();
 
-    links.enter().insert("line", "g")
-      .attr("class", "link")
-      .style("opacity", 0)
+    links.enter().insert("line", "g.id-circle")
+      .style({
+        "opacity": 0,
+        "stroke": "currentColor"
+      })
       .attr("x1", function(d) {
         return d.source.x;
       })
@@ -393,12 +396,7 @@ var network = function() {
         return "translate(" + d.x + "," + d.y + ")";
       })
       .on("mouseover", function(d,x,y) {
-        d3.selectAll("line").filter(function(link) {
-          return link.source._id !== d._id;
-        }).style("opacity", 0);
-        d3.selectAll("line").filter(function(link) {
-          return link.source._id === d._id;
-        }).style("opacity", 1);
+        showAffiliates(d);
         d3.selectAll(".id-circle circle").filter(function(circle) {
           return circle._id !== d._id;
         }).style("opacity", 0.4);
@@ -455,15 +453,58 @@ var network = function() {
     touchMouseEvents(bubbleGroup, canvas.node(), {
       "test": false,
       "down": function(d,x,y) {
-        d3.selectAll("line").filter(function(link) {
-          return link.source._id !== d._id;
-        }).style("opacity", 0);
-        d3.selectAll("line").filter(function(link) {
-          return link.source._id === d._id;
-        }).style("opacity", 1);
+        showAffiliates(d);
+        fadeNonAffiliates(d);
       }
     });
 
   }; // createBubbleCloud()
+
+  var showAffiliates = function(d) {
+    var affiliatedLinks,
+      affiliatedPlayers;
+
+    playersContainer.selectAll(".player").selectAll("use").attr("class", null);
+    playersContainer.selectAll(".player").selectAll("text").attr("class", null);
+    linksContainer.selectAll("line")
+      .style("opacity", 0)
+      .attr("class", null);
+
+    affiliatedPlayers = playersContainer.selectAll(".player").filter(function(player) {
+      return _.contains(d.createdBy, player._id);
+    });
+
+    affiliatedLinks = linksContainer.selectAll("line").filter(function(link) {
+      return link.source._id === d._id;
+    });
+
+    affiliatedPlayers.selectAll("use")
+      .attr("class", d.color);
+
+    affiliatedPlayers.selectAll("text")
+      .attr("class", d.color);
+
+    affiliatedLinks
+      .attr("class", d.color)
+      .style("opacity", 1);
+  }; // showAffiliates()
+
+  var fadeNonAffiliates = function(d) {
+    var nonAffiliatedPlayers,
+      idBubbles;
+
+    nonAffiliatedPlayers = playersContainer.selectAll(".player").filter(function(player) {
+      d.createdBy.forEach(function(c){
+        return c !== player._id;
+      });
+
+    });
+
+    nonAffiliatedPlayers.selectAll("use")
+      .attr("class", "cgrey");
+
+    nonAffiliatedPlayers.selectAll("text")
+      .attr("class", "cgrey");
+  };
 
 }(); // 'network' module

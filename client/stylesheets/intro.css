@@ -17,7 +17,14 @@
   display: block;
 }
 
+/* HEADS UP: We use the CSS 'color' property here to customize the 'fill'
+* and 'stroke' color values of the avatar icon's SVG elements which use the
+* CSS variable 'currentColor' within the original symbol definition
+* in the file avatars.svg.
+* Normally, the CSS 'color' property is not applicable to SVG elements.
+*/
 a.avatar {
   cursor: pointer; /* Needs to explicitly set for SVG <a> elements */
   outline: none;
+  color: #fff; /* Property cascades to the SVG element inside <a>. */ 
 }

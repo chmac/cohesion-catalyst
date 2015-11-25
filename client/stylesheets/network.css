@@ -4,12 +4,17 @@
  * Layout affecting the 'network.html' template.
  */
 
- #network-vis {
-   display: block;
-   margin: auto;
- }
+#network-vis {
+  display: block;
+  margin: auto;
+}
 
- .player > text {
+.player > text {
   fill: #fff;
   font-size: 1.125em;
- }
+}
+
+#links-group {
+  color: #fff;
+  stroke-width: 3;
+}

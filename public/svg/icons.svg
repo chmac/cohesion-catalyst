@@ -16,7 +16,8 @@
 
   <symbol id="delete-icon" >
     <circle r="15" cx="15.5" cy="15.5" />
-    <line x1="15.5" y1="5.5" x2="15.5" y2="25.5" transform="rotate(45 15.5 15.5)" style="fill: currentColor;" />
+    <!-- <line x1="15.5" y1="5.5" x2="15.5" y2="25.5" transform="rotate(45 15.5 15.5)" style="fill: currentColor;" /> -->
+    <line x1="15.5" y1="5.5" x2="15.5" y2="25.5" transform="rotate(45 15.5 15.5)" />
     <line x1="15.5" y1="5.5" x2="15.5" y2="25.5" transform="rotate(-45 15.5 15.5)" style="fill: currentColor;" />
   </symbol>
 
