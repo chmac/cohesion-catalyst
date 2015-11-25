@@ -397,12 +397,6 @@ var network = function() {
       })
       .on("mouseover", function(d,x,y) {
         showAffiliates(d);
-        d3.selectAll(".id-circle circle").filter(function(circle) {
-          return circle._id !== d._id;
-        }).style("opacity", 0.4);
-        d3.selectAll(".id-circle circle").filter(function(circle) {
-          return circle._id === d._id;
-        }).style("opacity", 1);
       });
 
     bubbleGroup.append("circle")
@@ -494,17 +488,28 @@ var network = function() {
       idBubbles;
 
     nonAffiliatedPlayers = playersContainer.selectAll(".player").filter(function(player) {
-      d.createdBy.forEach(function(c){
-        return c !== player._id;
+        // for (var i=0; i < d.createdBy.length; i++) {
+        //    if (d.createdBy[i] == player._id) {
+        //     return false;
+        //    }
+        // }
+        // return true;
+          return !_.contains(d.createdBy, player._id);
       });
 
-    });
-
     nonAffiliatedPlayers.selectAll("use")
-      .attr("class", "cgrey");
+      .attr("class", "c00");
 
     nonAffiliatedPlayers.selectAll("text")
-      .attr("class", "cgrey");
+      .attr("class", "c00");
+
+    bubblesContainer.selectAll(".id-circle circle").filter(function(circle) {
+        return circle._id !== d._id;
+      }).attr("class", "c00");
+
+    bubblesContainer.selectAll(".id-circle circle").filter(function(circle) {
+        return circle._id === d._id;
+      }).attr("class", d.color );
   };
 
 }(); // 'network' module
