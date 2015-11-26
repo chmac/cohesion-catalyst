@@ -3,6 +3,12 @@
  *
  */
 
+/* grey */
+.cgrey {
+  fill: #9d9d9d;
+  color: #9d9d9d;
+}
+
 /* white */
 .c00 {
   fill: #fff;

@@ -125,6 +125,11 @@ var network = function() {
                      { "test": false,
                        "down": function(d) {
                          d3.event.preventDefault(); // prevent DOM element selection etc.
+                         makeReset();
+                        //  bubblesContainer.selectAll(".id-circle circle")
+                        //    .attr("class", function(d) {
+                        //      return d.color;
+                        //    });
                        }
                      }
     );
@@ -327,12 +332,52 @@ var network = function() {
       .attr("height", config.size)
       .attr("transform", "translate(" + (-config.size / 2) + "," + (-config.size / 2) + ")");
 
+    // We append a SVG <rect> in order to serve as a background for the SVG <text>.
+    // For now, we only apply the 'transform' attribute so the <rect> has no
+    // dimensions yet. We will apply these missing attributes right after we
+    // calculated the dimensions of each <text> so that each <rect> will
+    // perfectly match the 'width' and 'height' of the respecting <text> area.
+    playerGroup.append("rect")
+      .attr("transform", "translate(0," + (config.size / 2 + 5) + ")");
+
     playerGroup.append("text")
       .attr("text-anchor", "middle")
       .attr("transform", "translate(0," + (config.size / 2 + 5) + ")")
       .style("fill", "currentColor")
       .text(function(d) {
         return d.profile.name;
+      });
+
+    // We calculate the dimension values of the <text> element and
+    // add them to the player's data.
+    playersContainer.selectAll("text").each(function(d,i) {
+      var dimensions = this.getBBox();
+      d.textX = dimensions.x;
+      d.textY = dimensions.y;
+      d.textWidth = dimensions.width;
+      d.textHeight = dimensions.height;
+    });
+
+    // Accessing the previously calculated values we can now
+    // apply the missing <rect> attributes.
+    playersContainer.selectAll("rect")
+      .attr({
+        x: function(d) {
+          return d.textX;
+        },
+        y: function(d) {
+          return d.textY;
+        },
+        width: function(d) {
+          return d.textWidth;
+        },
+        height: function(d) {
+          return d.textHeight;
+        }
+      })
+      .style({
+        fill: "#000",
+        "fill-opacity": 0.6
       });
   }; // createPlayersCircle()
 
@@ -389,6 +434,9 @@ var network = function() {
       });
 
     bubbleGroup = bubbles.enter().append("g")
+      .attr("id", function(d) {
+        return "gid" + d._id;
+      })
       .attr("class", "id-circle")
       .attr("transform", function(d) {
         d.x = Math.random() * (width - config.size);
@@ -396,9 +444,20 @@ var network = function() {
         return "translate(" + d.x + "," + d.y + ")";
       })
       .on("mouseover", function(d,x,y) {
-        showAffiliates(d);
-        fadeNonAffiliates(d);
+        makeReset();
+        focusAffiliates(d);
+        fadeContext(d);
+      })
+      .on("mouseout", function(d) {
+        makeReset();
       });
+
+    // 'bubbleGroup' now holds both D3 'enter' and 'update' selection.
+    // So, we calculate the radius for each element in the selection and
+    // add it to each element's bound data for later use.
+    bubbleGroup.each(function(d) {
+      d.bubbleR = bubbleRadius(d.matchCount);
+    });
 
     bubbleGroup.append("circle")
       .attr("r", 0)
@@ -406,7 +465,8 @@ var network = function() {
         return d.color;
       })
       .transition().duration(2000).attr("r", function(d) {
-        return bubbleRadius(d.matchCount);
+        // return bubbleRadius(d.matchCount);
+        return d.bubbleR;
       });
 
     // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
@@ -414,29 +474,36 @@ var network = function() {
       .attr({
         "class": "foreign-object",
         "width": function(d) {
-          return bubbleRadius(d.matchCount) * 2;
+          // return bubbleRadius(d.matchCount) * 2;
+          return d.bubbleR * 2;
         },
         "height": function(d) {
-          return bubbleRadius(d.matchCount) * 2;
+          // return bubbleRadius(d.matchCount) * 2;
+          return d.bubbleR * 2;
         },
         "transform": function(d) {
-          return "scale(0.9) translate(" + (-bubbleRadius(d.matchCount)) + ", " + (-bubbleRadius(d.matchCount)) + ")";
+          // return "scale(0.9) translate(" + (-bubbleRadius(d.matchCount)) + ", " + (-bubbleRadius(d.matchCount)) + ")";
+          return "scale(0.9) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
         }
       })
       .append("xhtml:p")
       .classed("txt-pool", true)
       .style({
         "width": function(d) {
-          return bubbleRadius(d.matchCount) *  2 + "px";
+          // return bubbleRadius(d.matchCount) *  2 + "px";
+          return d.bubbleR *  2 + "px";
         },
         "height": function(d) {
-          return bubbleRadius(d.matchCount) *  2 + "px";
+          // return bubbleRadius(d.matchCount) *  2 + "px";
+          return d.bubbleR *  2 + "px";
         },
         "max-width": function(d) {
-          return bubbleRadius(d.matchCount)  *  2 + "px";
+          // return bubbleRadius(d.matchCount)  *  2 + "px";
+          return d.bubbleR  *  2 + "px";
         },
         "max-height": function(d) {
-          return  bubbleRadius(d.matchCount) *  2  + "px";
+          // return  bubbleRadius(d.matchCount) *  2  + "px";
+          return  d.bubbleR *  2  + "px";
         },
         "font-size": "1em" // making it inline to override CSS rules
       })
@@ -448,22 +515,19 @@ var network = function() {
     touchMouseEvents(bubbleGroup, canvas.node(), {
       "test": false,
       "down": function(d,x,y) {
-        showAffiliates(d);
-        fadeNonAffiliates(d);
+        d3.event.stopPropagation();
+        makeReset();
+        focusAffiliates(d);
+        fadeContext(d);
       }
     });
 
   }; // createBubbleCloud()
 
-  var showAffiliates = function(d) {
+  var focusAffiliates = function(d) {
     var affiliatedLinks,
-      affiliatedPlayers;
-
-    playersContainer.selectAll(".player").selectAll("use").attr("class", null);
-    playersContainer.selectAll(".player").selectAll("text").attr("class", null);
-    linksContainer.selectAll("line")
-      .style("opacity", 0)
-      .attr("class", null);
+      affiliatedPlayers,
+      idBubble;
 
     affiliatedPlayers = playersContainer.selectAll(".player").filter(function(player) {
       return _.contains(d.createdBy, player._id);
@@ -482,9 +546,26 @@ var network = function() {
     affiliatedLinks
       .attr("class", d.color)
       .style("opacity", 1);
-  }; // showAffiliates()
 
-  var fadeNonAffiliates = function(d) {
+    // Always bring the selected <g> element to the front in case of overlapping elements.
+    // We can accomplish that by reordering the element in the DOM tree.
+    // Hence, we append the current selected <g> at the end of its parent because
+    // with SVG, the last element in the document tree is drawn on top
+    // cf. [as of 2015-10-05] http://bl.ocks.org/alignedleft/9612839
+    // cf. [as of 2015-10-05] http://www.adamwadeharris.com/how-to-bring-svg-elements-to-the-front/
+    idBubble = bubblesContainer.select("#gid" + d._id);
+    if (idBubble && idBubble.node()) {
+      idBubble.node().parentNode.appendChild(idBubble.node());
+    }
+    idBubble.select("circle")
+      .attr("class", d.color)
+      .transition()
+      .attr("r", function(d) {
+        return d.bubbleR * 1.5;
+      });
+  }; // focusAffiliates()
+
+  var fadeContext = function(d) {
     var nonAffiliatedPlayers,
       idBubbles;
 
@@ -501,10 +582,24 @@ var network = function() {
     bubblesContainer.selectAll(".id-circle circle").filter(function(circle) {
       return circle._id !== d._id;
     }).attr("class", "c00");
+  };
 
-    bubblesContainer.selectAll(".id-circle circle").filter(function(circle) {
-      return circle._id === d._id;
-    }).attr("class", d.color );
+  var makeReset = function() {
+    playersContainer.selectAll(".player").selectAll("use").attr("class", null);
+    playersContainer.selectAll(".player").selectAll("text").attr("class", null);
+
+    linksContainer.selectAll("line")
+      .style("opacity", 0)
+      .attr("class", null);
+
+    bubblesContainer.selectAll(".id-circle circle")
+      .attr("class", function(d) {
+        return d.color;
+      })
+      .transition()
+      .attr("r", function(d) {
+        return d.bubbleR;
+      });
   };
 
 }(); // 'network' module
