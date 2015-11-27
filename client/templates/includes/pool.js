@@ -293,7 +293,7 @@ var pool = function() {
           .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
           .attr("class", d.color);
       }
-      
+
       // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
       group.append("foreignObject")
         .attr({
@@ -304,7 +304,7 @@ var pool = function() {
             radius) + ")"
         })
           .append("xhtml:p")
-          .classed("txt-pool", true)
+          .classed("txt-inside-circle", true)
           .style({
             "width": radius *  2 + "px",
             "height": radius *  2 + "px",
@@ -355,7 +355,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
   group = d3.select("#gid" + idA._id);
   bubble = group.select("circle");
   fo = group.select(".foreign-object");
-  p = fo.select("p.txt-pool");
+  p = fo.select("p.txt-inside-circle");
   currentRadius = bubble.attr("r");
   currentScale = d3.transform(bubble.attr("transform")).scale[0];
   currentFontSize = p.style("font-size");
@@ -366,7 +366,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     currentRadiusB = bubbleB.attr("r");
     currentScaleB = d3.transform(bubbleB.attr("transform")).scale[0];
     foB = groupB.select(".foreign-object");
-    pB = foB.select("p.txt-pool");
+    pB = foB.select("p.txt-inside-circle");
   }
 
   if (io == "OUT-IN") {
@@ -462,7 +462,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       .duration(duration)
       .attr("transform", "scale(0)");
 
-    fo.select("p.txt-pool")
+    fo.select("p.txt-inside-circle")
       .transition()
       .delay(0)
       .duration(duration)
