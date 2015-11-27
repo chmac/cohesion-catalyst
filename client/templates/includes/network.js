@@ -465,7 +465,6 @@ var network = function() {
         return d.color;
       })
       .transition().duration(2000).attr("r", function(d) {
-        // return bubbleRadius(d.matchCount);
         return d.bubbleR;
       });
 
@@ -474,42 +473,54 @@ var network = function() {
       .attr({
         "class": "foreign-object",
         "width": function(d) {
-          // return bubbleRadius(d.matchCount) * 2;
-          return d.bubbleR * 2;
+          return d.bubbleR * 2 + "px";
         },
         "height": function(d) {
-          // return bubbleRadius(d.matchCount) * 2;
-          return d.bubbleR * 2;
+          return d.bubbleR * 2 + "px";
         },
         "transform": function(d) {
-          // return "scale(0.9) translate(" + (-bubbleRadius(d.matchCount)) + ", " + (-bubbleRadius(d.matchCount)) + ")";
           return "scale(0.9) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
         }
       })
       .append("xhtml:p")
-      .classed("txt-pool", true)
+      .classed("txt-inside-circle", true)
+      .text(function(d) {
+        return d.name;
+      })
       .style({
         "width": function(d) {
-          // return bubbleRadius(d.matchCount) *  2 + "px";
           return d.bubbleR *  2 + "px";
         },
         "height": function(d) {
-          // return bubbleRadius(d.matchCount) *  2 + "px";
           return d.bubbleR *  2 + "px";
         },
-        "max-width": function(d) {
-          // return bubbleRadius(d.matchCount)  *  2 + "px";
-          return d.bubbleR  *  2 + "px";
-        },
-        "max-height": function(d) {
-          // return  bubbleRadius(d.matchCount) *  2  + "px";
-          return  d.bubbleR *  2  + "px";
-        },
-        "font-size": "1em" // making it inline to override CSS rules
-      })
-      .text(function(d) {
-        return d.name;
+        // We set the 'font-size' based on the width of the parent element
+        // (here: the <foreignObject> element, the 'width' of which matches the <circle> diameter)
+        // and the length of the text inside the <p> element.
+        // We get the needed value by calculating the size of the <p> element.
+        "font-size": function(d) {
+          var textBox = this.getBoundingClientRect();
+          var textLen = textBox.width || textBox.right - textBox.left;
+          return (d.bubbleR * 2 - 10) / textLen + "em";
+        }
       });
+
+      // // EXPERIMENT:
+      // // Using an SVG <text> element it is possible to automatically
+      // // size the text to occupy all of the available space inside the <circle>
+      // bubbleGroup.append("text")
+      //   .text(function(d) {
+      //     return d.name;
+      //   })
+      //   .style({
+      //     "dominant-baseline": "middle",
+      //     "text-anchor": "middle",
+      //     "pointer-events": "none",
+      //     "font-size": function(d) {
+      //       var textLen = this.getComputedTextLength();
+      //       return Math.min(d.bubbleR * 2, (d.bubbleR * 2 - 8) / textLen) + "em";
+      //     }
+      //   });
 
     // Call the function to handle touch and mouse events, respectively.
     touchMouseEvents(bubbleGroup, canvas.node(), {
