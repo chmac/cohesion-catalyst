@@ -59,3 +59,16 @@ body {
   fill: #000;
   pointer-events: all;
 }
+
+p.txt-inside-circle {
+  text-align: center;
+  word-wrap: break-word;
+  display: table-cell;
+  vertical-align: middle;
+  font-family: sans-serif;
+  font-size: 1.2em;
+  line-height: 1.4em;
+  padding: 0 3px;
+  cursor: default;
+  color: #000;
+}
