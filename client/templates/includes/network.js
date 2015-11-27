@@ -479,7 +479,7 @@ var network = function() {
           return d.bubbleR * 2 + "px";
         },
         "transform": function(d) {
-          return "scale(0.9) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
+          return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
         }
       })
       .append("xhtml:p")
@@ -501,7 +501,7 @@ var network = function() {
         "font-size": function(d) {
           var textBox = this.getBoundingClientRect();
           var textLen = textBox.width || textBox.right - textBox.left;
-          return (d.bubbleR * 2 - 10) / textLen + "em";
+          return (d.bubbleR * 2 - 5) / textLen + "em";
         }
       });
 
@@ -515,10 +515,11 @@ var network = function() {
       //   .style({
       //     "dominant-baseline": "middle",
       //     "text-anchor": "middle",
-      //     "pointer-events": "none",
+      //     // "pointer-events": "none",
       //     "font-size": function(d) {
       //       var textLen = this.getComputedTextLength();
-      //       return Math.min(d.bubbleR * 2, (d.bubbleR * 2 - 8) / textLen) + "em";
+      //       // return Math.min(d.bubbleR * 2, (d.bubbleR * 2 - 10) / textLen) + "em";
+      //       return (d.bubbleR * 2 - 10) / textLen + "em";
       //     }
       //   });
 
@@ -568,12 +569,23 @@ var network = function() {
     if (idBubble && idBubble.node()) {
       idBubble.node().parentNode.appendChild(idBubble.node());
     }
+
     idBubble.select("circle")
       .attr("class", d.color)
       .transition()
       .attr("r", function(d) {
         return d.bubbleR * 1.5;
       });
+
+    idBubble.select(".foreign-object")
+      .transition()
+      .attr("transform", function(d) {
+          return "scale(1.5) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
+      });
+
+    // idBubble.select("text")
+    //   .transition()
+    //   .attr("transform", "scale(1.5)");
   }; // focusAffiliates()
 
   var fadeContext = function(d) {
@@ -611,6 +623,16 @@ var network = function() {
       .attr("r", function(d) {
         return d.bubbleR;
       });
+
+    bubblesContainer.selectAll(".foreign-object")
+      .transition()
+      .attr("transform", function(d) {
+          return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
+      });
+
+    // bubblesContainer.selectAll("text")
+    //   .transition()
+    //   .attr("transform", "scale(1.0)");
   };
 
 }(); // 'network' module
