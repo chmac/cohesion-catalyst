@@ -55,7 +55,6 @@ var network = function() {
       size: avatarSize
     };
 
-    console.log(playersConfig.radius);
     createPlayersCircle(currentPlayers, playersConfig);
 
     templateInstance.autorun(function() {
@@ -112,10 +111,6 @@ var network = function() {
       }
     });
 
-
-    console.log(currentNetworkIds);
-
-
     // createBubbleCloud(bubbleRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
 
   });
@@ -126,10 +121,6 @@ var network = function() {
                        "down": function(d) {
                          d3.event.preventDefault(); // prevent DOM element selection etc.
                          makeReset();
-                        //  bubblesContainer.selectAll(".id-circle circle")
-                        //    .attr("class", function(d) {
-                        //      return d.color;
-                        //    });
                        }
                      }
     );
@@ -149,7 +140,7 @@ var network = function() {
   }); // onRendered()
 
 
-  function assembleAroundCenter(event) {
+  function updatePositions(event) {
     var damping = 0.1;
 
     // currentNetworkIds.forEach(function(datum, i) {
@@ -174,7 +165,7 @@ var network = function() {
       .attr("y2", function(d) {
         return d.target.y;
       });
-  } // assembleAroundCenter()
+  } // updatePositions()
 
 
   var addToNetworkIds = function(metaId) {
@@ -338,7 +329,12 @@ var network = function() {
     // calculated the dimensions of each <text> so that each <rect> will
     // perfectly match the 'width' and 'height' of the respecting <text> area.
     playerGroup.append("rect")
-      .attr("transform", "translate(0," + (config.size / 2 + 5) + ")");
+      .attr("class", "txt-background")
+      .attr("transform", "translate(0," + (config.size / 2 + 5) + ")")
+      .style({
+        fill: "#000",
+        "fill-opacity": 0.6
+      });
 
     playerGroup.append("text")
       .attr("text-anchor", "middle")
@@ -360,7 +356,7 @@ var network = function() {
 
     // Accessing the previously calculated values we can now
     // apply the missing <rect> attributes.
-    playersContainer.selectAll("rect")
+    playersContainer.selectAll("rect.txt-background")
       .attr({
         x: function(d) {
           return d.textX;
@@ -374,17 +370,13 @@ var network = function() {
         height: function(d) {
           return d.textHeight;
         }
-      })
-      .style({
-        fill: "#000",
-        "fill-opacity": 0.6
       });
   }; // createPlayersCircle()
 
 
   var createBubbleCloud = function(radius, width, height, config, dataset, canvas) {
     var count = _.pluck(currentNetworkIds, "matchCount");
-    var bubbleRadius = d3.scale.sqrt()
+    var bubbleRadius = d3.scale.linear()
       .domain([d3.min(count), d3.max(count)])
       .range([radius * 0.1, radius * 0.2]);
 
@@ -397,7 +389,7 @@ var network = function() {
           .charge(function(d) {
             return -Math.pow(bubbleRadius(d.matchCount) * 2, 2.0);
           })
-      .on("tick", assembleAroundCenter)
+      .on("tick", updatePositions)
           .friction(0.7);
       }
       force
