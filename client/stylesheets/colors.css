@@ -57,10 +57,10 @@
   color: #bcbd22;
 }
 
-/* light olive */
+/* smokey red */
 .c8 {
-  fill: #dbdb8d;
-  color: #dbdb8d;
+  fill: #ad494a;
+  color: #ad494a;
 }
 
 /* pink */
@@ -69,16 +69,16 @@
  color: #e377c2;
 }
 
-/* light pink*/
+/* light red */
 .c10 {
-  fill: #f7b6d2;
-  color: #f7b6d2;
+  fill: #ff9896;
+  color: #ff9896;
 }
 
-/* plum */
+/* petrol */
 .c11 {
-  fill: #a55194;
-  color: #a55194;
+  fill: #1f77b4;
+  color: #1f77b4;
 }
 
 /* yellow-ish */
