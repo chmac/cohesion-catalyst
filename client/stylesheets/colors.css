@@ -45,10 +45,10 @@
   color: #9467bd;
 }
 
-/* light purple */
+/* lavender */
 .c6 {
-  fill: #c5b0d5;
-  color: #c5b0d5;
+  fill: #9c9ede;
+  color: #9c9ede;
 }
 
 /* olive */
@@ -75,16 +75,16 @@
   color: #f7b6d2;
 }
 
-/* brown */
+/* plum */
 .c11 {
-  fill: #8c564b;
-  color: #8c564b;
+  fill: #a55194;
+  color: #a55194;
 }
 
-/* light brown */
+/* yellow-ish */
 .c12 {
-  fill: #c49c94;
-  color: #c49c94;
+  fill: #e7ba52;
+  color: #e7ba52;
 }
 
 /* turquois */
@@ -93,8 +93,8 @@
   color: #17becf;
 }
 
-/* light turquois */
+/* aqua */
 .c14 {
-  fill: #9edae5;
-  color: #9edae5;
+  fill: #6baed6;
+  color: #6baed6;
 }
