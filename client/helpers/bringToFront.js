@@ -11,7 +11,6 @@
  * @param {object} selection - The current D3 selection to be moved to the front.
  */
 bringToFront = function(selection) {
-  console.log(typeof selection);
   if (selection && selection.node()) {
     selection.node().parentNode.appendChild(selection.node());
   }
