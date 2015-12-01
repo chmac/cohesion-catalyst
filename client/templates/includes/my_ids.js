@@ -579,7 +579,7 @@ Template.myIds.onRendered(function() {
           // When the user hits 'ENTER' (i.e. keycode 13) we call the 'editIdentification' method
           // defined at {@see identifications.js} to update the fields 'name' and
           // 'editCompleted' of the current document in the 'Identifications'
-          // collection. The value of 'editCompleted' is set to 'true' if we  on what is returned
+          // collection. The value of 'editCompleted' is set to the value that is returned
           // from the check
           if (d3.event.keyCode === 13) {
 
@@ -588,7 +588,7 @@ Template.myIds.onRendered(function() {
             inputTxt.node().blur();
             deselectCurrentNode();
 
-          // User is still editing, so the 'editCompleted' field
+          // User is still editing, so the 'editCompleted' field is 'false'
           } else {
 
             Meteor.call("editIdentification", d._id, newName, false);
@@ -833,7 +833,7 @@ function selectNodeElement(element) {
   } else {
     // Always bring the selected <g> element to the front in case of overlapping elements.
     var domSelection = d3.select("#gid" + element._id);
-    bringToFront(domSelection);    
+    bringToFront(domSelection);
     domSelection.classed({
       "node-selected": true
     });
