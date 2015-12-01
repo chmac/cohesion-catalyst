@@ -8,7 +8,7 @@
  * cf. [as of 2015-10-05] http://bl.ocks.org/alignedleft/9612839
  * cf. [as of 2015-10-05] http://www.adamwadeharris.com/how-to-bring-svg-elements-to-the-front/
  *
- * @param {} selection - The current D3 selection to be moved to the front.
+ * @param {object} selection - The current D3 selection to be moved to the front.
  */
 bringToFront = function(selection) {
   console.log(typeof selection);
