@@ -832,15 +832,8 @@ function selectNodeElement(element) {
     // nada
   } else {
     // Always bring the selected <g> element to the front in case of overlapping elements.
-    // We can accomplish that by reordering the element in the DOM tree.
-    // Hence, we append the current selected <g> at the end of its parent because
-    // with SVG, the last element in the document tree is drawn on top
-    // cf. [as of 2015-10-05] http://bl.ocks.org/alignedleft/9612839
-    // cf. [as of 2015-10-05] http://www.adamwadeharris.com/how-to-bring-svg-elements-to-the-front/
     var domSelection = d3.select("#gid" + element._id);
-    if (domSelection.node()) {
-      domSelection.node().parentNode.appendChild(domSelection.node());
-    }
+    bringToFront(domSelection);    
     domSelection.classed({
       "node-selected": true
     });
