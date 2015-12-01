@@ -32,17 +32,10 @@ var network = function() {
     var clientWidth = document.documentElement.clientWidth;
     var clientHeight = document.documentElement.clientHeight - avatarSize;
     var outerRadius = Math.min(clientWidth, clientHeight - avatarSize / 2) / 2 - avatarSize / 2;
-    // var bubbleRadius = Math.floor(outerRadius * 0.1);
-
 
 
     // create the drawingSurface to render into
     drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
-    // linksContainer = drawingSurface.append("g").attr("id", "links-group");
-    // bubblesContainer = drawingSurface.append("g").attr("id", "bubbles-group");
-    playersContainer = drawingSurface.append("g").attr("id", "players-group");
-    // bubbles = bubblesContainer.selectAll(".id-circle");
-    // links = linksContainer.selectAll("line");
     bubbles = drawingSurface.selectAll(".id-circle");
     links = drawingSurface.selectAll("line");
 
@@ -60,24 +53,6 @@ var network = function() {
     createPlayersCircle(currentPlayers, playersConfig);
 
     templateInstance.autorun(function() {
-
-    // var currentNetworkIds = MetaCollection.find({
-    //   $nor: [
-    //     {
-    //       createdBy: {
-    //         $exists: false
-    //       }
-    //     }, {
-    //       createdBy: {
-    //         $size: 0
-    //       }
-    //     }, {
-    //       createdBy: {
-    //         $size: 1
-    //       }
-    //     }
-    //   ]
-    // }).fetch();
 
     var currentNetworkCursor = MetaCollection.find({
       $nor: [
@@ -293,7 +268,6 @@ var network = function() {
     //   })
     //   .style("fill", "rgba(206, 206, 206, 0.5)");
 
-    // var playerElements = playersContainer.selectAll(".player").data(radialPlayers, function(d, i) {
     var playerElements = drawingSurface.selectAll(".player").data(radialPlayers, function(d, i) {
       return d._id;
     });
@@ -349,7 +323,6 @@ var network = function() {
 
     // We calculate the dimension values of the <text> element and
     // add them to the player's data.
-    // playersContainer.selectAll("text").each(function(d,i) {
     drawingSurface.selectAll("text").each(function(d,i) {
       var dimensions = this.getBBox();
       d.textX = dimensions.x;
@@ -360,7 +333,6 @@ var network = function() {
 
     // Accessing the previously calculated values we can now
     // apply the missing <rect> attributes.
-    // playersContainer.selectAll("rect.txt-background")
     drawingSurface.selectAll("rect.txt-background")
       .attr({
         x: function(d) {
@@ -386,7 +358,7 @@ var network = function() {
         var currentUserId = Meteor.userId();
         if (d && d._id == currentUserId) {
           makeReset();
-          showCurrentPlayerIds(d._id);
+          showLinksToCurrentPlayerIds(d._id);
         } else {
           makeReset();
         }
@@ -428,7 +400,6 @@ var network = function() {
 
     links.exit().remove();
 
-    // links.enter().insert("line", "g.id-circle")
     links.enter().insert("line", "g")
       .style({
         "opacity": 0,
@@ -460,8 +431,8 @@ var network = function() {
       })
       .on("mouseover", function(d,x,y) {
         makeReset();
-        focusAffiliates(d);
-        fadeContext(d);
+        showCommonMemberships(d);
+        fadeNonMemberships(d);
       })
       .on("mouseout", function(d) {
         makeReset();
@@ -544,54 +515,47 @@ var network = function() {
       "down": function(d,x,y) {
         d3.event.stopPropagation();
         makeReset();
-        focusAffiliates(d);
-        fadeContext(d);
+        showCommonMemberships(d);
+        fadeNonMemberships(d);
       }
     });
 
   }; // createBubbleCloud()
 
-  var focusAffiliates = function(d) {
-    var affiliatedLinks,
-      affiliatedPlayers,
+  /**
+   *
+   */
+  var showCommonMemberships = function(d) {
+    var membershipLinks,
+      membershipPlayers,
       idBubble;
 
-    // affiliatedPlayers = playersContainer.selectAll(".player").filter(function(player) {
-    affiliatedPlayers = drawingSurface.selectAll(".player").filter(function(player) {
+    membershipPlayers = drawingSurface.selectAll(".player").filter(function(player) {
       return _.contains(d.createdBy, player._id);
     });
 
-    // affiliatedLinks = linksContainer.selectAll("line").filter(function(link) {
-    affiliatedLinks = drawingSurface.selectAll("line").filter(function(link) {
+    membershipLinks = drawingSurface.selectAll("line").filter(function(link) {
       return link.source._id === d._id;
     });
 
     // Bring the selected <line> elements to the front.
-    affiliatedLinks.each(function(d,i) {
-      d3.select(this).node().parentNode.appendChild(d3.select(this).node());
+    membershipLinks.each(function(d,i) {
+      bringToFront(d3.select(this));
     });
 
-    affiliatedPlayers.selectAll("use")
+    membershipPlayers.selectAll("use")
       .attr("class", d.color);
 
-    affiliatedPlayers.selectAll("text")
+    membershipPlayers.selectAll("text")
       .attr("class", d.color);
 
-    affiliatedLinks
+    membershipLinks
       .attr("class", d.color)
       .style("opacity", 1);
 
-    // Always bring the selected <g> element to the front in case of overlapping elements.
-    // We can accomplish that by reordering the element in the DOM tree.
-    // Hence, we append the current selected <g> at the end of its parent because
-    // with SVG, the last element in the document tree is drawn on top
-    // cf. [as of 2015-10-05] http://bl.ocks.org/alignedleft/9612839
-    // cf. [as of 2015-10-05] http://www.adamwadeharris.com/how-to-bring-svg-elements-to-the-front/
-    // idBubble = bubblesContainer.select("#gid" + d._id);
+
     idBubble = drawingSurface.select("#gid" + d._id);
-    if (idBubble && idBubble.node()) {
-      idBubble.node().parentNode.appendChild(idBubble.node());
-    }
+    bringToFront(idBubble);
 
     idBubble.select("circle")
       .attr("class", d.color)
@@ -612,44 +576,39 @@ var network = function() {
 
     // Bring the player elements in question to the front - must be the last to be
     // appended to the DOM in order to be "drawn" on top of the lines.
-    affiliatedPlayers.each(function(d,i) {
-      d3.select(this).node().parentNode.appendChild(d3.select(this).node());
+    membershipPlayers.each(function(d,i) {
+      bringToFront(d3.select(this));
     });
-  }; // focusAffiliates()
 
-  var fadeContext = function(d) {
-    var nonAffiliatedPlayers,
+  }; // showCommonMemberships()
+
+  var fadeNonMemberships = function(d) {
+    var nonmembershipPlayers,
       idBubbles;
 
-    // nonAffiliatedPlayers = playersContainer.selectAll(".player").filter(function(player) {
-    nonAffiliatedPlayers = drawingSurface.selectAll(".player").filter(function(player) {
+    nonmembershipPlayers = drawingSurface.selectAll(".player").filter(function(player) {
       return !_.contains(d.createdBy, player._id);
     });
 
-    nonAffiliatedPlayers.selectAll("use")
+    nonmembershipPlayers.selectAll("use")
       .attr("class", "c00");
 
-    nonAffiliatedPlayers.selectAll("text")
+    nonmembershipPlayers.selectAll("text")
       .attr("class", "c00");
 
-    // bubblesContainer.selectAll(".id-circle circle").filter(function(circle) {
     drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
       return circle._id !== d._id;
     }).attr("class", "c00");
-  }; // fadeContext()
+  }; // fadeNonMemberships()
 
   var makeReset = function() {
-    // playersContainer.selectAll(".player").selectAll("use").attr("class", null);
-    // playersContainer.selectAll(".player").selectAll("text").attr("class", null);
     drawingSurface.selectAll(".player").selectAll("use").attr("class", null);
     drawingSurface.selectAll(".player").selectAll("text").attr("class", null);
 
-    // linksContainer.selectAll("line")
     drawingSurface.selectAll("line")
       .style("opacity", 0)
       .attr("class", null);
 
-    // bubblesContainer.selectAll(".id-circle circle")
     drawingSurface.selectAll(".id-circle circle")
       .style("opacity", 1)
       .attr("class", function(d) {
@@ -660,7 +619,6 @@ var network = function() {
         return d.bubbleR;
       });
 
-    // bubblesContainer.selectAll(".foreign-object")
     drawingSurface.selectAll(".foreign-object")
       .transition()
       .attr("transform", function(d) {
@@ -672,18 +630,17 @@ var network = function() {
     //   .attr("transform", "scale(1.0)");
   }; // makeReset()
 
-  var showCurrentPlayerIds = function(playerId) {
+  var showLinksToCurrentPlayerIds = function(playerId) {
     // linksContainer.selectAll("line").filter(function(link) {
     drawingSurface.selectAll("line").filter(function(link) {
       return link.target._id === playerId;
     })
     .style("opacity", 1);
 
-    // var xIds = bubblesContainer.selectAll(".id-circle circle").filter(function(circle) {
-    var xIds = drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
+    var otherIds = drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
       return !_.contains(circle.createdBy, playerId);
     });
-    xIds.style("opacity", 0.6);
-  };
+    otherIds.style("opacity", 0.5);
+  }; // showLinksToCurrentPlayerIds
 
 }(); // 'network' module
