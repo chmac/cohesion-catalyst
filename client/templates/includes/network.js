@@ -76,7 +76,7 @@ var network = function() {
       added: function(doc) {
         addToNetworkIds(doc);
         dataset = setupLinksData(currentPlayers, currentNetworkIds);
-        createBubbleCloud(outerRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
+        createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
       },
       changed: function(newDoc,oldDoc) {
 
@@ -84,11 +84,9 @@ var network = function() {
       removed: function(doc) {
         removeFromNetworkIds(doc);
         dataset = setupLinksData(currentPlayers, currentNetworkIds);
-        createBubbleCloud(outerRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
+        createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
       }
     });
-
-    // createBubbleCloud(bubbleRadius, clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
 
   });
     // set up mouse events
@@ -144,23 +142,26 @@ var network = function() {
       });
   } // updatePositions()
 
-
+  /**
+   * Adds an incoming MetaId to the network data array.
+   * @param {Object} metaId - The document newly inserted to the MetaCollection.
+   */
   var addToNetworkIds = function(metaId) {
-        // console.log(metaId);
+    // Workaround for multiple calls of the 'added' callback.
     for (var i = 0; i < currentNetworkIds.length; i++) {
-        // console.log(currentNetworkIds[i]);
-        // console.log(metaId);
       if (currentNetworkIds[i].name == metaId.name) {
         return console.log("already in");
       }
-
     }
-        var newNetworkId = _.extend(metaId, {matchCount: metaId.createdBy.length});
-        // console.log(newNetworkId);
-        currentNetworkIds.push(newNetworkId);
-        return currentNetworkIds;
+    var newNetworkId = _.extend(metaId, {matchCount: metaId.createdBy.length});
+    currentNetworkIds.push(newNetworkId);
   };
 
+
+  /**
+   * Removes a deleted MetaId from the network data array.
+   * @param {Object} metaId - The document removed from the MetaCollection.
+   */
   var removeFromNetworkIds = function(metaId) {
     currentNetworkIds.forEach(function(networkId, i, network) {
       if (network[i] && network[i]._id === metaId._id) {
@@ -224,7 +225,15 @@ var network = function() {
 
   };
 
-
+  /**
+   * Matches the data of the players and the identifications to
+   * create objects with {@code source} and {@code target} attributes
+   * which serves as the data for the force layout's associated links.
+   *
+   * @param {Array} playerData The user documents of the current training.
+   * @param {Array} networkData The metaIds documents of the current training.
+   * @return {Array} An array of objects to be used to link source and target nodes.
+   */
   var setupLinksData = function(playerData, networkData) {
     var linksData = [];
 
@@ -367,11 +376,21 @@ var network = function() {
   }; // createPlayersCircle()
 
 
-  var createBubbleCloud = function(radius, width, height, config, dataset, canvas) {
+  /**
+   * Creates the cloud of Id-Bubbles.
+   * We use D3's force directed layout to create the visualization of the ID network.
+   * The bubble cloud will be arranged inside the the outer ring formed by the players.
+   * @param {Object} config - Properties of the player circle to be used for calculations.
+   * @param {Number} width - The current width of the browser viewport.
+   * @param {Number} height - The current height of the browser viewport.
+   * @param {Array} dataset - The data to be applied to the links of the force layout.
+   * @param {Object} canvas - The drawing area.
+   */
+  var createBubbleCloud = function(config, width, height, dataset, canvas) {
     var count = _.pluck(currentNetworkIds, "matchCount");
     var bubbleRadius = d3.scale.linear()
       .domain([d3.min(count), d3.max(count)])
-      .range([radius * 0.1, radius * 0.2]);
+      .range([config.radius * 0.1, config.radius * 0.2]);
 
       if(!force) {
         force = d3.layout.force()
@@ -382,7 +401,7 @@ var network = function() {
           .charge(function(d) {
             return -Math.pow(bubbleRadius(d.matchCount) * 2, 2.0);
           })
-      .on("tick", updatePositions)
+          .on("tick", updatePositions)
           .friction(0.7);
       }
       force
@@ -523,7 +542,11 @@ var network = function() {
   }; // createBubbleCloud()
 
   /**
-   *
+   * Handles the event when a user taps/clicks on an Id bubble
+   * by highlighting the selected bubble, the links and all the linked
+   * players in the color of the Id. In addition, the size of the bubble
+   * will be sligthly increased.
+   * @param {Object} d - The data object bound to the selected element.
    */
   var showCommonMemberships = function(d) {
     var membershipLinks,
@@ -538,7 +561,9 @@ var network = function() {
       return link.source._id === d._id;
     });
 
-    // Bring the selected <line> elements to the front.
+    // 1. Drawing layer
+    // Bring the associated <line> elements to the front
+    // so that they will be drawn on top of the surrounding Id bubbles.
     membershipLinks.each(function(d,i) {
       bringToFront(d3.select(this));
     });
@@ -553,7 +578,9 @@ var network = function() {
       .attr("class", d.color)
       .style("opacity", 1);
 
-
+    // 2. Drawing layer
+    // Bring the clicked on Id bubble, i.e. <g> element to the front
+    // so that it overlapps each connected <line> element.
     idBubble = drawingSurface.select("#gid" + d._id);
     bringToFront(idBubble);
 
@@ -574,14 +601,20 @@ var network = function() {
     //   .transition()
     //   .attr("transform", "scale(1.5)");
 
+    // 3. Drawing layer
     // Bring the player elements in question to the front - must be the last to be
-    // appended to the DOM in order to be "drawn" on top of the lines.
+    // appended to the DOM in order to be drawn on top of the <line> elements.
     membershipPlayers.each(function(d,i) {
       bringToFront(d3.select(this));
     });
 
   }; // showCommonMemberships()
 
+
+  /**
+   * Fades all of the surrounding bubbles when a user taps/clicks on an Id bubble.
+   * @param {Object} d - The data object bound to the clicked on element.
+   */
   var fadeNonMemberships = function(d) {
     var nonmembershipPlayers,
       idBubbles;
@@ -601,6 +634,10 @@ var network = function() {
     }).attr("class", "c00");
   }; // fadeNonMemberships()
 
+
+  /**
+   * Resets all of the applied styles to the default.
+   */
   var makeReset = function() {
     drawingSurface.selectAll(".player").selectAll("use").attr("class", null);
     drawingSurface.selectAll(".player").selectAll("text").attr("class", null);
@@ -630,6 +667,12 @@ var network = function() {
     //   .attr("transform", "scale(1.0)");
   }; // makeReset()
 
+
+  /**
+   * Handles the event when a user taps/clicks on the owned player avatar.
+   * Highlights the links drawn to the player's Ids.
+   * @param {String} playerId - The user '_id' value bound to this player.
+   */
   var showLinksToCurrentPlayerIds = function(playerId) {
     // linksContainer.selectAll("line").filter(function(link) {
     drawingSurface.selectAll("line").filter(function(link) {
