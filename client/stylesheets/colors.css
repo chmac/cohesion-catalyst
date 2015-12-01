@@ -15,16 +15,16 @@
   color: #fff;
 }
 
-/* orange*/
+/* yellow*/
 .c1 {
-  fill: #ff7f0e;
-  color: #ff7f0e;
+  fill: #ffeb0c;
+  color: #ffeb0c;
 }
 
-/* light orange */
+/* purple */
 .c2 {
-  fill: #ffbb78;
-  color: #ffbb78;
+  fill: #9467bd;
+  color: #9467bd;
 }
 
 /* green */
@@ -33,23 +33,24 @@
   color: #2ca02c;
 }
 
-/* light green */
+/* pink */
 .c4 {
-  fill: #98df8a;
-  color: #98df8a;
+ fill: #e377c2;
+ color: #e377c2;
 }
 
-/* purple */
+/* light-blue */
 .c5 {
-  fill: #9467bd;
-  color: #9467bd;
+  fill: #60bce9;
+  color: #60bce9;
 }
 
-/* lavender */
+/* orange*/
 .c6 {
-  fill: #9c9ede;
-  color: #9c9ede;
+  fill: #ff7f0e;
+  color: #ff7f0e;
 }
+
 
 /* olive */
 .c7 {
@@ -57,16 +58,16 @@
   color: #bcbd22;
 }
 
-/* smokey red */
+/* turquois */
 .c8 {
-  fill: #ad494a;
-  color: #ad494a;
+  fill: #17becf;
+  color: #17becf;
 }
 
-/* pink */
+/* light green */
 .c9 {
- fill: #e377c2;
- color: #e377c2;
+  fill: #98df8a;
+  color: #98df8a;
 }
 
 /* light red */
@@ -75,26 +76,8 @@
   color: #ff9896;
 }
 
-/* petrol */
-.c11 {
-  fill: #1f77b4;
-  color: #1f77b4;
-}
-
 /* yellow-ish */
-.c12 {
+.c11 {
   fill: #e7ba52;
   color: #e7ba52;
-}
-
-/* turquois */
-.c13 {
-  fill: #17becf;
-  color: #17becf;
-}
-
-/* aqua */
-.c14 {
-  fill: #6baed6;
-  color: #6baed6;
 }
