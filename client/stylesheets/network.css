@@ -13,9 +13,3 @@
   fill: #fff;
   font-size: 1.125em;
 }
-
-/* default color - may be overwritten with inline-style */
-line {
-  color: #fff;
-  stroke-width: 3;
-}

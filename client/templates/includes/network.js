@@ -432,7 +432,8 @@ var network = function() {
     links.enter().insert("line", "g")
       .style({
         "opacity": 0,
-        "stroke": "currentColor"
+        "stroke": "currentColor",
+        "stroke-width": 3
       })
       .attr("x1", function(d) {
         return d.source.x;
