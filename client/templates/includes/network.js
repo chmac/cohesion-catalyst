@@ -100,18 +100,6 @@ var network = function() {
                      }
     );
 
-    // d3.select(window).on("resize", function() {
-    //   clientWidth = document.documentElement.clientWidth;
-    //   clientHeight = document.documentElement.clientHeight;
-    //
-    //   playersConfig.radius = Math.min(clientWidth, clientHeight-avatarSize/2) / 2 - avatarSize / 2;
-    //   playersConfig.centerX = clientWidth / 2;
-    //   playersConfig.centerY= clientHeight / 2;
-    //
-    //   drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
-    //   createPlayersCircle(currentPlayers, playersConfig);
-    //   createBubbleCloud(clientWidth, clientHeight, playersConfig, dataset, drawingSurface);
-    // });
   }); // onRendered()
 
 
@@ -674,16 +662,44 @@ var network = function() {
    * @param {String} playerId - The user '_id' value bound to this player.
    */
   var showLinksToCurrentPlayerIds = function(playerId) {
-    // linksContainer.selectAll("line").filter(function(link) {
-    drawingSurface.selectAll("line").filter(function(link) {
-      return link.target._id === playerId;
-    })
-    .style("opacity", 1);
+    var currentLinks,
+      currentPlayer,
+      currentIdBubbles,
+      otherIds;
 
-    var otherIds = drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
+    currentLinks = drawingSurface.selectAll("line").filter(function(link) {
+      return link.target._id === playerId;
+    });
+    currentLinks.each(function(d, i) {
+      bringToFront(d3.select(this));
+      d3.select(this).style("opacity", 1);
+    });
+
+    currentIdBubbles = drawingSurface.selectAll(".id-circle").filter(function(circle) {
+      return _.contains(circle.createdBy, playerId);
+    });
+    currentIdBubbles.each(function(d, i) {
+      bringToFront(d3.select(this));
+    });
+
+    currentPlayer = drawingSurface.select("#gid" + playerId);
+    bringToFront(currentPlayer);
+
+    otherIds = drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
       return !_.contains(circle.createdBy, playerId);
     });
     otherIds.style("opacity", 0.5);
   }; // showLinksToCurrentPlayerIds
 
 }(); // 'network' module
+
+
+// var getCurrentAvatar = function() {
+//
+//     var defaultAvatarURL = "/svg/avatars.svg#smiley-smile";
+//     var currentAvatar = Avatars.findOne({
+//       type: d.profile.avatar
+//     });
+//     return currentAvatar && currentAvatar.url || defaultAvatarURL;
+//
+// };
