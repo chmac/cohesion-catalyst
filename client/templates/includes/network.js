@@ -18,13 +18,9 @@ var network = function() {
     currentNetworkIds = [],
     dataset = [];
 
-  Template.idNetwork.onCreated(function() {
-  //  force  = d3.layout.force();
-  }); // onCreated()
-
-
 
   Template.idNetwork.onRendered(function() {
+    currentNetworkIds = [];
     var templateInstance = this;
 
     var avatarSize = 150;
@@ -33,6 +29,15 @@ var network = function() {
     var clientHeight = document.documentElement.clientHeight - avatarSize;
     var outerRadius = Math.min(clientWidth, clientHeight - avatarSize / 2) / 2 - avatarSize / 2;
 
+    // Create the force layout and specify some settings.
+    // Don't start yet
+    force = d3.layout.force()
+      .nodes(currentNetworkIds)
+      // .links([])
+      .size([clientWidth, clientHeight])
+      .gravity(0.8)
+      .on("tick", updatePositions)
+      .friction(0.7);
 
     // create the drawingSurface to render into
     drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
@@ -54,41 +59,46 @@ var network = function() {
 
     templateInstance.autorun(function() {
 
-    var currentNetworkCursor = MetaCollection.find({
-      $nor: [
-        {
-          createdBy: {
-            $exists: false
+      var currentNetworkCursor = MetaCollection.find({
+        $nor: [
+          {
+            createdBy: {
+              $exists: false
+            }
+          }, {
+            createdBy: {
+              $size: 0
+            }
+          }, {
+            createdBy: {
+              $size: 1
+            }
           }
-        }, {
-          createdBy: {
-            $size: 0
-          }
-        }, {
-          createdBy: {
-            $size: 1
-          }
+        ]
+      });
+
+
+      currentNetworkCursor.observe({
+        added: function(doc) {
+          addToNetworkIds(doc);
+          dataset = setupLinksData(currentPlayers, currentNetworkIds);
+          createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+        },
+        changed: function(newDoc,oldDoc) {
+          console.log("CHANGE: ", newDoc.createdBy, "---", oldDoc.createdBy);
+        },
+        removed: function(doc) {
+          removeFromNetworkIds(doc);
+          dataset = setupLinksData(currentPlayers, currentNetworkIds);
+          createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
         }
-      ]
-    });
+      });
 
-    currentNetworkCursor.observe({
-      added: function(doc) {
-        addToNetworkIds(doc);
-        dataset = setupLinksData(currentPlayers, currentNetworkIds);
-        createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
-      },
-      changed: function(newDoc,oldDoc) {
+    }); // autorun()
 
-      },
-      removed: function(doc) {
-        removeFromNetworkIds(doc);
-        dataset = setupLinksData(currentPlayers, currentNetworkIds);
-        createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
-      }
-    });
+    // Start the force layout
+    force.start();
 
-  });
     // set up mouse events
     touchMouseEvents(drawingSurface, // target
                      drawingSurface.node(), // container for position calculation
@@ -136,12 +146,14 @@ var network = function() {
    */
   var addToNetworkIds = function(metaId) {
     // Workaround for multiple calls of the 'added' callback.
-    for (var i = 0; i < currentNetworkIds.length; i++) {
-      if (currentNetworkIds[i].name == metaId.name) {
-        return console.log("already in");
-      }
-    }
-    var newNetworkId = _.extend(metaId, {matchCount: metaId.createdBy.length});
+    // for (var i = 0; i < currentNetworkIds.length; i++) {
+    //   if (currentNetworkIds[i].name == metaId.name) {
+    //     // return console.log("already in");
+    //     return;
+    //   }
+    // }
+    var newNetworkId = metaId;
+    newNetworkId.matchCount = metaId.createdBy.length;
     currentNetworkIds.push(newNetworkId);
   };
 
@@ -376,24 +388,9 @@ var network = function() {
    */
   var createBubbleCloud = function(config, width, height, dataset, canvas) {
     var count = _.pluck(currentNetworkIds, "matchCount");
-    var bubbleRadius = d3.scale.linear()
+    var mapRadius = d3.scale.linear()
       .domain([d3.min(count), d3.max(count)])
       .range([config.radius * 0.1, config.radius * 0.2]);
-
-      if(!force) {
-        force = d3.layout.force()
-          .nodes(currentNetworkIds)
-          // .links([])
-          .size([width, height])
-          .gravity(0.8)
-          .charge(function(d) {
-            return -Math.pow(bubbleRadius(d.matchCount) * 2, 2.0);
-          })
-          .on("tick", updatePositions)
-          .friction(0.7);
-      }
-      force
-        .start();
 
     bubbles = bubbles.data(currentNetworkIds, function(d) {
       return d._id;
@@ -449,7 +446,7 @@ var network = function() {
     // So, we calculate the radius for each element in the selection and
     // add it to each element's bound data for later use.
     bubbleGroup.each(function(d) {
-      d.bubbleR = bubbleRadius(d.matchCount);
+      d.bubbleR = mapRadius(d.matchCount);
     });
 
     bubbleGroup.append("circle")
@@ -526,6 +523,13 @@ var network = function() {
         fadeNonMemberships(d);
       }
     });
+
+    // Specify the charge strength for each node based on its radius
+    // and then start the force layout
+    force
+      .charge(function(d) {
+        return -Math.pow(d.bubbleR * 2, 2.0);
+      }).start();
 
   }; // createBubbleCloud()
 
