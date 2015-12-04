@@ -198,7 +198,6 @@ Template.myIds.onRendered(function() {
     }
 
     selectNodeElement(null);
-    return;
   };
 
 
@@ -263,7 +262,7 @@ Template.myIds.onRendered(function() {
       newY,
       node,
       newNodeId,
-      newEditableElem;
+      newNodeElem;
 
     var currentActiveNode = Session.get("selectedElement");
     if (isEmptyNode(currentActiveNode)) {
@@ -277,6 +276,13 @@ Template.myIds.onRendered(function() {
       selectNodeElement(null);
       return;
     }
+
+    // HEADS UP: Although dealing with the CSS style of the current element
+    // (i.e. the node which was the starting point of the drag move)
+    // is handled by the 'selectNodeElement()' function, we need to
+    // remove the 'node-selected' class here to avoid flickering in
+    // mobile browser Safari iOS (iPad device).
+    d3.select("#gid" + currentActiveNode._id).classed("node-selected", false);
 
     // We get the bound data of our root node for accessing its position since
     // we want to prevent the user from creating nodes beneath the root node's position.
@@ -314,19 +320,16 @@ Template.myIds.onRendered(function() {
         // TODO Is this call of 'updateLayout()' still necessary???????
         // updateLayout(Identifications.find().fetch(), Links.find().fetch());
 
-        // Select the editable <p> element.
-        newEditableElem = d3.selectAll(".node.child").filter(function(d) {
-          return d && d._id === selectedNode._id;
-        }).select("p.txt-input").node();
-
-        // Give the <p> element instant focus.
-        newEditableElem.focus();
+        newNodeElem = d3.select("#gid" + selectedNode._id);
+        newNodeElem.classed("node-selected", "true");
+        newNodeElem.select("p.txt-input").node().focus();
 
         // We want to select all of the text content within the currently active editable element
         // to allow for instant text entering. The default text selection color is customized
         // via CSS pseudo-element ::selection (@see CSS file)
         // cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
         document.execCommand("selectAll", false, null);
+
       }
     }); // end Meteor.call("insertIdentification")
   }; // end createNodeAtMousePosition()
@@ -489,7 +492,7 @@ Template.myIds.onRendered(function() {
         radius) + ")");
       htmlParagraph = document.createElementNS(d3.ns.prefix.xhtml, "p");
       htmlParagraph.setAttribute("class", "txt-input");
-      htmlParagraph.setAttribute("contentEditable", true);
+      htmlParagraph.setAttribute("contenteditable", "true");
       htmlParagraph.textContent = d.name;
       svgForeignObject.appendChild(htmlParagraph);
 
@@ -517,16 +520,20 @@ Template.myIds.onRendered(function() {
       "down": deselectCurrentNode
     });
 
-    // events on IDs
+    // touch/mouse events on IDs
     touchMouseEvents(nodeEnterGroup, drawingSurface.node(), {
       "test": false,
       "down": function(d) {
+        // 'down' event is associated with 'touchstart' event on touch devices
+        // and we want to prevent the default browser action.
+        // Thus, a double-tap does not zoom in or out, and a
+        // 'longDown'/'touchhold' won't trigger the magnifier.
+        d3.event.preventDefault();
         var currentActiveNode = Session.get("selectedElement");
         if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode(currentActiveNode);
           return;
         }
-
         selectNodeElement(d);
         // HEADS UP: It is important to stop the event propagation here.
         // We took care of the event, so we don't want anyone else to notice it.
@@ -538,7 +545,6 @@ Template.myIds.onRendered(function() {
           promptEmptyNode(currentActiveNode);
           return;
         }
-
         var domNode = d3.select(this);
         if (d.level > 0) {
           domNode.classed("dragging", true);
@@ -550,18 +556,51 @@ Template.myIds.onRendered(function() {
           promptEmptyNode(currentActiveNode);
           return;
         }
+        // We apply CSS class to the selected element.
+        // We also re-set the 'contenteditable' attribute of the
+        // <p> element to 'true' in case of a falsy value due to
+        // previously editing.
+        // Additionally, we need to give the element focus to
+        // activate the virtual keyboard on touch device, since
+        // we prevented the default action on 'touchstart'.
+        var domNode = d3.select("#gid" + currentActiveNode._id);
+        domNode.classed("node-selected", true);
+        if (d.level > 0) {
+          domNode.select("p.txt-input")
+            .attr("contenteditable", "true")
+            .node().focus();
+          document.execCommand("selectAll", false, null);
+        }
         d3.event.stopPropagation();
       },
       "longDragMove": dragNodeToMousePosition,
       "longDragEnd": longDragEnd,
-      "dragEnd": createNodeAtMousePosition // needs to be added because of mobile device TODO check why!!
-    });
+      // HEADS UP: We need to add 'dragEnd' also to the 'nodeEnterGroup' target.
+      // Otherwise it does not work on mobile devices.
+      // TODO Check why!!
+      "dragEnd": createNodeAtMousePosition
+    }); // touchMouseEvents()
 
+
+    // Since 'dblclick' is not yet implement in touchMouseEvents()
+    // we apply it separately.
+    nodeEnterGroup
+      .on("dblclick ", function(d) {
+        // d3.event.preventDefault();
+        console.log("dblClick ", d3.event.type);
+        if (d.level > 0) {
+          d3.select(this).select("p.txt-input").node().focus();
+          document.execCommand("selectAll", false, null);
+        }
+      });
+
+
+    // keyboard events on IDs
     nodeEnterGroup
       .on("keydown", function(d) {
         // For the 'keydown' event we need to prevent that the return character is
         // appended to the input text.
-        if (d3.event.keyCode === 13) {
+        if (d3.event.keyCode == 13) {
           d3.event.preventDefault();
         }
       })
@@ -581,12 +620,17 @@ Template.myIds.onRendered(function() {
           // 'editCompleted' of the current document in the 'Identifications'
           // collection. The value of 'editCompleted' is set to the value that is returned
           // from the check
-          if (d3.event.keyCode === 13) {
+          if (d3.event.keyCode == 13) {
 
             Meteor.call("editIdentification", d._id, newName, !isEmptyNode(d));
 
+            // We remove focus from the text input.
+            // We also set the 'contenteditable' attribute to 'false'
+            // to ensure that further keypressing is not possible.
             inputTxt.node().blur();
+            inputTxt.attr("contenteditable", "false");
             deselectCurrentNode();
+            return;
 
           // User is still editing, so the 'editCompleted' field is 'false'
           } else {
@@ -602,13 +646,7 @@ Template.myIds.onRendered(function() {
         }
         // We use 'return' here to abort listening to this event on root level
         return;
-      })
-      .on("dblclick", function(d) {
-        if (d.level > 0) {
-          d3.select(this).select("p.txt-input").node().focus();
-          document.execCommand("selectAll", false, null);
-        }
-      });
+      }); // keyboard events
 
     nodeControls = nodeEnterGroup.append("g")
       .attr("class", "selected-controls");
@@ -781,7 +819,10 @@ function promptEmptyNode(currentNode) {
   var domNode = d3.select("#gid" + currentNode._id);
   domNode.select("p.txt-input").node().focus();
   document.execCommand("selectAll", false, null);
-  domNode.classed("node-empty", true);
+  domNode.classed({
+    "node-selected": true,
+    "node-empty": true,
+  });
 }
 
 /**
@@ -805,24 +846,36 @@ function selectNodeElement(element) {
     }
     // we are already on the selected node which indicates we are editing
     if (element && element._id === selectedElement._id) {
-      Identifications.update(selectedElement._id, {
-        $set: {
-          editCompleted: false
-        }
+      d3.select("#gid" + selectedElement._id).classed({
+        "node-selected": true,
+        "node-empty": false,
       });
+      // Identifications.update(selectedElement._id, {
+      //   $set: {
+      //     editCompleted: false
+      //   }
+      // });
     } else {
+      // the selected element is not empty so editing is done
       Identifications.update(selectedElement._id, {
         $set: {
           editCompleted: true
         }
       });
+
+      // deselect previously selected element
+      var domGroupElement = d3.select("#gid" + selectedElement._id);
+      domGroupElement
+        .classed({
+          "node-selected": false,
+          "node-empty": false,
+          "dragging": false
+        });
+
+      if (selectedElement.level > 0) {
+        domGroupElement.select("p.txt-input").node().blur();
+      }
     }
-    // deselect previously selected elements
-    d3.select("#gid" + selectedElement._id).classed({
-      "node-selected": false,
-      "node-empty": false,
-      "dragging": false
-    });
   }
 
   // select new element
@@ -834,9 +887,6 @@ function selectNodeElement(element) {
     // Always bring the selected <g> element to the front in case of overlapping elements.
     var domSelection = d3.select("#gid" + element._id);
     bringToFront(domSelection);
-    domSelection.classed({
-      "node-selected": true
-    });
   }
 
   // Set the Session variable to the passed in value (which may be null).
