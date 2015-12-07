@@ -125,7 +125,7 @@ touchMouseEvents = function() {
 
     // some default values
     cfg = cfg || {};
-    cfg.longPressTime = cfg.longPressTime || 1000; // miliseconds
+    cfg.longPressTime = cfg.longPressTime || 700; // miliseconds
     cfg.posTolerance  = cfg.posTolerance  || 5;    // pixels
 
     // test mode: assign debugging functions to all possible events
@@ -255,7 +255,7 @@ touchMouseEvents = function() {
       // current mouse pos
       var pos = getCurrentPos(container);
       if(pos[0]==-1) {
-        if(prevMode=="DOWN") {
+        if(prevMode=="DOWN" || prevMode == "LONG") {
           pos = downPos;
         } else {
           pos = lastDragPos;
@@ -306,7 +306,7 @@ touchMouseEvents = function() {
   events.currentMode = function() {
     return mode;
   };
-  
+
   // module returns events function
   return events;
 
