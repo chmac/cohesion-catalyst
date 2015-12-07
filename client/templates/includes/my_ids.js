@@ -564,7 +564,10 @@ Template.myIds.onRendered(function() {
         // activate the virtual keyboard on touch device, since
         // we prevented the default action on 'touchstart'.
         var domNode = d3.select("#gid" + currentActiveNode._id);
-        domNode.classed("node-selected", true);
+        domNode.classed({
+          "dragging": false,
+          "node-selected": true
+        });
         if (d.level > 0) {
           domNode.select("p.txt-input")
             .attr("contenteditable", "true")
@@ -652,7 +655,8 @@ Template.myIds.onRendered(function() {
       .attr("class", "selected-controls");
 
     deleteIcon = nodeControls.append("g")
-      .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
+      // .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
+      .attr("transform", "translate(" + (dashedRadius) + "," + (10) + ")")
       .attr("class", "delete-icon");
 
     // Events on the delete button
@@ -672,7 +676,7 @@ Template.myIds.onRendered(function() {
       d3.event.preventDefault();
     }
 
-  force.start();
+    force.start();
   }; // end updateLayout() function
 
 
