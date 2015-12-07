@@ -156,3 +156,7 @@ p.txt-input::-moz-selection {
  stroke: #4593e3;
  stroke-width: 1;
 }
+
+.delete-icon rect {
+  pointer-events: all;
+}
