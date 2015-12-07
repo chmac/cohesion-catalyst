@@ -387,9 +387,10 @@ var network = function() {
    * @param {Object} canvas - The drawing area.
    */
   var createBubbleCloud = function(config, width, height, dataset, canvas) {
-    var count = _.pluck(currentNetworkIds, "matchCount");
     var mapRadius = d3.scale.linear()
-      .domain([d3.min(count), d3.max(count)])
+      .domain(d3.extent(currentNetworkIds, function(d) {
+        return d.matchCount;
+      }))
       .range([config.radius * 0.1, config.radius * 0.2]);
 
     bubbles = bubbles.data(currentNetworkIds, function(d) {
@@ -453,13 +454,17 @@ var network = function() {
       .attr("r", 0)
       .attr("class", function(d) {
         return d.color;
-      })
-      .transition().duration(2000).attr("r", function(d) {
-        return d.bubbleR;
       });
 
     // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
+    // Note the CSS style property 'opacity' and its value of '0', which we
+    // transition to a value of '1' to give the text inside the circles the effect of 'fading in'.
+    // We apply the 'opacity' property to the <foreignObject> since it is the
+    // parent of <p> and the 'opacity' will then also apply to child elements.
+    // It is not possible to make a child less transparent than its parent.
+    // cf. [as of 2015-12-07] https://css-tricks.com/almanac/properties/o/opacity/
     bubbleGroup.append("foreignObject")
+      .style("opacity", 0)
       .attr({
         "class": "foreign-object",
         "width": function(d) {
@@ -494,6 +499,25 @@ var network = function() {
           return (d.bubbleR * 2 - 5) / textLen + "em";
         }
       });
+
+      // We create the transition to smoothly change each of the circles' radii from
+      // '0' to its specific calculated value.
+      bubbleGroup.selectAll("circle")
+        .transition()
+        .duration(1500)
+        .attr("r", function(d) {
+          return d.bubbleR;
+        });
+
+      // We create the transition to make the text inside the circle appear smoothly
+      // with a slight delay.
+      bubbleGroup.selectAll(".foreign-object")
+        .transition()
+        .delay(750)
+        .duration(750)
+        .ease("linear")
+        .style("opacity", "1");
+
 
       // // EXPERIMENT:
       // // Using an SVG <text> element it is possible to automatically
@@ -692,7 +716,7 @@ var network = function() {
     otherIds = drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
       return !_.contains(circle.createdBy, playerId);
     });
-    otherIds.style("opacity", 0.5);
+    otherIds.style("opacity", 0.4);
   }; // showLinksToCurrentPlayerIds
 
 }(); // 'network' module
