@@ -218,13 +218,13 @@ Template.myIds.onRendered(function() {
     var rootNodeData,
       currentActiveNode = Session.get("selectedElement");
 
-    if (isEmptyNode(currentActiveNode)) {
-      promptEmptyNode(currentActiveNode);
+    // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
+    if (!currentActiveNode) {
       return;
     }
 
-    // We do not want the dragLine to be drawn arbitrarily within the drawing surface.
-    if (!currentActiveNode) {
+    if (isEmptyNode(currentActiveNode)) {
+      promptEmptyNode(currentActiveNode);
       return;
     }
 
@@ -321,7 +321,7 @@ Template.myIds.onRendered(function() {
         // updateLayout(Identifications.find().fetch(), Links.find().fetch());
 
         newNodeElem = d3.select("#gid" + selectedNode._id);
-        newNodeElem.classed("node-selected", "true");
+        newNodeElem.classed("node-selected", true);
         newNodeElem.select("p.txt-input").node().focus();
 
         // We want to select all of the text content within the currently active editable element
@@ -424,11 +424,13 @@ Template.myIds.onRendered(function() {
         },
         "child": function(d) {
           return d._id && d.level > 0;
-        },
-        "node-selected": function(d) {
-          var nodeSelected = Session.get("selectedElement");
-          return nodeSelected && (nodeSelected._id === d._id);
         }
+        // },
+        // "node-selected": function(d) {
+        //   var nodeSelected = Session.get("selectedElement");
+        //   console.log(nodeSelected, ", ", d._id);
+        //   return nodeSelected && (nodeSelected._id === d._id);
+        // }
       });
 
 
@@ -656,15 +658,15 @@ Template.myIds.onRendered(function() {
 
     deleteIcon = nodeControls.append("g")
       // .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
-      .attr("transform", "translate(" + (dashedRadius) + "," + (10) + ")")
+      .attr("transform", "translate(" + (dashedRadius + 5) + "," + (10) + ")")
       .attr("class", "delete-icon");
 
     // Events on the delete button
-    touchMouseEvents(deleteIcon, drawingSurface.node(), {
+    touchMouseEvents(nodeControls, drawingSurface.node(), {
       "test": false,
       "down": function(d) {
-        d3.event.stopPropagation();
         deleteNodeAndLink(d._id);
+        d3.event.stopPropagation();
       }
     });
 
@@ -877,7 +879,13 @@ function selectNodeElement(element) {
         });
 
       if (selectedElement.level > 0) {
-        domGroupElement.select("p.txt-input").node().blur();
+        var textElem = domGroupElement.select("p.txt-input");
+        textElem.node().blur();
+        // HEADS UP: 'blur()' does not remove the text selection, so if a user
+        // (accidentally) keeps on typing, the editing would continue.
+        // This can not happen on touch devices (iOS - iPad), since the
+        // virtual keyboard slides down when the <p> element loses focus.
+        textElem.attr("contenteditable", "false");
       }
     }
   }
