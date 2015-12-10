@@ -577,6 +577,7 @@ Template.myIds.onRendered(function() {
           document.execCommand("selectAll", false, null);
         }
         d3.event.stopPropagation();
+        return false;
       },
       "longDragMove": dragNodeToMousePosition,
       "longDragEnd": longDragEnd,
@@ -658,20 +659,30 @@ Template.myIds.onRendered(function() {
 
     deleteIcon = nodeControls.append("g")
       // .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
-      .attr("transform", "translate(" + (dashedRadius + 5) + "," + (10) + ")")
+      .attr("transform", "translate(" + (dashedRadius + 10) + "," + (10) + ")")
       .attr("class", "delete-icon");
+
+    deleteIcon.append("use")
+      .attr("xlink:href", "svg/icons.svg#delete-icon");
+
+    nodeControls.append("rect")
+      .attr("transform", "translate(" + (dashedRadius + 2) + "," + (0) + ")")
+      .attr({
+        x: 0,
+        y: 0,
+        width: dashedRadius + 10,
+        height: dashedRadius + 10
+      });
 
     // Events on the delete button
     touchMouseEvents(nodeControls, drawingSurface.node(), {
       "test": false,
-      "down": function(d) {
+      "click": function(d) {
         deleteNodeAndLink(d._id);
         d3.event.stopPropagation();
+        return false;
       }
     });
-
-    deleteIcon.append("use")
-      .attr("xlink:href", "svg/icons.svg#delete-icon");
 
     if (d3.event) {
       // Prevent browser's default behavior
