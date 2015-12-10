@@ -82,7 +82,7 @@ Template.myIds.onRendered(function() {
   height = 1044 - margin.top - margin.bottom;
   xPos = width / 2;
   yPos = height / 3 * 1.5; // HACK Needs to be more RWD-ish!!!
-  radius = 35;
+  radius = 37;
   placeHolderTxt = PLACEHOLDER_TXT;
   isFixed = true;
   selectedNode = null;
@@ -354,7 +354,7 @@ Template.myIds.onRendered(function() {
       dashedRadius;
 
     iconRadius = 15;
-    dashedRadius = 40;
+    dashedRadius = 42;
     avatarSize = 150;
 
     nodes = idsCollection;
@@ -472,6 +472,7 @@ Template.myIds.onRendered(function() {
     nodeEnterGroup.append(function(d) {
       var svgText,
         svgForeignObject,
+        htmlDiv,
         htmlParagraph;
 
       if (d.level === 0) {
@@ -492,11 +493,14 @@ Template.myIds.onRendered(function() {
       svgForeignObject.setAttribute("height", radius * 2);
       svgForeignObject.setAttribute("transform", "translate(" + (-radius) + ", " + (-
         radius) + ")");
+      htmlDiv = document.createElementNS(d3.ns.prefix.xhtml, "div");
       htmlParagraph = document.createElementNS(d3.ns.prefix.xhtml, "p");
       htmlParagraph.setAttribute("class", "txt-input");
       htmlParagraph.setAttribute("contenteditable", "true");
       htmlParagraph.textContent = d.name;
-      svgForeignObject.appendChild(htmlParagraph);
+      // svgForeignObject.appendChild(htmlParagraph);
+      svgForeignObject.appendChild(htmlDiv);
+      htmlDiv.appendChild(htmlParagraph);
 
       return svgForeignObject;
     });
