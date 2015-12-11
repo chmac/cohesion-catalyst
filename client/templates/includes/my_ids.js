@@ -151,6 +151,9 @@ Template.myIds.onRendered(function() {
     if (isEmptyNode(currentActiveNode)) {
       return;
     }
+
+    console.log("longDragend ", currentActiveNode);
+    toggleDragIndicator(d3.select("#gid" + currentActiveNode._id));
     // We deselect the current element which also removes the CSS class
     // indicating an element being dragged.
     selectNodeElement(null);
@@ -451,12 +454,13 @@ Template.myIds.onRendered(function() {
       filledCircle = document.createElementNS(d3.ns.prefix.svg, "circle");
       filledCircle.setAttribute("r", radius);
       filledCircle.setAttribute("class", "filled");
+      filledCircle.classList.add("c-white");
       if (d.matched && d.matchColor) {
-        filledCircle.classList.remove("filled");
+        filledCircle.classList.remove("c-white");
         filledCircle.classList.add(d.matchColor);
       }
       if (d.matchedBy && d.matchedBy.length > 0) {
-        filledCircle.classList.remove("filled");
+        filledCircle.classList.remove("c-white");
         // TODO maybe no random color?
         filledCircle.classList.add(pickRandomColorClass());
       }
@@ -511,19 +515,19 @@ Template.myIds.onRendered(function() {
     // events on background
     touchMouseEvents(drawingSurface, drawingSurface.node(), {
       "test": false,
+      "down": deselectCurrentNode,
       "dragMove": drawLineToMousePosition,
       // TODO
       // Inspect why the event 'dragEnd' is needed both on this target 'drawingSurface'
       // and on the target 'nodeEnterGroup' (see below).
       // Removing in from target 'drawingSurface' crashes functionality on desktop browser.
       // Removing in from target 'nodeEnterGroup', crashes functionality on mobile browser.
-      "dragEnd": createNodeAtMousePosition,
+      "dragEnd": createNodeAtMousePosition
       // TODO
       // Inspect why the events 'longDragMove' and 'longDragEnd' are also
       // working when only on target 'nodeEnterGroup' or vice versa
       // "longDragMove": dragNodeToMousePosition,
       // "longDragEnd": longDragEnd,
-      "down": deselectCurrentNode
     });
 
     // touch/mouse events on IDs
@@ -536,28 +540,66 @@ Template.myIds.onRendered(function() {
         // 'longDown'/'touchhold' won't trigger the magnifier.
         d3.event.preventDefault();
         var currentActiveNode = Session.get("selectedElement");
+
         if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode(currentActiveNode);
           return;
         }
+
         selectNodeElement(d);
         // HEADS UP: It is important to stop the event propagation here.
         // We took care of the event, so we don't want anyone else to notice it.
         d3.event.stopPropagation();
       },
+      // HEADS UP: We need to add 'dragEnd' also to the 'nodeEnterGroup' target.
+      // Otherwise it does not work on mobile devices.
+      // TODO Check why!!
+      "dragEnd": createNodeAtMousePosition,
       "longDown": function(d) {
         var currentActiveNode = Session.get("selectedElement");
+
         if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode(currentActiveNode);
           return;
         }
+
         var domNode = d3.select(this);
+
         if (d.level > 0) {
-          domNode.classed("dragging", true);
+          // domNode.classed("dragging", true);
+          toggleDragIndicator(domNode);
+        } else {
+          return;
         }
+        return false;
+      },
+      "longClick": function(d) {
+        var currentActiveNode = Session.get("selectedElement");
+
+        if (!currentActiveNode) {
+          return;
+        }
+
+        if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
+          promptEmptyNode(currentActiveNode);
+          return;
+        }
+
+        var domNode = d3.select("#gid" + currentActiveNode._id);
+        toggleDragIndicator(domNode);
+        selectNodeElement(null);
+
+        // stop propagation and prevent default behavior
+        d3.event.stopPropagation();
+        return false;
       },
       "up": function(d) {
         var currentActiveNode = Session.get("selectedElement");
+
+        if (!currentActiveNode) {
+          return;
+        }
+
         if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
           promptEmptyNode(currentActiveNode);
           return;
@@ -570,25 +612,38 @@ Template.myIds.onRendered(function() {
         // activate the virtual keyboard on touch device, since
         // we prevented the default action on 'touchstart'.
         var domNode = d3.select("#gid" + currentActiveNode._id);
-        domNode.classed({
-          "dragging": false,
-          "node-selected": true
-        });
-        if (d.level > 0) {
-          domNode.select("p.txt-input")
-            .attr("contenteditable", "true")
-            .node().focus();
-          document.execCommand("selectAll", false, null);
+        // domNode.classed({
+        //   "dragging": false,
+        //   "node-selected": true
+        // });
+        // if (d.level > 0) {
+        //   domNode.select("p.txt-input")
+        //     .attr("contenteditable", "true")
+        //     .node().focus();
+        //   document.execCommand("selectAll", false, null);
+        // }
+        // d3.event.stopPropagation();
+        // return false;
+
+        // if (domNode.classed("dragging")) {
+        //   toggleDragIndicator(domNode);
+        //   selectNodeElement(null);
+        // } else {
+          domNode.classed("node-selected", true);
+          if (currentActiveNode.level > 0) {
+            domNode.select("p.txt-input")
+              .attr("contenteditable", "true")
+              .node().focus();
+            document.execCommand("selectAll", false, null);
+          // }
         }
         d3.event.stopPropagation();
         return false;
       },
       "longDragMove": dragNodeToMousePosition,
       "longDragEnd": longDragEnd,
-      // HEADS UP: We need to add 'dragEnd' also to the 'nodeEnterGroup' target.
-      // Otherwise it does not work on mobile devices.
-      // TODO Check why!!
-      "dragEnd": createNodeAtMousePosition
+
+
     }); // touchMouseEvents()
 
 
@@ -596,12 +651,11 @@ Template.myIds.onRendered(function() {
     // we apply it separately.
     nodeEnterGroup
       .on("dblclick ", function(d) {
-        // d3.event.preventDefault();
-        console.log("dblClick ", d3.event.type);
         if (d.level > 0) {
           d3.select(this).select("p.txt-input").node().focus();
           document.execCommand("selectAll", false, null);
         }
+        return false;
       });
 
 
@@ -662,19 +716,18 @@ Template.myIds.onRendered(function() {
       .attr("class", "selected-controls");
 
     deleteIcon = nodeControls.append("g")
-      // .attr("transform", "translate(" + (dashedRadius) + "," + (-dashedRadius) + ")")
-      .attr("transform", "translate(" + (dashedRadius + 10) + "," + (10) + ")")
+      .attr("transform", "translate(" + (dashedRadius + 20) + "," + (10) + ")")
       .attr("class", "delete-icon");
 
     deleteIcon.append("use")
       .attr("xlink:href", "svg/icons.svg#delete-icon");
 
     nodeControls.append("rect")
-      .attr("transform", "translate(" + (dashedRadius + 2) + "," + (0) + ")")
+      .attr("transform", "translate(" + (dashedRadius +10) + "," + (0) + ")")
       .attr({
         x: 0,
         y: 0,
-        width: dashedRadius + 10,
+        width: dashedRadius + 12,
         height: dashedRadius + 10
       });
 
@@ -871,11 +924,6 @@ function selectNodeElement(element) {
         "node-selected": true,
         "node-empty": false,
       });
-      // Identifications.update(selectedElement._id, {
-      //   $set: {
-      //     editCompleted: false
-      //   }
-      // });
     } else {
       // the selected element is not empty so editing is done
       Identifications.update(selectedElement._id, {
@@ -981,3 +1029,39 @@ function deleteNodeAndLink(id) {
     }
   }
 } // end deleteNodeAndLink()
+
+/**
+ * Indicates if an element is draggable.
+ * The dragging state is activated by a long mousedown/touchhold
+ * and will deactivated either by releasing the mouse/touch, i.e. the element wasn't
+ * dragged around, or by ending the dragmovement.
+ * In order to give a visual feedback to the user, we increase the
+ * the radius of the circle on dragstart, and decrease the radius
+ * on dragend, respectively.
+ * @param {Object} groupSelection - The current D3 selection of the <g> element holding the
+ * id circle and text.
+ */
+function toggleDragIndicator(groupSelection) {
+  var currentR = Session.get("myIdsCurrentRadius");
+  var idCircle = groupSelection.select("circle.filled");
+
+  if (!groupSelection) {
+    return;
+  }
+
+  if (groupSelection.classed("dragging")) {
+    groupSelection.classed("dragging", false);
+    groupSelection.classed("node-selected", false);
+    idCircle
+      .transition()
+      .style("opacity", "1")
+      .attr("r", currentR);
+  } else {
+    groupSelection.classed("dragging", true);
+    groupSelection.classed("node-selected", false);
+    idCircle
+      .transition()
+      .style("opacity", 0.6)
+      .attr("r", currentR * 1.5);
+  }
+}
