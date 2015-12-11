@@ -148,7 +148,7 @@ var pool = function() {
           ids[i] = ids[ids.length - 1];
           ids[i].index = i;
           ids.pop();
-          console.log("bubble "+doc.name+" replaced by " , ids[i] );
+          // console.log("bubble "+doc.name+" replaced by " , ids[i] );
         }
         return;
       }
