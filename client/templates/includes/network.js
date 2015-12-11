@@ -640,14 +640,14 @@ var network = function() {
     });
 
     nonmembershipPlayers.selectAll("use")
-      .attr("class", "c00");
+      .attr("class", "c-white");
 
     nonmembershipPlayers.selectAll("text")
-      .attr("class", "c00");
+      .attr("class", "c-white");
 
     drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
       return circle._id !== d._id;
-    }).attr("class", "c00");
+    }).attr("class", "c-white");
   }; // fadeNonMemberships()
 
 
