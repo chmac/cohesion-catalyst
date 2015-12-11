@@ -514,17 +514,16 @@ Template.myIds.onRendered(function() {
       "test": false,
       "down": deselectCurrentNode,
       "dragMove": drawLineToMousePosition,
-      // TODO
-      // Inspect why the event 'dragEnd' is needed both on this target 'drawingSurface'
+      // TODO Inspect why the event 'dragEnd' is needed both on this target 'drawingSurface'
       // and on the target 'nodeEnterGroup' (see below).
       // Removing in from target 'drawingSurface' crashes functionality on desktop browser.
       // Removing in from target 'nodeEnterGroup', crashes functionality on mobile browser.
-      "dragEnd": createNodeAtMousePosition
-      // TODO
-      // Inspect why the events 'longDragMove' and 'longDragEnd' are also
-      // working when only on target 'nodeEnterGroup' or vice versa
-      // "longDragMove": dragNodeToMousePosition,
-      // "longDragEnd": longDragEnd,
+      "dragEnd": createNodeAtMousePosition,
+      // Registering 'longDragMove' and 'longDragEnd'
+      // on target 'drawingSurface' is necessary in case we move
+      // too fast with the mouse
+      "longDragMove": dragNodeToMousePosition,
+      "longDragEnd": longDragEnd
     });
 
     // touch/mouse events on IDs
@@ -555,7 +554,8 @@ Template.myIds.onRendered(function() {
       "longDown": function(d) {
         var currentActiveNode = Session.get("selectedElement");
 
-        if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
+        // Note that we here need to check if the node we are already on is empty
+        if (isEmptyNode(currentActiveNode)) {
           promptEmptyNode(currentActiveNode);
           return;
         }
@@ -579,7 +579,8 @@ Template.myIds.onRendered(function() {
           return;
         }
 
-        if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
+        // Note that we here need to check if the node we are already on is empty
+        if (isEmptyNode(currentActiveNode)) {
           promptEmptyNode(currentActiveNode);
           return;
         }
@@ -592,7 +593,8 @@ Template.myIds.onRendered(function() {
         d3.event.stopPropagation();
         return false;
       },
-      "up": function(d) {
+      "click": function(d) {
+        d3.event.preventDefault();
         var currentActiveNode = Session.get("selectedElement");
 
         if (!currentActiveNode) {
@@ -611,6 +613,7 @@ Template.myIds.onRendered(function() {
         // activate the virtual keyboard on touch device, since
         // we prevented the default action on 'touchstart'.
         var domNode = d3.select("#gid" + currentActiveNode._id);
+        // var domNode = d3.select(this);
         domNode.classed("node-selected", true);
 
         if (currentActiveNode.level > 0) {
