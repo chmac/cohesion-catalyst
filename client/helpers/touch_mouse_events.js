@@ -262,32 +262,28 @@ touchMouseEvents = function() {
         }
       }
 
-      // trigger "up" callback
-      cfg.up && cfg.up.apply(this, [d, pos[0],pos[1]]);
-
       // trigger "click" or long click" callback
       if (prevMode == "DOWN") {
          cfg.click && cfg.click.apply(this, [d, pos[0],pos[1]]);
-         return;
       } else if (prevMode == "LONG") {
         cfg.longClick && cfg.longClick.apply(this, [d, pos[0],pos[1]]);
-        return;
       }
 
-      // calculate delta position from last known position
-      var deltaPos = [ pos[0]-lastDragPos[0],
-                       pos[1]-lastDragPos[1] ];
+      if (prevMode == "DRAG" || prevMode == "LONGDRAG") {
+        // calculate delta position from last known position
+        var deltaPos = [ pos[0]-lastDragPos[0],
+                         pos[1]-lastDragPos[1] ];
 
-      // trigger "drag end" callback
-      if (prevMode == "DRAG") {
-        // DEBUG console for inspecting event target on mobile device vs. desktop
-        // console.log("prevMode = DRAG - this: ", this);
-        // console.log("prevMode = DRAG - cfg object: ", cfg);
-        cfg.dragEnd && cfg.dragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
-      } else if (prevMode == "LONGDRAG") {
-        cfg.longDragEnd && cfg.longDragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
+        // trigger "drag end" callback
+        if (prevMode == "DRAG") {
+          cfg.dragEnd && cfg.dragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
+        } else if (prevMode == "LONGDRAG") {
+          cfg.longDragEnd && cfg.longDragEnd.apply(this, [d, pos[0],pos[1],deltaPos[0],deltaPos[1]]);
+        }
       }
 
+      // trigger "up" callback
+      cfg.up && cfg.up.apply(this, [d, pos[0],pos[1]]);
     }; // up()
 
     // now hook up the basic mouse/touch events
