@@ -152,10 +152,7 @@ Template.myIds.onRendered(function() {
       return;
     }
 
-    console.log("longDragend ", currentActiveNode);
     toggleDragIndicator(d3.select("#gid" + currentActiveNode._id));
-    // We deselect the current element which also removes the CSS class
-    // indicating an element being dragged.
     selectNodeElement(null);
   } // end longDragend()
 
@@ -573,6 +570,8 @@ Template.myIds.onRendered(function() {
         }
         return false;
       },
+      "longDragMove": dragNodeToMousePosition,
+      "longDragEnd": longDragEnd,
       "longClick": function(d) {
         var currentActiveNode = Session.get("selectedElement");
 
@@ -612,38 +611,18 @@ Template.myIds.onRendered(function() {
         // activate the virtual keyboard on touch device, since
         // we prevented the default action on 'touchstart'.
         var domNode = d3.select("#gid" + currentActiveNode._id);
-        // domNode.classed({
-        //   "dragging": false,
-        //   "node-selected": true
-        // });
-        // if (d.level > 0) {
-        //   domNode.select("p.txt-input")
-        //     .attr("contenteditable", "true")
-        //     .node().focus();
-        //   document.execCommand("selectAll", false, null);
-        // }
-        // d3.event.stopPropagation();
-        // return false;
+        domNode.classed("node-selected", true);
 
-        // if (domNode.classed("dragging")) {
-        //   toggleDragIndicator(domNode);
-        //   selectNodeElement(null);
-        // } else {
-          domNode.classed("node-selected", true);
-          if (currentActiveNode.level > 0) {
-            domNode.select("p.txt-input")
-              .attr("contenteditable", "true")
-              .node().focus();
-            document.execCommand("selectAll", false, null);
-          // }
+        if (currentActiveNode.level > 0) {
+          domNode.select("p.txt-input")
+            .attr("contenteditable", "true")
+            .node().focus();
+          document.execCommand("selectAll", false, null);
         }
+
         d3.event.stopPropagation();
         return false;
-      },
-      "longDragMove": dragNodeToMousePosition,
-      "longDragEnd": longDragEnd,
-
-
+      }
     }); // touchMouseEvents()
 
 
