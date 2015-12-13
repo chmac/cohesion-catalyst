@@ -4,6 +4,10 @@
  * Layout affecting the 'navigation.html' template.
  */
 
+#navigation {
+  font-size: 1.1em;
+}
+
 /* Override the alignment rules in order to center the nav components */
 @media (min-width: 768px) {
   .main-navigation {
