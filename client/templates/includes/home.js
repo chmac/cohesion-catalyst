@@ -109,6 +109,10 @@ Template.home.onRendered(function() {
 
 Template.home.events({
   "click #b-box": function(event, template) {
+    event.preventDefault();
+    if (Meteor.user()) {
+      return;
+    }
     // Use the global Session object to specify the current form to display.
     Session.set("formContainer", "loginForm");
   }
