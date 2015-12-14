@@ -1,0 +1,16 @@
+/*
+ * admin.css
+ *
+ * Layout affecting the admin dashboard which is integrated
+ * by the 'yogiben:admin' package.
+ *
+ * In order to overwrite the CSS rules defining the appearance
+ * of the main app, we need to explicitly set the styling that
+ * ships with the package, especially to allow for the font color
+ * (which, in our app, is white on a black background).
+ */
+.admin-layout {
+  font-size: 14px;
+  color: #333;
+  background-color: #fff;
+}
