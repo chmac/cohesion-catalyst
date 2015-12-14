@@ -189,6 +189,7 @@ Meteor.startup ->
 				width: '40px'
 			}
 			{
+				# NOTE: MODIFIED
     		data: 'profile.name'
     		title: 'Name'
     		searchable: true
@@ -202,6 +203,7 @@ Meteor.startup ->
 						value[0].address
 				searchable: true
 			}
+			# NOTE: MODIFIED
 			# {
 			# 	data: 'emails'
 			# 	title: 'Mail'
