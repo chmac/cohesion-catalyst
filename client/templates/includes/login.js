@@ -27,21 +27,12 @@ Template.loginForm.helpers({
     return !!Session.get("displayErrorMessage")[field] ? "has-error" : "";
   },
   trainings: function() {
-    var today;
-    today = new Date();
     return Trainings.find({
-      endDate: {
-        $gt: today
-      }
-    },
-    {
-      // Use Mongo's 'sort' operator to sort by the specified keys, the value of which indicates
-      // the sort order (- 1 specifies descending order and 1 indicates ascending order).
-      sort: {startDate: 1}
+      isCurrentTraining: true
     });
   },
   trainingDate: function() {
-    return this.startDate.toDateString();
+    return this.date.toDateString();
 
   }
 });
@@ -62,25 +53,43 @@ Template.loginForm.events({
 
     if (!isEmpty(username) && !isEmpty(password)) {
       // The Meteor.loginWithPassword() function is provided by the 'accounts-password' package.
-      Meteor.loginWithPassword(username + "_" + trainingId, password, function(error) {
-        if (error) {
-          // Let the user know that the login failed, e.g. if a user could
-          // not be found or if the user entered an incorrect password.
-          return throwError("Login Error: " + error.reason);
-        }
-        // Update the user's profile with the currently selected training.
-        // We will use that field to define publications and subscriptions, respectively.
-        var userId = Meteor.userId();
-        Meteor.users.update({_id:userId},
-          {$set:{"profile.currentTraining": trainingId}},
-          function(error, i) {
-            if (error) {
-              return throwError("Error: " + error.reason);
-            }
+      if (testForEmail(username)) {
+        Meteor.loginWithPassword(username, password, function(error) {
+          if (error) {
+            // Let the user know that the login failed, e.g. if a user could
+            // not be found or if the user entered an incorrect password.
+            return throwError("Login Error: " + error.reason);
+          }
+          // Update the user's profile with the currently selected training.
+          // We will use that field to define publications and subscriptions, respectively.
+          var userId = Meteor.userId();
+          if (Roles.userIsInRole(userId, "admin")) {
+            console.log("User is admin");
+            Session.set("formContainer", null);
+            Router.go("/admin");
+          }
         });
-        Session.set("formContainer", null);
-        Router.go("intro");
-      });
+      } else {
+        Meteor.loginWithPassword(username + "_" + trainingId, password, function(error) {
+          if (error) {
+            // Let the user know that the login failed, e.g. if a user could
+            // not be found or if the user entered an incorrect password.
+            return throwError("Login Error: " + error.reason);
+          }
+          // Update the user's profile with the currently selected training.
+          // We will use that field to define publications and subscriptions, respectively.
+          var userId = Meteor.userId();
+          Meteor.users.update({_id:userId},
+            {$set:{"profile.currentTraining": trainingId}},
+            function(error, i) {
+              if (error) {
+                return throwError("Error: " + error.reason);
+              }
+          });
+          Session.set("formContainer", null);
+          Router.go("intro");
+        });
+      }
     }
   },
   "click #create-account-link": function(event, template) {
@@ -104,23 +113,14 @@ Template.createAccountForm.helpers({
     return !!Session.get("displayErrorMessage")[field] ? "has-error" : "";
   },
   trainings: function() {
-    var today;
-    today = new Date();
     return Trainings.find({
-      endDate: {
-        $gt: today
-      }
-    },
-    {
-      // Use Mongo's 'sort' operator to sort by the specified keys, the value of which indicates
-      // the sort order (- 1 specifies descending order and 1 indicates ascending order).
-      sort: {startDate: 1}
+      isCurrentTraining: true
     });
   },
   trainingDate: function() {
     // 'trainingDate' is used within the {{#each traingings}} block
     // so 'this' is the currently evaluated training.
-    return this.startDate.toDateString();
+    return this.date.toDateString();
 
   }
 });
@@ -214,4 +214,14 @@ function isEmpty(input) {
 // cf. http://blog.benmcmahen.com/post/41741539120/building-a-customized-accounts-ui-for-meteor
 function trimInput(input) {
   return input.replace(/^\s*|\s*$/g, "");
+}
+
+
+// Simple helper function to check for an email address.
+// Note that this does not serve as real validation.
+// Borrowed from this SO discussion: 
+// [as of 2015-12-14] http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
+function testForEmail(input) {
+  var pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return pattern.test(input);
 }
