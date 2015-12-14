@@ -186,7 +186,7 @@ Meteor.startup ->
 				# TODO: use `tmpl`
 				createdCell: (node, cellData, rowData) ->
 					$(node).html(Blaze.toHTMLWithData Template.adminUsersIsAdmin, {_id: cellData})
-				width: '40px'
+				width: '50px'
 			}
 			{
 				# NOTE: MODIFIED
@@ -212,6 +212,7 @@ Meteor.startup ->
 			# 		$(node).html(Blaze.toHTMLWithData Template.adminUsersMailBtn, {emails: cellData})
 			# 	width: '40px'
 			# }
+			# NOTE: MODIFIED
 			# { data: 'createdAt', title: 'Joined' }
 		], adminEditDelButtons
 		dom: adminTablesDom
