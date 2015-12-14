@@ -52,6 +52,9 @@ Template.loginForm.events({
     trainingId = template.find("#login-training-select option:selected").id;
 
     if (!isEmpty(username) && !isEmpty(password)) {
+      // If users are admins, they will log in with their email addresses. This allows
+      // to distinguish between admin users and normal users.
+      //
       // The Meteor.loginWithPassword() function is provided by the 'accounts-password' package.
       if (testForEmail(username)) {
         Meteor.loginWithPassword(username, password, function(error) {
@@ -70,6 +73,9 @@ Template.loginForm.events({
           }
         });
       } else {
+        // For normal users, we append the ID of the current training to their username.
+        //
+        // The Meteor.loginWithPassword() function is provided by the 'accounts-password' package.
         Meteor.loginWithPassword(username + "_" + trainingId, password, function(error) {
           if (error) {
             // Let the user know that the login failed, e.g. if a user could
@@ -219,7 +225,7 @@ function trimInput(input) {
 
 // Simple helper function to check for an email address.
 // Note that this does not serve as real validation.
-// Borrowed from this SO discussion: 
+// Borrowed from this SO discussion:
 // [as of 2015-12-14] http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
 function testForEmail(input) {
   var pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
