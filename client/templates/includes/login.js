@@ -93,7 +93,11 @@ Template.loginForm.events({
               }
           });
           Session.set("formContainer", null);
-          Router.go("intro");
+          if (Meteor.user().profile.avatar) {
+            Router.go("myIds");
+          } else {
+            Router.go("intro");
+          }
         });
       }
     }
