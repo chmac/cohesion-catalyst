@@ -1,29 +1,35 @@
 Template.intro.onRendered(function() {
 
+  // We prevent the screen scrolling on touch devices 
+  d3.select(".avatar-container").on("touchmove", function() {
+    if (d3.event) {
+      d3.event.preventDefault();
+    }
+  });
+
   if (!d3.select(".selected-avatar").empty()) {
-      scaleElement(d3.select(".selected-avatar").node(), 1.5, 0);
+      scaleElement(d3.select(".selected-avatar").node(), 1.75, 0);
   }
 
   d3.selectAll(".avatar")
-    .on("mouseover", function() {
-      d3.event.stopPropagation();
-      if (!d3.select(this).classed("selected-avatar")) {
-        scaleElement(d3.select(this).node(), 1.5, 250);
-      }
-    })
-    .on("mouseout", function() {
-      if (!d3.select(this).classed("selected-avatar")) {
-        scaleElement(d3.select(this).node(), 1, 250);
-      }
-    })
+    // .on("mouseover", function() {
+    //   d3.event.stopPropagation();
+    //   if (!d3.select(this).classed("selected-avatar")) {
+    //     scaleElement(d3.select(this).node(), 1.5, 250);
+    //   }
+    // })
+    // .on("mouseout", function() {
+    //   if (!d3.select(this).classed("selected-avatar")) {
+    //     scaleElement(d3.select(this).node(), 1, 250);
+    //   }
+    // })
     .on("click", function() {
+      d3.event.preventDefault();
       var self,
         userId,
         avatarId;
 
       self = this;
-      d3.event.preventDefault();
-      d3.event.stopPropagation();
 
       // Get the current user id.
       userId = Meteor.userId();
@@ -43,12 +49,13 @@ Template.intro.onRendered(function() {
             d3.selectAll(".selectable").each(function() {
               scaleElement(d3.select(this).node(), 1, 250);
             });
-            scaleElement(d3.select(self).node(), 1.5, 250);
+            scaleElement(d3.select(self).node(), 1.75, 250);
             // After successful smiley selection, redirect to the 'my IDs' view.
-            // TODO Improve redirection and make it a smooth and nicely animated view transition 
+            // TODO Improve redirection and make it a smooth and nicely animated view transition
             Router.go("myIds");
         });
       }
+      d3.event.stopPropagation();
       return false;
     });
 
