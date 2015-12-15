@@ -302,24 +302,30 @@ var pool = function() {
           "height": radius * 2,
           "transform": "scale(" + res.scale + " " + res.scale + ") translate(" + (-radius) + ", " + (-
             radius) + ")"
-        })
-          .append("xhtml:p")
-          .classed("txt-inside-circle", true)
-          .style({
+          })
+        .append("xhtml:p")
+        .classed("txt-inside-circle", true)
+        .style({
             "width": radius *  2 + "px",
             "height": radius *  2 + "px",
             "max-width": radius *  2 + "px",
             "max-height": radius *  2  + "px"
-          })
-          .text(d.text);
+            })
+        .text(d.text);
 
         // Call the function to handle touch and mouse events, respectively.
         touchMouseEvents(group, drawingSurface.node(), {
           "test": false,
-          "up": function(d,x,y) {
+          "click": function(d,x,y) {
             addToCurrentIdsWithRandomPosition(d);
+            },
+          "dragMove": function(d, x,y,dx,dy) {
+            d3.event.preventDefault();
+            layout.scroll(dy); // use only Y component for scrolling the "wheel"
+            draw();            // update screen after scrolling
           }
-        });
+        }); // touchMouseEvents
+
     }); // selection.each()
 
   }; // createBubble()
