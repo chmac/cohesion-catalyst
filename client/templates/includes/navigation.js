@@ -20,6 +20,9 @@ Template.navigation.helpers({
   },
   username: function() {
     return Meteor.user().profile.name;
+  },
+  avatar: function() {
+    return Meteor.user().profile.avatar;
   }
 });
 
@@ -29,6 +32,11 @@ Template.navigation.events({
     // The Meteor.logout() function is provided by the 'accounts-password' package.
     Meteor.logout();
     Router.go("home");
+  },
+  "click .disabled": function(event) {
+    event.preventDefault();
+    throwError("Please choose your smiley.");
+    return false;
   }
 
 });

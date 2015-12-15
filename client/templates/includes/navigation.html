@@ -21,13 +21,13 @@
           <li class="{{activeRouteClass 'intro' }}">
             <a href="{{pathFor 'intro'}}">intro</a>
           </li>
-          <li class="{{activeRouteClass 'myIds' }}">
-            <a href="{{pathFor 'myIds'}}">my IDs</a>
+          <li class="{{activeRouteClass 'myIds' }} {{#unless avatar}} disabled {{/unless}}">
+            <a id="myIDs-link" href="{{pathFor 'myIds'}}">my IDs</a>
           </li>
-          <li class="{{activeRouteClass 'idPool' }}">
+          <li class="{{activeRouteClass 'idPool' }} {{#unless avatar}} disabled {{/unless}}">
             <a href="{{pathFor 'idPool'}}">ID pool</a>
           </li>
-          <li class="{{activeRouteClass 'idNetwork' }}">
+          <li class="{{activeRouteClass 'idNetwork' }} {{#unless avatar}} disabled {{/unless}}">
             <a href="{{pathFor 'idNetwork'}}">ID network</a>
           </li>
         </ul>
