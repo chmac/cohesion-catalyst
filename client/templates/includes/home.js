@@ -1,4 +1,12 @@
 Template.home.onRendered(function() {
+
+  // We prevent the screen scrolling on touch devices
+  d3.select("#main").on("touchmove", function() {
+    if (d3.event) {
+      d3.event.preventDefault();
+    }
+  });
+
   var svg,
     circleAndTextGroup,
     radius,
