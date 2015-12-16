@@ -28,7 +28,7 @@
    z-index: 10000;
    padding: 10px;
    left: 50%;
-   top: 50%;
+   top: 30%;
    width: 50%;
    height: auto;
    transform: translate(-50%, -50%);
@@ -36,9 +36,9 @@
  }
 
  .error-alert {
-   animation: fadeOut 3700ms ease-in 0s 1 forwards;
-   -webkit-animation: fadeOut 3700ms ease-in 0s 1 forwards;
-   -moz-animation: fadeOut 3700ms ease-in 0s 1 forwards;
+   animation: fadeOut 3000ms ease-in 0s 1 forwards;
+   -webkit-animation: fadeOut 3000ms ease-in 0s 1 forwards;
+   -moz-animation: fadeOut 3000ms ease-in 0s 1 forwards;
    padding: 10px;
    max-width: 630px;
    min-width: 300px;
