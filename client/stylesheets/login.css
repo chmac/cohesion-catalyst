@@ -4,12 +4,40 @@
  * Layout affecting the 'login.html' template.
  */
 
-.register-form-container {
- width: 50%;
- margin: 3% 25% 0 25%;
+@media all and (min-width: 800px) {
+  .register-form-container {
+    width: 55%;
+    margin: 3% auto 0 auto;
+   }
 }
 
-#create-account-link {
- display: inline-block;
- margin-top: 15px;
+@media all and (max-width: 768px) {
+ .register-form-container {
+    margin: 3% auto 0 auto;
+    width: 80%;
+  }
+}
+
+.inline-group {
+  display: inline-block;
+  width: 200px;
+}
+
+#login-button,
+#create-account-button {
+  float: right;
+}
+
+
+a.create-login-form-link {
+  display: inline-block;
+  margin-top: 15px;
+  color: #337ab7;
+  text-decoration: none;
+}
+
+a.create-login-form-link:hover,
+a.create-login-form-link:focus, {
+  color: #337ab7;
+  text-decoration: none;
 }

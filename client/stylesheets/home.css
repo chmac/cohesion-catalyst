@@ -4,18 +4,60 @@
  * Layout affecting the 'home.html' template.
  */
 
+.welcome-container {
+  position: relative;
+}
+
+@media all and (min-width: 900px) /*and (max-height: 700px)*/{
+  .welcome-container {
+    margin: 8% auto 0 auto;
+    width: 55%;
+    /*border: 1px solid purple;*/
+  }
+
+  .welcome-text {
+    position: absolute;
+    left: 73.5%;
+    top: 70%;
+    /*margin-top: -11.5%;*/
+    /*margin-left: 67%;*/
+    width: 200px;
+    /*min-height: 1px;*/
+
+    font-size: 0.7875em;
+    color: #fff;
+  }
+}
+
+@media all and (max-width: 768px) {
+  .welcome-container {
+    margin: 16% auto 0 auto;
+    width: 80%;
+  }
+
+  .welcome-text {
+    /*float: right;
+    margin-top: -12.75%;
+    margin-right: 2.5%;
+    width: 200px;
+    position: relative;
+    min-height: 1px;
+    font-size: 0.7875em;
+    color: #fff;*/
+
+    position: absolute;
+    left: 73.5%;
+    top: 69%;
+
+    width: 200px;
+
+
+    font-size: 0.7875em;
+    color: #fff;
+  }
+}
+
  #welcome-vis {
    display: block;
+   padding: 1em;
  }
-
-.welcome-text {
- margin-top: -7%;
- margin-left: 63%;
- width: 200px;
- position: relative;
- min-height: 1px;
- padding-right: 15px;
- /*padding-left: 15px;*/
- font-size: 0.7875em;
- color: #fff;
-}
