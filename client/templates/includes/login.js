@@ -106,7 +106,11 @@ Template.loginForm.events({
     event.preventDefault();
     // Use the global Session object to specify the current form to display.
     Session.set("formContainer", "createAccountForm");
-
+  },
+  "click #login-link": function(event, template) {
+    event.preventDefault();
+    // Use the global Session object to specify the current form to display.
+    Session.set("formContainer", "loginForm");
   }
 });
 
