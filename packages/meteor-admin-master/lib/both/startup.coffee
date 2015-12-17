@@ -195,6 +195,11 @@ Meteor.startup ->
     		searchable: true
 			}
 			{
+				data: '_id'
+				title: 'User ID'
+				searchable: true
+			}
+			{
 				# NOTE: MODIFIED
     		data: 'profile.currentTraining'
     		title: 'Training ID'
