@@ -195,14 +195,21 @@ Meteor.startup ->
     		searchable: true
 			}
 			{
-				data: 'emails'
-				title: 'Email'
-				render: (value) ->
-					# some users have no email addresses
-					if value && value.length
-						value[0].address
-				searchable: true
+				# NOTE: MODIFIED
+    		data: 'profile.currentTraining'
+    		title: 'Training ID'
+    		searchable: true
 			}
+			# NOTE: MODIFIED
+			# {
+			# 	data: 'emails'
+			# 	title: 'Email'
+			# 	render: (value) ->
+			# 		# some users have no email addresses
+			# 		if value && value.length
+			# 			value[0].address
+			# 	searchable: true
+			# }
 			# NOTE: MODIFIED
 			# {
 			# 	data: 'emails'
