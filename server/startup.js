@@ -40,9 +40,9 @@ Meteor.startup(function() {
       daimlerId;
 
     // Dummy date in the future
-    someday = new Date(2016, 9, 30);
+    someday = new Date(2016, 8, 30);
     daimlerId = Trainings.insert({
-      title: "Training Daimler",
+      title: "Master Training",
       description: "Team building master class.",
       date: someday,
       players: [],
