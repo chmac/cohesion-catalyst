@@ -433,14 +433,6 @@ var network = function() {
         d.x = Math.random() * (width - config.size);
         d.y = Math.random() * (height - config.size);
         return "translate(" + d.x + "," + d.y + ")";
-      })
-      .on("mouseover", function(d,x,y) {
-        makeReset();
-        showCommonMemberships(d);
-        fadeNonMemberships(d);
-      })
-      .on("mouseout", function(d) {
-        makeReset();
       });
 
     // 'bubbleGroup' now holds both D3 'enter' and 'update' selection.
