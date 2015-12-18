@@ -17,8 +17,7 @@ Meteor.publish("trainings", function() {
 // login, respectively.
 Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
   var currentUserId = this.userId;
-  console.log("MY Ids: ", currentUserId);
-  console.log("MY Ids: ", currentTraining);
+
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
   // The 'check(value, pattern)' function is provided by the 'check' package.
   check(currentTraining, String);
@@ -50,8 +49,6 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
   var subscription = this,
     currentUserId = this.userId;
 
-    console.log("POOL: ", currentUserId);
-    console.log("POOL: ", currentTraining);
   if (!currentUserId) {
     return subscription.ready();
   }
