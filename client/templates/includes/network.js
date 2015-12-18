@@ -56,7 +56,8 @@ var network = function() {
     };
 
     createPlayersCircle(currentPlayers, playersConfig);
-
+    // TODO: check, if autorun is really necessary since we are observing and observing
+    // is a reactive context ??????
     templateInstance.autorun(function() {
 
       var currentNetworkCursor = MetaCollection.find({
@@ -74,7 +75,8 @@ var network = function() {
               $size: 1
             }
           }
-        ]
+        ],
+        createdAtTraining: currentTrainingId
       });
 
 
@@ -85,7 +87,7 @@ var network = function() {
           createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
         },
         changed: function(newDoc,oldDoc) {
-          console.log("CHANGE: ", newDoc.createdBy, "---", oldDoc.createdBy);
+          // TODO: implement changing of radii according to match count
         },
         removed: function(doc) {
           removeFromNetworkIds(doc);
@@ -241,6 +243,9 @@ var network = function() {
       for (var j = 0; j < networkData[i].createdBy.length; j++) {
         var creatorId = networkData[i].createdBy[j];
         var creator = _.findWhere(playerData, {_id: creatorId});
+        if (!creator) {
+          continue; // We skip null, undefined, and nonexisting elements.
+        }
         linksData.push({source:networkData[i], target: creator});
       }
     }
@@ -389,18 +394,20 @@ var network = function() {
   var createBubbleCloud = function(config, width, height, dataset, canvas) {
     var mapRadius = d3.scale.linear()
       .domain(d3.extent(currentNetworkIds, function(d) {
-        return d.matchCount;
+        return d && d.matchCount;
       }))
       .range([config.radius * 0.1, config.radius * 0.2]);
 
     bubbles = bubbles.data(currentNetworkIds, function(d) {
-      return d._id;
+      return d && d._id;
     });
 
     bubbles.exit().remove();
 
     links = links.data(dataset, function(d) {
-      return d.source._id + "-" + d.target._id;
+      if (d && d.source && d.target) {
+        return d.source._id + "-" + d.target._id;
+      }
     });
 
     links.exit().remove();
