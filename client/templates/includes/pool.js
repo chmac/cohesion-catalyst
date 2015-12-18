@@ -316,10 +316,15 @@ var pool = function() {
         // Call the function to handle touch and mouse events, respectively.
         touchMouseEvents(group, drawingSurface.node(), {
           "test": false,
-          "click": function(d,x,y) {
+          "click": function(d, x, y) {
             addToCurrentIdsWithRandomPosition(d);
-            },
-          "dragMove": function(d, x,y,dx,dy) {
+            // We prevent clicking/tapping the same element multiple times
+            // by setting the pointer-events property to 'none'.
+            // In doing so, the element won't respond to
+            // mouse/touch events anymore
+            d3.select(this).style("pointer-events", "none");
+          },
+          "dragMove": function(d, x, y, dx, dy) {
             d3.event.preventDefault();
             layout.scroll(dy); // use only Y component for scrolling the "wheel"
             draw();            // update screen after scrolling
@@ -494,6 +499,12 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     var currentUser = Meteor.user(); // At this point, a user must exist.
     var currentTrainingId = currentUser.profile.currentTraining;
     var root = Identifications.findRoot(currentUser._id, currentTrainingId).fetch()[0];
+
+    // Just in case....
+    if (Identifications.findOneByName(d.text)) {
+      console.log("Id with such name already in Identifications collection");
+      return throwError("Hey! You already identified with this one!");
+    }
 
     // HEADS UP: After a page reload or if we navigate to the 'ID pool' route
     // before visiting the 'my IDs' route, the Session variable will be undefined,
