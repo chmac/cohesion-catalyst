@@ -36,12 +36,11 @@ Meteor.startup(function() {
 
   // Fixture training data
   if (Trainings.find().count() === 0) {
-    var someday,
-      daimlerId;
+    var someday;
 
     // Dummy date in the future
     someday = new Date(2016, 8, 30);
-    daimlerId = Trainings.insert({
+    Trainings.insert({
       title: "Master Training",
       description: "Team building master class.",
       date: someday,
@@ -49,122 +48,6 @@ Meteor.startup(function() {
       isCurrentTraining: true
     });
   } // end Trainings
-
-// if (Identifications.find().count() === 0) {
-//   // We create 5 users
-//   var georgId,
-//     hannesId,
-//     laraId,
-//     yasminId,
-//     markusId,
-//     georg,
-//     hannes,
-//     lara,
-//     yasmin,
-//     markus;
-//
-//   georgId = Meteor.users.insert({
-//     username: "Georg_" + daimlerId,
-//     profile: {
-//       name: "Georg",
-//       currentTraining: daimlerId
-//     }
-//   });
-//   georg = Meteor.users.findOne(georgId);
-//
-//   hannesId = Meteor.users.insert({
-//     username: "Hannes_" + daimlerId,
-//     profile: {
-//       name: "Hannes",
-//       currentTraining: daimlerId
-//     }
-//   });
-//   hannes = Meteor.users.findOne(hannesId);
-//
-//   laraId = Meteor.users.insert({
-//     username: "Lara_" + daimlerId,
-//     profile: {
-//       name: "Lara",
-//       currentTraining: daimlerId
-//     }
-//   });
-//   lara = Meteor.users.findOne(laraId);
-//
-//   yasminId = Meteor.users.insert({
-//     username: "Yasmin_" + daimlerId,
-//     profile: {
-//       name: "Yasmin",
-//       currentTraining: daimlerId
-//     }
-//   });
-//   yasmin = Meteor.users.findOne(yasminId);
-//
-//   markusId = Meteor.users.insert({
-//     username: "Markus_" + daimlerId,
-//     profile: {
-//       name: "Markus",
-//       currentTraining: daimlerId
-//     }
-//   });
-//   markus = Meteor.users.findOne(markusId);
-//
-//   var georgIds = ["Tierfreund", "Morgenmuffel", "Norwegen-Fan", "Essensliebhaber", "Kreuzberg"];
-//   var hannesIds = ["Berliner", "Sportler", "30er", "Informatiker", "Akademiker", "Müller", "Pragmatiker"];
-//   var laraIds = ["Gesang", "Chor", "Musik", "Bach", "Evan. Kirche", "Südafrika", "Joggen", "Kreuzberg"];
-//   var yasminIds = ["Reisen", "Berliner", "Australien", "Take That", "Homeland (TV)", "Apple-Fan", "Prenzlauer Berg"];
-//   var markusIds = ["New York", "Depeche Mode", "SPD", "Fotografie", "Tschechien", "Berliner", "Politik", "Apple-Fan"];
-//
-//   for (var i = 0; i < georgIds.length; i++) {
-//     Identifications.insert( {
-//       name: georgIds[i],
-//       createdBy: georgId,
-//       trainingId: daimlerId,
-//       editCompleted: true,
-//       level: 1
-//     });
-//   }
-//
-//   for (var j = 0; j < hannesIds.length; j++) {
-//     Identifications.insert( {
-//       name: hannesIds[j],
-//       createdBy: hannesId,
-//       trainingId: daimlerId,
-//       editCompleted: true,
-//       level: 1
-//     });
-//   }
-//
-//   for (var k = 0; k < laraIds.length; k++) {
-//     Identifications.insert( {
-//       name: laraIds[k],
-//       createdBy: laraId,
-//       trainingId: daimlerId,
-//       editCompleted: true,
-//       level: 1
-//     });
-//   }
-//
-//   for (var l = 0; l < yasminIds.length; l++) {
-//     Identifications.insert( {
-//       name: yasminIds[l],
-//       createdBy: yasminId,
-//       trainingId: daimlerId,
-//       editCompleted: true,
-//       level: 1
-//     });
-//   }
-//
-//   for (var m = 0; m < markusIds.length; m++) {
-//     Identifications.insert( {
-//       name: markusIds[m],
-//       createdBy: markusId,
-//       trainingId: daimlerId,
-//       editCompleted: true,
-//       level: 1
-//     });
-//   }
-//
-// } // end Identifications
 
 
   // Fixture avatars data
