@@ -125,7 +125,7 @@ touchMouseEvents = function() {
 
     // some default values
     cfg = cfg || {};
-    cfg.longPressTime = cfg.longPressTime || 700; // miliseconds
+    cfg.longPressTime = cfg.longPressTime || 475; // milliseconds
     cfg.posTolerance  = cfg.posTolerance  || 5;    // pixels
 
     // test mode: assign debugging functions to all possible events
