@@ -127,7 +127,8 @@ Template.myIds.onRendered(function() {
 
     var nodeDataObject = currentActiveNode;
 
-    if (nodeDataObject && nodeDataObject.level === 0) {
+    if (nodeDataObject && nodeDataObject.level === 0  ||
+      !d3.select("#gid" + nodeDataObject._id).classed("dragging")) {
       return;
     }
 
@@ -560,10 +561,9 @@ Template.myIds.onRendered(function() {
           return;
         }
 
-        var domNode = d3.select(this);
+        var domNode = d3.select("#gid" + currentActiveNode._id);
 
         if (d.level > 0) {
-          // domNode.classed("dragging", true);
           toggleDragIndicator(domNode);
         } else {
           return;
