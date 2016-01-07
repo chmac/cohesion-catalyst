@@ -185,8 +185,8 @@ Template.myIds.onRendered(function() {
 
 
   /**
-   * Handles the {@code mousedown} event received by the encompassing SVG <g> element when
-   * no {@code Shift} key is being pressed.
+   * Handles the {@code mousedown} or {@code touch} event received by the encompassing SVG <g>
+   * element that represents the drawing surface, i.e. the background.
    * It simply deselects the HTML/SVG element and sets the data objects referencing the previously
    * processed nodes to null.
    */
