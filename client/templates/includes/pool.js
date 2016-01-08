@@ -82,7 +82,8 @@ var pool = function() {
     // set up autorunner (i.e. reactive computation) to observe MetaIDs that come, go, or change
     templateInstance.autorun(function() {
       MetaCollection.find({
-        createdBy: {$nin: [currentUser._id]}
+        createdBy: {$nin: [currentUser._id]},
+        createdAtTraining: currentTrainingId
       }).observe({
         added: function(doc) {
           addMetaID(doc);
