@@ -117,6 +117,7 @@ var pool = function() {
     var id = {};
     id._id = doc._id;
     id.text = doc.name;
+    id.standardizedText = doc.standardizedName;
     id.color = doc.color;
     id.index = ids.length;
 
@@ -525,6 +526,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       y: randomPos[1],
       parentId: root._id,
       name: d.text,
+      standardizedName: d.standardizedText,
       editCompleted: true,
       matched: true,
       matchColor: d.color
@@ -554,13 +556,16 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     // dynamically passing a modifier did not do the trick :(
     var addModifier = {
         general: {
-          $addToSet: {"matchedBy":  currentUser._id}
+          $addToSet: {"matchedBy":  currentUser._id},
+          $set: {matchColor: d.color}
         },
         source: {
-          $addToSet: {"source.matchedBy":  currentUser._id}
+          $addToSet: {"source.matchedBy":  currentUser._id},
+          $set: {"source.matchColor": d.color}
         },
         target: {
-          $addToSet: {"target.matchedBy":  currentUser._id}
+          $addToSet: {"target.matchedBy":  currentUser._id},
+          $set: {"target.matchColor": d.color}
         }
     };
 
