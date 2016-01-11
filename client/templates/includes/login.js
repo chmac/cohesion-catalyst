@@ -224,13 +224,6 @@ function isEmpty(input) {
   }
 }
 
-// Helper function to remove whitespace before and after the input value.
-// cf. http://blog.benmcmahen.com/post/41741539120/building-a-customized-accounts-ui-for-meteor
-function trimInput(input) {
-  return input.replace(/^\s*|\s*$/g, "");
-}
-
-
 // Simple helper function to check for an email address.
 // Note that this does not serve as real validation.
 // Borrowed from this SO discussion:
