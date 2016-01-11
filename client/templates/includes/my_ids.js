@@ -304,6 +304,7 @@ Template.myIds.onRendered(function() {
       y: newNodePos[1],
       parentId: currentActiveNode._id,
       name: placeHolderTxt,
+      standardizedName: "",
       editCompleted: false
     };
 
@@ -453,6 +454,11 @@ Template.myIds.onRendered(function() {
       filledCircle.setAttribute("r", radius);
       filledCircle.setAttribute("class", "filled");
       filledCircle.classList.add("c-white");
+      // TODO: Find better solution to give matching IDs color!
+      // This way, the color won't be removed, when former matching IDs are
+      // no longer matches, e.g. when a another user decides to delete his ID that
+      // was matched by another user. In this case, 'd.matched' remains true (since it was is
+      // added by matching not by self-creating)
       if (d.matched && d.matchColor) {
         filledCircle.classList.remove("c-white");
         filledCircle.classList.add(d.matchColor);
@@ -460,7 +466,8 @@ Template.myIds.onRendered(function() {
       if (d.matchedBy && d.matchedBy.length > 0) {
         filledCircle.classList.remove("c-white");
         // TODO maybe no random color?
-        filledCircle.classList.add(pickRandomColorClass());
+        // filledCircle.classList.add(pickRandomColorClass());
+        filledCircle.classList.add(d.matchColor);
       }
       return filledCircle;
     });
