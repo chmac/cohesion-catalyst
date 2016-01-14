@@ -454,19 +454,9 @@ Template.myIds.onRendered(function() {
       filledCircle.setAttribute("r", radius);
       filledCircle.setAttribute("class", "filled");
       filledCircle.classList.add("c-white");
-      // TODO: Find better solution to give matching IDs color!
-      // This way, the color won't be removed, when former matching IDs are
-      // no longer matches, e.g. when a another user decides to delete his ID that
-      // was matched by another user. In this case, 'd.matched' remains true (since it was is
-      // added by matching not by self-creating)
-      if (d.matched && d.matchColor) {
+
+      if (d && d.matchColor) {
         filledCircle.classList.remove("c-white");
-        filledCircle.classList.add(d.matchColor);
-      }
-      if (d.matchedBy && d.matchedBy.length > 0) {
-        filledCircle.classList.remove("c-white");
-        // TODO maybe no random color?
-        // filledCircle.classList.add(pickRandomColorClass());
         filledCircle.classList.add(d.matchColor);
       }
       return filledCircle;
@@ -798,7 +788,8 @@ Template.myIds.onRendered(function() {
   // destroyed.
   this.autorun(function() {
     var identifications,
-      fromTo;
+      fromTo,
+      colorQuery;
 
     identifications = Identifications.findCurrentIdentifications(currentUser._id, currentTrainingId).fetch();
     fromTo = Links.find({
@@ -811,26 +802,36 @@ Template.myIds.onRendered(function() {
     linkElements = svgGroup.selectAll(".link");
     updateLayout(identifications, fromTo);
 
-    // var colorQuery = Identifications.find({
-    //   createdBy: currentUser._id,
-    //   trainingId: currentTrainingId
-    // }, {
-    //   fields: {
-    //     matchedBy: 1
-    //   }
-    // });
-    // colorQuery.observeChanges({
-    //   added: function() {
-    //
-    //   },
-    //   changed: function() {
-    //
-    //   },
-    //   removed: function() {
-    //
-    //   }
-    // });
-  });
+
+    // We observe document changes regarding the color assignment in order
+    // to reactively add or remove a CSS class.
+    colorQuery = Identifications.find({
+      createdBy: currentUser._id,
+      trainingId: currentTrainingId,
+      level: {
+        $gt: 0
+      },
+      editCompleted: true
+    }, {
+      fields: {
+        matchColor: 1
+      }
+    });
+
+    colorQuery.observe({
+      changed: function(newDoc, oldDoc) {
+        var idCircle = d3.select("#gid" + newDoc._id +" circle.filled").node();
+        if (newDoc.matchColor) {
+          idCircle.classList.remove("c-white");
+          idCircle.classList.add(newDoc.matchColor);
+        } else {
+          idCircle.classList.remove(oldDoc.matchColor);
+          idCircle.classList.add("c-white");
+        }
+      }
+    });
+
+  }); // autorun()
 }); // end Template.myIds.onRendered()
 
 
@@ -980,31 +981,32 @@ function deleteNodeAndLink(id) {
         "You can not remove an identification bubble with attached child-bubbles.");
     }
 
-    // Is this an ID node that was matched from the 'ID pool'?
-    // Then we delete this ID node from its associates.
-    if (nodeDoc.matched) {
-
-      // We create the modifier object for the update operation.
-      // NOTE This seems somewhat dumb but other approaches for
-      // dynamically passing a modifier did not do the trick :(
-      var removeModifier = {
-          general: {
-            $pull: {"matchedBy":  Meteor.userId()}
-          },
-          source: {
-            $pull: {"source.matchedBy":  Meteor.userId()}
-          },
-          target: {
-            $pull: {"target.matchedBy":  Meteor.userId()}
-          }
-      };
-
-      Meteor.call("updateIdMatches", nodeDoc.name, removeModifier, function(error, result) {
-        if (error) {
-          return throwError(error.reason);
-        }
-      });
-    }
+    // // Is this an ID node that represents a match?
+    // // Then we delete this ID node from its associates.
+    // // if (nodeDoc.isPoolMatch || nodeDoc.isInputMatch) {
+    // if (nodeDoc.matchedBy.length) {
+    //
+    //   // We create the modifier object for the update operation.
+    //   // NOTE This seems somewhat dumb but other approaches for
+    //   // dynamically passing a modifier did not do the trick :(
+    //   var removeModifier = {
+    //       general: {
+    //         $pull: {"matchedBy":  Meteor.userId()}
+    //       },
+    //       source: {
+    //         $pull: {"source.matchedBy":  Meteor.userId()}
+    //       },
+    //       target: {
+    //         $pull: {"target.matchedBy":  Meteor.userId()}
+    //       }
+    //   };
+    //
+    //   Meteor.call("updateIdMatches", nodeDoc.name, removeModifier, function(error, result) {
+    //     if (error) {
+    //       return throwError(error.reason);
+    //     }
+    //   });
+    // }
 
     Meteor.call("removeIdentificationAndLink", nodeDoc, function(error, result) {
       if (error) {
