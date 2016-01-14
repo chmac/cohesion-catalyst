@@ -527,9 +527,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       parentId: root._id,
       name: d.text,
       standardizedName: d.standardizedText,
-      editCompleted: true,
-      matched: true,
-      matchColor: d.color
+      editCompleted: true
     };
 
     // We call the method 'insertIdentification' defined at {@see identifications.js}
@@ -549,33 +547,6 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
         }
       });
     });
-
-
-    // We create the modifier object for the update operation.
-    // NOTE This seems somewhat dumb but other approaches for
-    // dynamically passing a modifier did not do the trick :(
-    var addModifier = {
-        general: {
-          $addToSet: {"matchedBy":  currentUser._id},
-          $set: {matchColor: d.color}
-        },
-        source: {
-          $addToSet: {"source.matchedBy":  currentUser._id},
-          $set: {"source.matchColor": d.color}
-        },
-        target: {
-          $addToSet: {"target.matchedBy":  currentUser._id},
-          $set: {"target.matchColor": d.color}
-        }
-    };
-
-    // We pass in the text of the matched ID to sync each ID of other users with the same text.
-    Meteor.call("updateIdMatches", d.text, addModifier, function(error, result) {
-      if (error) {
-        throwError("Error: " + error.error);
-      }
-    });
-
   }; //end addToMyIds()
 
 }(); // module
