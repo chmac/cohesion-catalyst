@@ -981,33 +981,6 @@ function deleteNodeAndLink(id) {
         "You can not remove an identification bubble with attached child-bubbles.");
     }
 
-    // // Is this an ID node that represents a match?
-    // // Then we delete this ID node from its associates.
-    // // if (nodeDoc.isPoolMatch || nodeDoc.isInputMatch) {
-    // if (nodeDoc.matchedBy.length) {
-    //
-    //   // We create the modifier object for the update operation.
-    //   // NOTE This seems somewhat dumb but other approaches for
-    //   // dynamically passing a modifier did not do the trick :(
-    //   var removeModifier = {
-    //       general: {
-    //         $pull: {"matchedBy":  Meteor.userId()}
-    //       },
-    //       source: {
-    //         $pull: {"source.matchedBy":  Meteor.userId()}
-    //       },
-    //       target: {
-    //         $pull: {"target.matchedBy":  Meteor.userId()}
-    //       }
-    //   };
-    //
-    //   Meteor.call("updateIdMatches", nodeDoc.name, removeModifier, function(error, result) {
-    //     if (error) {
-    //       return throwError(error.reason);
-    //     }
-    //   });
-    // }
-
     Meteor.call("removeIdentificationAndLink", nodeDoc, function(error, result) {
       if (error) {
         return throwError("Error: " + error.reason);
