@@ -8,44 +8,19 @@ Meteor.publish("trainings", function() {
   return Trainings.find();
 });
 
-// We want to retrieve documents which were created by the currently logged-in user
-// in order to only publish data from the server that belongs to the current user.
-// Since we also want to constrain the transmitted the documents to data of the current
-// training the user is attending, we pick the data depending on the 'currentTraining'
-// parameter which is specified when we subscribe to this publication client-side.
-// The id of 'currentTraining' is stored in the user's profile on account creation or
-// login, respectively.
-Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
-  var currentUserId = this.userId;
-
-  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
-  // The 'check(value, pattern)' function is provided by the 'check' package.
-  check(currentTraining, String);
-
-  if (!currentUserId) {
-    return this.ready();
-  }
-
-  return [
-    Identifications.findCurrentIdentifications(currentUserId, currentTraining),
-    Links.find({
-      "source.createdBy": currentUserId,
-      "source.trainingId": currentTraining,
-      "target.createdBy": currentUserId,
-      "target.trainingId": currentTraining
-    })
-  ];
-});
-
-// The publication 'poolIdentifications' consists of documents that represent
-// identifications created by others so that the current user can select matching IDs
-// from this pool of identifications. Since the 'Identifications' collection may consist of
+// The publication 'globalMetaIdentifications' consists of all the documents that represent
+// identifications created by the users. Since the 'Identifications' collection may consist of
 // multiple documents with the same name but from different creators we populate a separate
 // collection called 'MetaCollection' with normalized data retrieved from the 'Identifications'
 // collection.
 // We also want the result set to be reactive so we observe the 'Identifications' documents
 // that come and go in order to update the 'MetaCollection'.
-Meteor.publish("poolIdentifications", function(currentTraining) {
+// HEADS UP: See @router.js which routes are subscribing to this data. The returned cursor from
+// this publication is NOT filtered in order to match the template specific data!
+// Instead, filtering is defined on template level (e.g. for the 'ID pool' we filter the dataset
+// to contain only identification documents created by others, so that a user can select matching IDs
+// from this pool of identifications).
+Meteor.publish("globalMetaIdentifications", function(currentTraining) {
   var subscription = this,
     currentUserId = this.userId;
 
@@ -84,22 +59,64 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
     }
   });
 
-  // HEADS UP: We want to continue observing regardless of the client stopping/closing
-  // the subscription - therefore we do not call the 'stop()' method of the query handle object.
+  // We stop observing when a client stopps/closes the subscription.
+  // Therefore we call the 'stop()' method of the query handle object.
   // NOTE Keeping the console.log() for debugging purposes
   subscription.onStop(function() {
     // console.log("*************** Client - " + currentUserName + " - has unsubscribed. *****************");
-    //queryHandle.stop();
+    queryHandle.stop();
   });
 
+  return MetaCollection.find({createdAtTraining: currentTraining});
+});
+
+
+// We want to retrieve documents which were created by the currently logged-in user
+// in order to only publish data from the server that belongs to the current user.
+// Since we also want to constrain the transmitted the documents to data of the current
+// training the user is attending, we pick the data depending on the 'currentTraining'
+// parameter which is specified when we subscribe to this publication client-side.
+// The id of 'currentTraining' is stored in the user's profile on account creation or
+// login, respectively.
+Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
+  var currentUserId = this.userId;
+
+  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
+  // The 'check(value, pattern)' function is provided by the 'check' package.
+  check(currentTraining, String);
+
+  if (!currentUserId) {
+    return this.ready();
+  }
+
   return [
-    MetaCollection.find({
-      createdBy: {
-        $nin: [currentUserId]
-      },
-      createdAtTraining: currentTraining
-    }),
-    Identifications.find({
+    Identifications.findCurrentIdentifications(currentUserId, currentTraining),
+    Links.find({
+      "source.createdBy": currentUserId,
+      "source.trainingId": currentTraining,
+      "target.createdBy": currentUserId,
+      "target.trainingId": currentTraining
+    })
+  ];
+});
+
+
+// The publication 'poolIdentifications' consists of a subset of documents that represent
+// identifications created by the current user in order to retrieve data needed for calculating
+// matching IDs from the pool of identifications.
+Meteor.publish("poolIdentifications", function(currentTraining) {
+  var subscription = this,
+    currentUserId = this.userId;
+
+  if (!currentUserId) {
+    return subscription.ready();
+  }
+
+  // Validate the incoming data from the client and make sure 'currentTraining' is a string.
+  // The 'check(value, pattern)' function is provided by the 'check' package.
+  check(currentTraining, String);
+
+  return Identifications.find({
       createdBy: currentUserId,
       trainingId: currentTraining
     }, {
@@ -110,8 +127,7 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
         x: 1,
         y: 1
       }
-    })
-  ];
+    });
 });
 
 
