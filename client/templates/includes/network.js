@@ -52,7 +52,8 @@ var network = function() {
       radius: outerRadius,
       centerX: clientWidth / 2,
       centerY: clientHeight / 2,
-      size: avatarSize
+      size: avatarSize,
+      count: currentPlayers.length
     };
 
     createPlayersCircle(currentPlayers, playersConfig);
@@ -87,7 +88,9 @@ var network = function() {
           createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
         },
         changed: function(newDoc,oldDoc) {
-          // TODO: implement changing of radii according to match count
+          updateNetworkId(newDoc);
+          dataset = setupLinksData(currentPlayers, currentNetworkIds);
+          createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
         },
         removed: function(doc) {
           removeFromNetworkIds(doc);
@@ -157,6 +160,20 @@ var network = function() {
     var newNetworkId = metaId;
     newNetworkId.matchCount = metaId.createdBy.length;
     currentNetworkIds.push(newNetworkId);
+  };
+
+  /**
+   * Updates an existing item in the network data array to
+   * bring the value of 'matchCount' up to date which is used
+   * to change the radii of the id circles if needed.
+   * @param {Object} metaId - The document from the MetaCollection that changed.
+   */
+  var updateNetworkId = function(metaId) {
+    var networkId = _.findWhere(currentNetworkIds, {_id: metaId._id});
+    if (networkId) {
+      networkId.createdBy = metaId.createdBy;
+      networkId.matchCount = metaId.createdBy.length;
+    }
   };
 
 
@@ -392,14 +409,25 @@ var network = function() {
    * @param {Object} canvas - The drawing area.
    */
   var createBubbleCloud = function(config, width, height, dataset, canvas) {
-    var mapRadius = d3.scale.linear()
-      .domain(d3.extent(currentNetworkIds, function(d) {
-        return d && d.matchCount;
-      }))
-      .range([config.radius * 0.1, config.radius * 0.2]);
+    // We map input data values (or domain) to output data values (or range).
+    // Hence, we specify a minimum value of '0' and the value of 'config.count'
+    // (i.e. the number of players) as the maximum value to be mapped
+    // to output values ranging from 5% to 10% of the player circle radius.
+    // It is important to use the square roots scale here in order to
+    // use radius values to create circles with areas that correctly
+    // corresponds to the data values.
+    var mapRadius = d3.scale.sqrt()
+      .domain([0, config.count])
+      .range([config.radius * 0.05, config.radius * 0.2]);
 
     bubbles = bubbles.data(currentNetworkIds, function(d) {
       return d && d._id;
+    });
+
+    // UPDATE selection
+    // We update existing elements as needed.
+    bubbles.each(function(d) {
+      d.bubbleR = mapRadius(d.matchCount);
     });
 
     bubbles.exit().remove();
@@ -431,6 +459,8 @@ var network = function() {
         return d.target.y;
       });
 
+    // ENTER selection
+    // We create new elements as needed.
     bubbleGroup = bubbles.enter().append("g")
       .attr("id", function(d) {
         return "gid" + d._id;
@@ -464,8 +494,19 @@ var network = function() {
     // cf. [as of 2015-12-07] https://css-tricks.com/almanac/properties/o/opacity/
     bubbleGroup.append("foreignObject")
       .style("opacity", 0)
+      .attr("class", "foreign-object")
+      .append("xhtml:p")
+      .classed("txt-inside-circle", true)
+      .text(function(d) {
+        return d.name;
+      });
+
+    // We make a reselection of all the <foreignObject> elements
+    // in order to apply those attributes that are depending on
+    // the current value of 'bubbleR'.
+    // In doing so we address both the update and enter selection.
+    drawingSurface.selectAll(".foreign-object")
       .attr({
-        "class": "foreign-object",
         "width": function(d) {
           return d.bubbleR * 2 + "px";
         },
@@ -475,12 +516,13 @@ var network = function() {
         "transform": function(d) {
           return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
         }
-      })
-      .append("xhtml:p")
-      .classed("txt-inside-circle", true)
-      .text(function(d) {
-        return d.name;
-      })
+      });
+
+    // We make a reselection of all the <p> elements
+    // in order to apply those attributes that are depending on
+    // the current value of 'bubbleR'.
+    // In doing so we address both the update and enter selection.
+    drawingSurface.selectAll(".txt-inside-circle")
       .style({
         "width": function(d) {
           return d.bubbleR *  2 + "px";
@@ -499,45 +541,30 @@ var network = function() {
         }
       });
 
-      // We create the transition to smoothly change each of the circles' radii from
-      // '0' to its specific calculated value.
-      bubbleGroup.selectAll("circle")
-        .transition()
-        .duration(1500)
-        .attr("r", function(d) {
-          return d.bubbleR;
-        });
+    // We create the transition to smoothly change each of the circles' radii from
+    // '0' (if it is an entering element) or from the current 'bubbleR' value (if an existing
+    // element is being updated), respectively, to its specific calculated value.
+    // HEADS UP: We need to reselect here to apply the transition to both the update
+    // and enter selection.
+    drawingSurface.selectAll(".id-circle circle")
+      .transition()
+      .duration(1000)
+      .attr("r", function(d) {
+        return d.bubbleR;
+      });
 
-      // We create the transition to make the text inside the circle appear smoothly
-      // with a slight delay.
-      bubbleGroup.selectAll(".foreign-object")
-        .transition()
-        .delay(750)
-        .duration(750)
-        .ease("linear")
-        .style("opacity", "1");
+    // We create the transition to make the text inside the circle appear smoothly
+    // with a slight delay. Only needed for the ENTER selection, hence 'bubbleGroup'.
+    bubbleGroup.selectAll(".foreign-object")
+      .transition()
+      .delay(500)
+      .duration(500)
+      .ease("linear")
+      .style("opacity", "1");
 
-
-      // // EXPERIMENT:
-      // // Using an SVG <text> element it is possible to automatically
-      // // size the text to occupy all of the available space inside the <circle>
-      // bubbleGroup.append("text")
-      //   .text(function(d) {
-      //     return d.name;
-      //   })
-      //   .style({
-      //     "dominant-baseline": "middle",
-      //     "text-anchor": "middle",
-      //     // "pointer-events": "none",
-      //     "font-size": function(d) {
-      //       var textLen = this.getComputedTextLength();
-      //       // return Math.min(d.bubbleR * 2, (d.bubbleR * 2 - 10) / textLen) + "em";
-      //       return (d.bubbleR * 2 - 10) / textLen + "em";
-      //     }
-      //   });
 
     // Call the function to handle touch and mouse events, respectively.
-    touchMouseEvents(bubbleGroup, canvas.node(), {
+    touchMouseEvents(bubbles, canvas.node(), {
       "test": false,
       "down": function(d,x,y) {
         d3.event.stopPropagation();
