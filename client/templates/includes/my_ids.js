@@ -232,6 +232,13 @@ Template.myIds.onRendered(function() {
     // We get the bound data of our root node for accessing its position.
     rootNodeData = d3.select(".root").datum();
 
+    var newPos = detectCollision(undefined, [x,y], rootNodeData, radius, width);
+
+    // HEADS UP: This is a special case if touch/mouse position matches center of id circle.
+    if (isNaN(newPos[0]) || isNaN(newPos[1])) {
+      newPos[0] = x - dx;
+      newPos[1] = y - dy;
+    }
 
     // We update the coordinates of the dragLine during mousemove to draw a line
     // from the currentActiveNode to the current mouse position.
@@ -239,8 +246,8 @@ Template.myIds.onRendered(function() {
       .attr("class", "drag-line")
       .attr("x1", currentActiveNode.x)
       .attr("y1", currentActiveNode.y)
-      .attr("x2", detectCollision(undefined, [x,y], rootNodeData, radius, width)[0])
-      .attr("y2", detectCollision(undefined, [x,y], rootNodeData, radius, width)[1]);
+      .attr("x2", newPos[0])
+      .attr("y2", newPos[1]);
 
   }; // end drawLineToMousePosition()
 

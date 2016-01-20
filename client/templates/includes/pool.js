@@ -517,7 +517,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     var radius = Session.get("myIdsCurrentRadius") ? Session.get("myIdsCurrentRadius") : 35;
 
     // Determine a random value for positioning the match in the 'my IDs' template
-    var randomPos = [Math.random() * width, Math.random() * root.y];
+   var randomPos = [Math.random() * width, Math.random() * root.y];
 
     // Create the document to be inserted into the collection.
     var myMatch = {
@@ -536,11 +536,19 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       if (error) {
         return throwError("Error: " + error.reason);
       }
+
       // on success
       var myMatchId = result._id;
+
+      // HEADS UP: We need to determine position until it does not fall onto the center
+      // of another ID circle (which will result in a NaN error)
+      var position = detectCollision(myMatchId, randomPos, root, radius, width);
+      while (isNaN(position[0]) || isNaN(position[1])) {
+         randomPos = [Math.random() * width, Math.random() * root.y];
+         position = detectCollision(myMatchId, randomPos, root, radius, width);
+      }
       // We use the newly inserted identification to detect collisions with already existing
       // identifications and we call the 'updatePosition' method defined at {@see identifications.js}.
-      var position = detectCollision(myMatchId, randomPos, root, radius, width);
       Meteor.call("updatePosition", myMatchId, position, function(error, result) {
         if (error) {
           return throwError("Error: " + error.reason);
