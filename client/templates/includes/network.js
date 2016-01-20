@@ -86,13 +86,43 @@ var network = function() {
           addToNetworkIds(doc);
           dataset = setupLinksData(currentPlayers, currentNetworkIds);
           createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+          // We check if the current player is inspecting own ids when a new network-ID
+          // is added and if the newly added ID was also created by the current
+          // player. If both of those conditions are true, we call the function to show
+          // the links to all of the IDs of the current player.
+          // We wait until the transition of the entering element is halfway through
+          // in order to prevent flickering of the link.
+          var player = d3.select("#gid" + Meteor.userId());
+          if (player.classed("highlighted") && _.contains(doc.createdBy, Meteor.userId())) {
+            Meteor.setTimeout(function() {
+              showLinksToCurrentPlayerIds(Meteor.userId());
+            }, 500);
+          }
         },
         changed: function(newDoc,oldDoc) {
-          updateNetworkId(newDoc);
+          var changedId = updateNetworkId(newDoc);
           dataset = setupLinksData(currentPlayers, currentNetworkIds);
           createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+          // We look for the ID bubble this changed document is associated with.
+          // If it is currently highlighted, then we want to highlight new members or de-highlight
+          // lost members.
+          var idBubble = drawingSurface.select("#gid" + changedId._id);
+          if (idBubble && idBubble.classed("highlighted")) {
+            makeReset();
+            showCommonMemberships(changedId);
+            fadeNonMemberships(changedId);
+          }
         },
         removed: function(doc) {
+          // We look for the common players of this network ID and if they are
+          // currently highlighted, we need to reset the applied style.
+          // Otherwise, the ID is removed from the canvas but the players remain highlighted.
+          var commonPlayers = drawingSurface.selectAll(".player").filter(function(player) {
+            return _.contains(doc.createdBy, player._id);
+          });
+          if (commonPlayers && commonPlayers.classed("highlighted")) {
+            makeReset();
+          }
           removeFromNetworkIds(doc);
           dataset = setupLinksData(currentPlayers, currentNetworkIds);
           createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
@@ -150,13 +180,6 @@ var network = function() {
    * @param {Object} metaId - The document newly inserted to the MetaCollection.
    */
   var addToNetworkIds = function(metaId) {
-    // Workaround for multiple calls of the 'added' callback.
-    // for (var i = 0; i < currentNetworkIds.length; i++) {
-    //   if (currentNetworkIds[i].name == metaId.name) {
-    //     // return console.log("already in");
-    //     return;
-    //   }
-    // }
     var newNetworkId = metaId;
     newNetworkId.matchCount = metaId.createdBy.length;
     currentNetworkIds.push(newNetworkId);
@@ -173,6 +196,7 @@ var network = function() {
     if (networkId) {
       networkId.createdBy = metaId.createdBy;
       networkId.matchCount = metaId.createdBy.length;
+      return networkId;
     }
   };
 
@@ -598,6 +622,7 @@ var network = function() {
     membershipPlayers = drawingSurface.selectAll(".player").filter(function(player) {
       return _.contains(d.createdBy, player._id);
     });
+    membershipPlayers.classed("highlighted", true);
 
     membershipLinks = drawingSurface.selectAll("line").filter(function(link) {
       return link.source._id === d._id;
@@ -624,6 +649,7 @@ var network = function() {
     // Bring the clicked on Id bubble, i.e. <g> element to the front
     // so that it overlapps each connected <line> element.
     idBubble = drawingSurface.select("#gid" + d._id);
+    idBubble.classed("highlighted", true);
     bringToFront(idBubble);
 
     idBubble.select("circle")
@@ -664,6 +690,7 @@ var network = function() {
     nonmembershipPlayers = drawingSurface.selectAll(".player").filter(function(player) {
       return !_.contains(d.createdBy, player._id);
     });
+    nonmembershipPlayers.classed("highlighted", false);
 
     nonmembershipPlayers.selectAll("use")
       .attr("class", "c-white");
@@ -671,9 +698,17 @@ var network = function() {
     nonmembershipPlayers.selectAll("text")
       .attr("class", "c-white");
 
-    drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
-      return circle._id !== d._id;
-    }).attr("class", "c-white");
+    idBubbles = drawingSurface.selectAll(".id-circle").filter(function(group) {
+      return group._id !== d._id;
+    });
+    idBubbles.classed("highlighted", false);
+
+    idBubbles.selectAll("circle")
+      .attr("class", "c-white");
+
+    // drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
+    //   return circle._id !== d._id;
+    // }).attr("class", "c-white");
   }; // fadeNonMemberships()
 
 
@@ -681,6 +716,7 @@ var network = function() {
    * Resets all of the applied styles to the default.
    */
   var makeReset = function() {
+    drawingSurface.selectAll(".player").classed("highlighted", false);
     drawingSurface.selectAll(".player").selectAll("use").attr("class", null);
     drawingSurface.selectAll(".player").selectAll("text").attr("class", null);
 
@@ -688,6 +724,7 @@ var network = function() {
       .style("opacity", 0)
       .attr("class", null);
 
+    drawingSurface.selectAll(".id-circle").classed("highlighted", false);
     drawingSurface.selectAll(".id-circle circle")
       .style("opacity", 1)
       .attr("class", function(d) {
@@ -737,6 +774,7 @@ var network = function() {
     });
 
     currentPlayer = drawingSurface.select("#gid" + playerId);
+    currentPlayer.classed("highlighted", true);
     bringToFront(currentPlayer);
 
     otherIds = drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
