@@ -23,7 +23,16 @@ var network = function() {
     currentNetworkIds = [];
     var templateInstance = this;
 
-    var avatarSize = 150;
+    // We create a margin object following the D3 margin convention.
+    // cf. http://bl.ocks.org/mbostock/3019563
+    var margin = {
+      top: 10,
+      right: 10,
+      bottom: 10,
+      left: 10
+    };
+
+    var avatarSize = 115;
     // We retrieve the current browser viewport size.
     var clientWidth = document.documentElement.clientWidth;
     var clientHeight = document.documentElement.clientHeight - avatarSize;
@@ -40,7 +49,7 @@ var network = function() {
       .friction(0.7);
 
     // create the drawingSurface to render into
-    drawingSurface = makeDrawingSurface(clientWidth, clientHeight);
+    drawingSurface = makeDrawingSurface(clientWidth, clientHeight, margin);
     bubbles = drawingSurface.selectAll(".id-circle");
     links = drawingSurface.selectAll("line");
 
@@ -50,7 +59,7 @@ var network = function() {
 
     var playersConfig =  {
       radius: outerRadius,
-      centerX: clientWidth / 2,
+      centerX: clientWidth / 2 - margin.left, // We need to adjust the translation of the drawing surface
       centerY: clientHeight / 2,
       size: avatarSize,
       count: currentPlayers.length
@@ -216,21 +225,11 @@ var network = function() {
   /**
     * Create the SVG drawing container
     */
-  var makeDrawingSurface = function(currentWidth, currentHeight) {
-    var margin,
-      width,
+  var makeDrawingSurface = function(currentWidth, currentHeight, margin) {
+    var width,
       height,
       svgViewport,
       drawingSurface;
-
-    // We create a margin object following the D3 margin convention.
-    // cf. http://bl.ocks.org/mbostock/3019563
-    margin = {
-      top: 10,
-      right: 10,
-      bottom: 10,
-      left: 10
-    };
 
     // We define the inner dimensions of the drawing area.
     width = currentWidth - margin.left - margin.right;
@@ -258,7 +257,7 @@ var network = function() {
 
     // FOR DEBUGGING: circle in the center
     // drawingSurface.append("circle").attr({
-    //   cx: currentWidth/2,
+    //   cx: currentWidth/2 - margin.left,
     //   cy: currentHeight/2,
     //   r: 5
     // }).style("fill", "white");
@@ -304,6 +303,7 @@ var network = function() {
    * cf. [as of 2015-11-3] http://stackoverflow.com/questions/14790702/d3-js-plot-elements-using-polar-coordinates
    */
   var createPlayersCircle = function(players, config) {
+    var spacing = 10;
     var theta = 2 * Math.PI / players.length;
     var radialPlayers = [];
     players.forEach(function(p, i, players) {
@@ -362,7 +362,7 @@ var network = function() {
     // perfectly match the 'width' and 'height' of the respecting <text> area.
     playerGroup.append("rect")
       .attr("class", "txt-background")
-      .attr("transform", "translate(0," + (config.size / 2 + 5) + ")")
+      .attr("transform", "translate(0," + (config.size / 2 + spacing) + ")")
       .style({
         fill: "#000",
         "fill-opacity": 0.6
@@ -370,7 +370,7 @@ var network = function() {
 
     playerGroup.append("text")
       .attr("text-anchor", "middle")
-      .attr("transform", "translate(0," + (config.size / 2 + 5) + ")")
+      .attr("transform", "translate(0," + (config.size / 2 + spacing) + ")")
       .style("fill", "currentColor")
       .text(function(d) {
         return d.profile.name;
