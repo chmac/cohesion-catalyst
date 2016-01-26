@@ -13,3 +13,10 @@
   fill: #fff;
   font-size: 1.125em;
 }
+
+/*.id-circle > circle.c-white {
+  -webkit-transition: fill 0.5s;
+  -moz-transition: fill 0.5s;
+  -ms-transition: fill 0.5s;
+  transition: fill 0.5s;
+}*/
