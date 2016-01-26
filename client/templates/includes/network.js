@@ -44,9 +44,9 @@ var network = function() {
       .nodes(currentNetworkIds)
       // .links([])
       .size([clientWidth, clientHeight])
-      .gravity(0.8)
+      .gravity(0.7)
       .on("tick", updatePositions)
-      .friction(0.7);
+      .friction(0.6);
 
     // create the drawingSurface to render into
     drawingSurface = makeDrawingSurface(clientWidth, clientHeight, margin);
@@ -116,7 +116,8 @@ var network = function() {
           // If it is currently highlighted, then we want to highlight new members or de-highlight
           // lost members.
           var idBubble = drawingSurface.select("#gid" + changedId._id);
-          if (idBubble && idBubble.classed("highlighted")) {
+          updateSelection(idBubble);
+          if (idBubble.classed("highlighted")) {
             makeReset();
             showCommonMemberships(changedId);
             fadeNonMemberships(changedId);
@@ -158,12 +159,6 @@ var network = function() {
 
 
   function updatePositions(event) {
-    var damping = 0.1;
-
-    // currentNetworkIds.forEach(function(datum, i) {
-    //   datum.x = datum.x + (config.centerX - datum.x) * (damping + 0.02) * event.alpha;
-    //   datum.y = datum.y + (config.centerY - datum.y) * (damping + 0.02) * event.alpha;
-    // });
 
     // bubbleGroup.attr("transform", function(d) {
     bubbles.attr("transform", function(d) {
@@ -436,13 +431,13 @@ var network = function() {
     // We map input data values (or domain) to output data values (or range).
     // Hence, we specify a minimum value of '0' and the value of 'config.count'
     // (i.e. the number of players) as the maximum value to be mapped
-    // to output values ranging from 5% to 10% of the player circle radius.
+    // to output values used to draw circles, ranging from smaller circles to bigger ones.
     // It is important to use the square roots scale here in order to
     // use radius values to create circles with areas that correctly
     // corresponds to the data values.
     var mapRadius = d3.scale.sqrt()
       .domain([0, config.count])
-      .range([config.radius * 0.05, config.radius * 0.2]);
+      .range([10, 45]);
 
     bubbles = bubbles.data(currentNetworkIds, function(d) {
       return d && d._id;
@@ -451,19 +446,118 @@ var network = function() {
     // UPDATE selection
     // We update existing elements as needed.
     bubbles.each(function(d) {
-      d.bubbleR = mapRadius(d.matchCount);
+      d.bubbleR = Math.floor(mapRadius(d.matchCount));
     });
 
     bubbles.exit().remove();
 
+    // ENTER selection
+    // We create new elements as needed.
+    bubbleGroup = bubbles.enter().append("g")
+      .attr("id", function(d) {
+        return "gid" + d._id;
+      })
+      .attr("class", "id-circle")
+      // We specify an initial random position within the drawing area
+      // in order to tame the force layout.
+      .attr("transform", function(d) {
+        d.x = Math.floor(Math.random() * (width - config.size));
+        d.y = Math.floor(Math.random() * (height - config.size));
+        return "translate(" + d.x + "," + d.y + ")";
+      });
+
+    // 'bubbleGroup' now holds both D3 'enter' and 'update' selection.
+    // So, we calculate the radius for each element in the selection and
+    // add it to each element's bound data for later use.
+    bubbleGroup.each(function(d) {
+      d.bubbleR = Math.floor(mapRadius(d.matchCount));
+    });
+
+    bubbleGroup.append("circle")
+      .attr("r", 0)
+      .attr("class", function(d) {
+        return d.color;
+      });
+
+    // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
+    // Note the CSS style property 'opacity' and its value of '0', which we
+    // transition to a value of '1' to give the text inside the circles the effect of 'fading in'.
+    // We apply the 'opacity' property to the <foreignObject> since it is the
+    // parent of <p> and the 'opacity' will then also apply to child elements.
+    // It is not possible to make a child less transparent than its parent.
+    // cf. [as of 2015-12-07] https://css-tricks.com/almanac/properties/o/opacity/
+    bubbleGroup.append("foreignObject")
+      .style("opacity", 0)
+      .attr({
+        "class": "foreign-object",
+        "width": function(d) {
+          return d.bubbleR * 2 + "px";
+        },
+        "height": function(d) {
+          return d.bubbleR * 2 + "px";
+        },
+        "transform": function(d) {
+          return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
+        }
+      })
+      .append("xhtml:p")
+      .attr("class", "txt-inside-circle")
+      .text(function(d) {
+        return d.name;
+      })
+      .style({
+        "width": function(d) {
+          return d.bubbleR *  2 + "px";
+        },
+        "height": function(d) {
+          return d.bubbleR *  2 + "px";
+        },
+        // We set the 'font-size' based on the width of the parent element
+        // (here: the <foreignObject> element, the 'width' of which matches the <circle> diameter)
+        // and the length of the text inside the <p> element.
+        // We get the needed value by calculating the size of the <p> element.
+        "font-size": function(d) {
+          var textBox = this.getBoundingClientRect();
+          var textLen = textBox.width || textBox.right - textBox.left;
+          d.fontSize = (d.bubbleR * 2 - 5) / textLen;
+          return d.fontSize + "em";
+        }
+      });
+
+      // We create the transition to smoothly change each of the circles' radii from
+      // '0' to its specific calculated value.
+      bubbleGroup.selectAll("circle")
+        .transition()
+        .duration(1000)
+        .attr("r", function(d) {
+          return d.bubbleR;
+        });
+
+
+    // We create the transition to make the text inside the circle appear smoothly
+    // with a slight delay.
+    bubbleGroup.selectAll(".foreign-object")
+      .transition()
+      .delay(500)
+      .duration(500)
+      .ease("linear")
+      .style("opacity", "1");
+
+
+    // We bind the links data and
+    // UPDATE the selection as needed.
     links = links.data(dataset, function(d) {
       if (d && d.source && d.target) {
         return d.source._id + "-" + d.target._id;
       }
     });
 
+    // EXIT selection
+    // We remove those elements that are no longer bound to our dataset.
     links.exit().remove();
 
+    // ENTER selection
+    // We create new link elements as needed.
     links.enter().insert("line", "g")
       .style({
         "opacity": 0,
@@ -483,112 +577,10 @@ var network = function() {
         return d.target.y;
       });
 
-    // ENTER selection
-    // We create new elements as needed.
-    bubbleGroup = bubbles.enter().append("g")
-      .attr("id", function(d) {
-        return "gid" + d._id;
-      })
-      .attr("class", "id-circle")
-      .attr("transform", function(d) {
-        d.x = Math.random() * (width - config.size);
-        d.y = Math.random() * (height - config.size);
-        return "translate(" + d.x + "," + d.y + ")";
-      });
-
-    // 'bubbleGroup' now holds both D3 'enter' and 'update' selection.
-    // So, we calculate the radius for each element in the selection and
-    // add it to each element's bound data for later use.
-    bubbleGroup.each(function(d) {
-      d.bubbleR = mapRadius(d.matchCount);
-    });
-
-    bubbleGroup.append("circle")
-      .attr("r", 0)
-      .attr("class", function(d) {
-        return d.color;
-      });
-
-    // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
-    // Note the CSS style property 'opacity' and its value of '0', which we
-    // transition to a value of '1' to give the text inside the circles the effect of 'fading in'.
-    // We apply the 'opacity' property to the <foreignObject> since it is the
-    // parent of <p> and the 'opacity' will then also apply to child elements.
-    // It is not possible to make a child less transparent than its parent.
-    // cf. [as of 2015-12-07] https://css-tricks.com/almanac/properties/o/opacity/
-    bubbleGroup.append("foreignObject")
-      .style("opacity", 0)
-      .attr("class", "foreign-object")
-      .append("xhtml:p")
-      .classed("txt-inside-circle", true)
-      .text(function(d) {
-        return d.name;
-      });
-
-    // We make a reselection of all the <foreignObject> elements
-    // in order to apply those attributes that are depending on
-    // the current value of 'bubbleR'.
-    // In doing so we address both the update and enter selection.
-    drawingSurface.selectAll(".foreign-object")
-      .attr({
-        "width": function(d) {
-          return d.bubbleR * 2 + "px";
-        },
-        "height": function(d) {
-          return d.bubbleR * 2 + "px";
-        },
-        "transform": function(d) {
-          return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
-        }
-      });
-
-    // We make a reselection of all the <p> elements
-    // in order to apply those attributes that are depending on
-    // the current value of 'bubbleR'.
-    // In doing so we address both the update and enter selection.
-    drawingSurface.selectAll(".txt-inside-circle")
-      .style({
-        "width": function(d) {
-          return d.bubbleR *  2 + "px";
-        },
-        "height": function(d) {
-          return d.bubbleR *  2 + "px";
-        },
-        // We set the 'font-size' based on the width of the parent element
-        // (here: the <foreignObject> element, the 'width' of which matches the <circle> diameter)
-        // and the length of the text inside the <p> element.
-        // We get the needed value by calculating the size of the <p> element.
-        "font-size": function(d) {
-          var textBox = this.getBoundingClientRect();
-          var textLen = textBox.width || textBox.right - textBox.left;
-          return (d.bubbleR * 2 - 5) / textLen + "em";
-        }
-      });
-
-    // We create the transition to smoothly change each of the circles' radii from
-    // '0' (if it is an entering element) or from the current 'bubbleR' value (if an existing
-    // element is being updated), respectively, to its specific calculated value.
-    // HEADS UP: We need to reselect here to apply the transition to both the update
-    // and enter selection.
-    drawingSurface.selectAll(".id-circle circle")
-      .transition()
-      .duration(1000)
-      .attr("r", function(d) {
-        return d.bubbleR;
-      });
-
-    // We create the transition to make the text inside the circle appear smoothly
-    // with a slight delay. Only needed for the ENTER selection, hence 'bubbleGroup'.
-    bubbleGroup.selectAll(".foreign-object")
-      .transition()
-      .delay(500)
-      .duration(500)
-      .ease("linear")
-      .style("opacity", "1");
-
 
     // Call the function to handle touch and mouse events, respectively.
-    touchMouseEvents(bubbles, canvas.node(), {
+    // touchMouseEvents(bubbles, canvas.node(), {
+    touchMouseEvents(bubbleGroup, canvas.node(), {
       "test": false,
       "down": function(d,x,y) {
         d3.event.stopPropagation();
@@ -602,7 +594,7 @@ var network = function() {
     // and then start the force layout
     force
       .charge(function(d) {
-        return -Math.pow(d.bubbleR * 2, 2.0);
+        return -Math.pow(d.bubbleR * 1.5, 2.0);
       }).start();
 
   }; // createBubbleCloud()
@@ -643,6 +635,7 @@ var network = function() {
 
     membershipLinks
       .attr("class", d.color)
+      .transition()
       .style("opacity", 1);
 
     // 2. Drawing layer
@@ -786,6 +779,48 @@ var network = function() {
 }(); // 'network' module
 
 
+var updateSelection = function(bubble) {
+
+    bubble.select("circle")
+      .transition()
+      .duration(1000)
+      .attr("r", function(d) {
+        return d.bubbleR;
+      });
+
+    bubble.select(".foreign-object")
+      .attr({
+        "width": function(d) {
+          return d.bubbleR * 2 + "px";
+        },
+        "height": function(d) {
+          return d.bubbleR * 2 + "px";
+        },
+        "transform": function(d) {
+          return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
+        }
+      })
+      .select(".txt-inside-circle")
+        .style({
+          "width": function(d) {
+            return d.bubbleR *  2 + "px";
+          },
+          "height": function(d) {
+            return d.bubbleR *  2 + "px";
+          },
+          // // We set the 'font-size' based on the width of the parent element
+          // // (here: the <foreignObject> element, the 'width' of which matches the <circle> diameter)
+          // // and the length of the text inside the <p> element.
+          // // We get the needed value by calculating the size of the <p> element.
+          "font-size": function(d) {
+            var textBox = this.getBoundingClientRect();
+            var textLen = textBox.width || textBox.right - textBox.left;
+            d.fontSize = (d.bubbleR * 2 - 5) / textLen;
+            return d.fontSize + "em";
+        }
+      });
+
+};
 // var getCurrentAvatar = function() {
 //
 //     var defaultAvatarURL = "/svg/avatars.svg#smiley-smile";
