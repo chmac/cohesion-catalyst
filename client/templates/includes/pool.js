@@ -270,31 +270,32 @@ var pool = function() {
       group.attr("transform", "translate(" + (res.x) + "," + (res.y) + ")");
 
       // Append a <circle> to the <g>.
-      // group.append("circle")
-      //   .attr("r", radius)
-      //   .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
-      //   .attr("class", d.color);
+      // NOTE: These are circles "entering" without transition!
+      group.append("circle")
+        .attr("r", radius)
+        .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
+        .attr("class", d.color);
 
-      // TODO See if other solution is possible for "entering" circles
-      // This is a workaround experiment:
-      // Only apply a transition if we are not dragging (We call draw() while dragging and we
-      // remove all elements in draw() which makes all elements to entering elements again)
-      // Also, only apply it to the circle in the last spot - but this will cause that circle
-      // to be animated multiple times.
-      if (touchMouseEvents.currentMode() !== "DRAG" && ids.length-1 == d.index) {
-        group.append("circle")
-          .attr("r", 0)
-          .transition()
-          .duration(500)
-          .attr("r", radius)
-          .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
-          .attr("class", d.color);
-      } else {
-        group.append("circle")
-          .attr("r", radius)
-          .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
-          .attr("class", d.color);
-      }
+      // // TODO See if other solution is possible for "entering" circles
+      // // This is a workaround experiment:
+      // // Only apply a transition if we are not dragging (We call draw() while dragging and we
+      // // remove all elements in draw() which makes all elements to entering elements again)
+      // // Also, only apply it to the circle in the last spot - but this will cause that circle
+      // // to be animated multiple times which is an unpleasant effect!!
+      // if (touchMouseEvents.currentMode() !== "DRAG" && ids.length-1 == d.index) {
+      //   group.append("circle")
+      //     .attr("r", 0)
+      //     .transition()
+      //     .duration(500)
+      //     .attr("r", radius)
+      //     .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
+      //     .attr("class", d.color);
+      // } else {
+      //   group.append("circle")
+      //     .attr("r", radius)
+      //     .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
+      //     .attr("class", d.color);
+      // }
 
       // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
       group.append("foreignObject")
