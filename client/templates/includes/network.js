@@ -67,6 +67,24 @@ var network = function() {
 
     createPlayersCircle(currentPlayers, playersConfig);
 
+    // We want to observe if a user changes his or her avatar
+    // in order to reactively update the SVG icon.
+    var playersCursor = Meteor.users.find({
+      "profile.currentTraining": currentTrainingId
+    }, {
+      fields: {
+        "profile.avatar": 1
+      }
+    });
+    templateInstance.playerHandle = playersCursor.observeChanges({
+      changed: function(id, profileAvatar) {
+        var player = Meteor.users.findOne({_id: id});
+        d3.select("#gid" + id + " use")
+          .attr("xlink:href", "/svg/avatars.svg" + player.profile.avatar);
+        // console.log(player.profile.name, " changed avatar to ", player.profile.avatar);
+      }
+    });
+
     var currentNetworkCursor = MetaCollection.find({
       $nor: [
         {
@@ -90,8 +108,7 @@ var network = function() {
     // should not affect the 'added()' callback.
     var initializing = true;
 
-    // currentNetworkCursor.observe({
-    templateInstance.handle = currentNetworkCursor.observe({
+    templateInstance.networkHandle = currentNetworkCursor.observe({
       added: function(doc) {
         addToNetworkIds(doc);
         dataset = setupLinksData(currentPlayers, currentNetworkIds);
@@ -165,11 +182,12 @@ var network = function() {
   }); // onRendered()
 
 
-  // We need to stop observing our live query when this template is
+  // We need to stop observing our live queries when this template is
   // removed from the DOM.
   Template.idNetwork.onDestroyed(function() {
     var templateInstance = this;
-    templateInstance.handle.stop();
+    templateInstance.networkHandle.stop();
+    templateInstance.playerHandle.stop();
   });
 
   /**
