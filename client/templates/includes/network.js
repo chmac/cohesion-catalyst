@@ -66,83 +66,90 @@ var network = function() {
     };
 
     createPlayersCircle(currentPlayers, playersConfig);
-    // TODO: check, if autorun is really necessary since we are observing and observing
-    // is a reactive context ??????
-    templateInstance.autorun(function() {
 
-      var currentNetworkCursor = MetaCollection.find({
-        $nor: [
-          {
-            createdBy: {
-              $exists: false
-            }
-          }, {
-            createdBy: {
-              $size: 0
-            }
-          }, {
-            createdBy: {
-              $size: 1
-            }
+    var currentNetworkCursor = MetaCollection.find({
+      $nor: [
+        {
+          createdBy: {
+            $exists: false
           }
-        ],
-        createdAtTraining: currentTrainingId
-      });
+        }, {
+          createdBy: {
+            $size: 0
+          }
+        }, {
+          createdBy: {
+            $size: 1
+          }
+        }
+      ],
+      createdAtTraining: currentTrainingId
+    });
 
+    // We use a flag to indicate the initial query results that
+    // should not affect the 'added()' callback.
+    var initializing = true;
 
-      currentNetworkCursor.observe({
-        added: function(doc) {
-          addToNetworkIds(doc);
-          dataset = setupLinksData(currentPlayers, currentNetworkIds);
-          createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
-          // We check if the current player is inspecting own ids when a new network-ID
-          // is added and if the newly added ID was also created by the current
-          // player. If both of those conditions are true, we call the function to show
-          // the links to all of the IDs of the current player.
-          // We wait until the transition of the entering element is halfway through
-          // in order to prevent flickering of the link.
-          var player = d3.select("#gid" + Meteor.userId());
-          if (player.classed("highlighted") && _.contains(doc.createdBy, Meteor.userId())) {
-            Meteor.setTimeout(function() {
-              showLinksToCurrentPlayerIds(Meteor.userId());
-            }, 500);
-          }
-        },
-        changed: function(newDoc,oldDoc) {
-          var changedId = updateNetworkId(newDoc);
-          dataset = setupLinksData(currentPlayers, currentNetworkIds);
-          createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
-          // We look for the ID bubble this changed document is associated with.
-          // If it is currently highlighted, then we want to highlight new members or de-highlight
-          // lost members.
-          var idBubble = drawingSurface.select("#gid" + changedId._id);
-          updateSelection(idBubble);
-          if (idBubble.classed("highlighted")) {
-            makeReset();
-            showCommonMemberships(changedId);
-            fadeNonMemberships(changedId);
-          }
-        },
-        removed: function(doc) {
-          // We look for the common players of this network ID and if they are
-          // currently highlighted, we need to reset the applied style.
-          // Otherwise, the ID is removed from the canvas but the players remain highlighted.
-          var commonPlayers = drawingSurface.selectAll(".player").filter(function(player) {
-            return _.contains(doc.createdBy, player._id);
-          });
-          if (commonPlayers && commonPlayers.classed("highlighted")) {
-            makeReset();
-          }
-          removeFromNetworkIds(doc);
-          dataset = setupLinksData(currentPlayers, currentNetworkIds);
+    // currentNetworkCursor.observe({
+    templateInstance.handle = currentNetworkCursor.observe({
+      added: function(doc) {
+        addToNetworkIds(doc);
+        dataset = setupLinksData(currentPlayers, currentNetworkIds);
+        // We want to prevent multiple calls of 'createBubbleCloud()'
+        // while the 'added()' callback delivers the initial result of the query.
+        if (!initializing) {
           createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
         }
-      });
+        // We check if the current player is inspecting own ids when a new network-ID
+        // is added and if the newly added ID was also created by the current
+        // player. If both of those conditions are true, we call the function to show
+        // the links to all of the IDs of the current player.
+        // We wait until the transition of the entering element is halfway through
+        // in order to prevent flickering of the link.
+        var player = d3.select("#gid" + Meteor.userId());
+        if (player.classed("self-highlighted") && _.contains(doc.createdBy, Meteor.userId())) {
+          Meteor.setTimeout(function() {
+            showLinksToCurrentPlayerIds(Meteor.userId());
+          }, 500);
+        }
+      },
+      changed: function(newDoc,oldDoc) {
+        var changedId = updateNetworkId(newDoc);
+        dataset = setupLinksData(currentPlayers, currentNetworkIds);
+        createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+        // We look for the ID bubble this changed document is associated with
+        // and first, we need to update its attributes that are based on changed data.
+        // Then, if it is currently highlighted, we want to highlight new members or de-highlight
+        // lost members.
+        var idBubble = drawingSurface.select("#gid" + changedId._id);
+        updateSelection(idBubble);
+        if (idBubble.classed("highlighted")) {
+          makeReset();
+          fadeNonMemberships(changedId);
+          showCommonMemberships(changedId);
+        }
+      },
+      removed: function(doc) {
+        // We look for the common players of this network ID and if they are
+        // currently highlighted, we need to reset the applied style.
+        // Otherwise, the ID is removed from the canvas but the players remain highlighted.
+        var commonPlayers = drawingSurface.selectAll(".player").filter(function(player) {
+          return _.contains(doc.createdBy, player._id);
+        });
+        if (commonPlayers && commonPlayers.classed("highlighted")) {
+          makeReset();
+        }
+        removeFromNetworkIds(doc);
+        dataset = setupLinksData(currentPlayers, currentNetworkIds);
+        createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+      }
+    });
 
-    }); // autorun()
+    // At this point, 'observe' has returned and the initial query results are delivered.
+    // So we call 'createBubbleCloud()' with the initial dataset.
+    initializing = false;
+    createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
 
-    // Start the force layout
-    force.start();
 
     // set up mouse events
     touchMouseEvents(drawingSurface, // target
@@ -158,8 +165,19 @@ var network = function() {
   }); // onRendered()
 
 
-  function updatePositions(event) {
+  // We need to stop observing our live query when this template is
+  // removed from the DOM.
+  Template.idNetwork.onDestroyed(function() {
+    var templateInstance = this;
+    templateInstance.handle.stop();
+  });
 
+  /**
+   * Updates the displayed positions of the rendered elements.
+   * Listens to the 'tick' events, i.e. the positions are
+   * set on each tick of the force simulation.
+   */
+  function updatePositions(event) {
     // bubbleGroup.attr("transform", function(d) {
     bubbles.attr("transform", function(d) {
       return "translate(" + d.x + "," + d.y + ")";
@@ -218,8 +236,11 @@ var network = function() {
   };
 
   /**
-    * Create the SVG drawing container
-    */
+   * Creates the SVG drawing container
+   * @param {Number} currentWidth - The calculated width of the browser viewport.
+   * @param {Number} currentHeight - The calculated height of the browser viewport.
+   * @param {Object} margin - An object that holds values to margin the drawing area.
+   */
   var makeDrawingSurface = function(currentWidth, currentHeight, margin) {
     var width,
       height,
@@ -256,10 +277,7 @@ var network = function() {
     //   cy: currentHeight/2,
     //   r: 5
     // }).style("fill", "white");
-
-
     return drawingSurface;
-
   };
 
   /**
@@ -518,8 +536,9 @@ var network = function() {
         // We get the needed value by calculating the size of the <p> element.
         "font-size": function(d) {
           var textBox = this.getBoundingClientRect();
-          var textLen = textBox.width || textBox.right - textBox.left;
-          d.fontSize = (d.bubbleR * 2 - 5) / textLen;
+          // We store the calculated values on the data object.
+          d.textLen = textBox.width || textBox.right - textBox.left;
+          d.fontSize = (d.bubbleR * 2 - 5) / d.textLen;
           return d.fontSize + "em";
         }
       });
@@ -540,7 +559,6 @@ var network = function() {
       .transition()
       .delay(500)
       .duration(500)
-      .ease("linear")
       .style("opacity", "1");
 
 
@@ -585,8 +603,8 @@ var network = function() {
       "down": function(d,x,y) {
         d3.event.stopPropagation();
         makeReset();
-        showCommonMemberships(d);
         fadeNonMemberships(d);
+        showCommonMemberships(d);
       }
     });
 
@@ -655,12 +673,8 @@ var network = function() {
     idBubble.select(".foreign-object")
       .transition()
       .attr("transform", function(d) {
-          return "scale(1.5) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
+        return "scale(1.5) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
       });
-
-    // idBubble.select("text")
-    //   .transition()
-    //   .attr("transform", "scale(1.5)");
 
     // 3. Drawing layer
     // Bring the player elements in question to the front - must be the last to be
@@ -698,10 +712,6 @@ var network = function() {
 
     idBubbles.selectAll("circle")
       .attr("class", "c-white");
-
-    // drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
-    //   return circle._id !== d._id;
-    // }).attr("class", "c-white");
   }; // fadeNonMemberships()
 
 
@@ -709,7 +719,10 @@ var network = function() {
    * Resets all of the applied styles to the default.
    */
   var makeReset = function() {
-    drawingSurface.selectAll(".player").classed("highlighted", false);
+    drawingSurface.selectAll(".player").classed({
+      "highlighted": false,
+      "self-highlighted": false
+    });
     drawingSurface.selectAll(".player").selectAll("use").attr("class", null);
     drawingSurface.selectAll(".player").selectAll("text").attr("class", null);
 
@@ -733,10 +746,6 @@ var network = function() {
       .attr("transform", function(d) {
           return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
       });
-
-    // bubblesContainer.selectAll("text")
-    //   .transition()
-    //   .attr("transform", "scale(1.0)");
   }; // makeReset()
 
 
@@ -767,7 +776,7 @@ var network = function() {
     });
 
     currentPlayer = drawingSurface.select("#gid" + playerId);
-    currentPlayer.classed("highlighted", true);
+    currentPlayer.classed("self-highlighted", true);
     bringToFront(currentPlayer);
 
     otherIds = drawingSurface.selectAll(".id-circle circle").filter(function(circle) {
@@ -778,49 +787,48 @@ var network = function() {
 
 }(); // 'network' module
 
-
+/**
+ * Updates the attributes of a D3 selection when data has changed.
+ * @param {Array} bubble - The D3 selection of the bubble the data
+ * of which has changed (i.e. the selection contains only one element).
+ */
 var updateSelection = function(bubble) {
+  bubble.select("circle")
+    .transition()
+    .duration(1000)
+    .attr("r", function(d) {
+      return d.bubbleR;
+    });
 
-    bubble.select("circle")
-      .transition()
-      .duration(1000)
-      .attr("r", function(d) {
-        return d.bubbleR;
-      });
-
-    bubble.select(".foreign-object")
-      .attr({
+  bubble.select(".foreign-object")
+    .attr({
+      "width": function(d) {
+        return d.bubbleR * 2 + "px";
+      },
+      "height": function(d) {
+        return d.bubbleR * 2 + "px";
+      },
+      "transform": function(d) {
+        return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
+      }
+    })
+    .select(".txt-inside-circle")
+      .style({
         "width": function(d) {
           return d.bubbleR * 2 + "px";
         },
         "height": function(d) {
           return d.bubbleR * 2 + "px";
         },
-        "transform": function(d) {
-          return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
-        }
-      })
-      .select(".txt-inside-circle")
-        .style({
-          "width": function(d) {
-            return d.bubbleR *  2 + "px";
-          },
-          "height": function(d) {
-            return d.bubbleR *  2 + "px";
-          },
-          // // We set the 'font-size' based on the width of the parent element
-          // // (here: the <foreignObject> element, the 'width' of which matches the <circle> diameter)
-          // // and the length of the text inside the <p> element.
-          // // We get the needed value by calculating the size of the <p> element.
-          "font-size": function(d) {
-            var textBox = this.getBoundingClientRect();
-            var textLen = textBox.width || textBox.right - textBox.left;
-            d.fontSize = (d.bubbleR * 2 - 5) / textLen;
-            return d.fontSize + "em";
+        // We update the font-size based on the calculated text length
+        "font-size": function(d) {
+          d.fontSize = (d.bubbleR * 2 - 5) / d.textLen;
+          return d.fontSize + "em";
         }
       });
-
 };
+
+
 // var getCurrentAvatar = function() {
 //
 //     var defaultAvatarURL = "/svg/avatars.svg#smiley-smile";
