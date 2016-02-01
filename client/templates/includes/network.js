@@ -8,9 +8,6 @@ var network = function() {
 
   /** drawing surface to render into */
   var drawingSurface,
-    linksContainer,
-    bubblesContainer,
-    playersContainer,
     force,
     bubbles,
     links,
@@ -35,7 +32,7 @@ var network = function() {
     var avatarSize = 115;
     // We retrieve the current browser viewport size.
     var clientWidth = document.documentElement.clientWidth;
-    var clientHeight = document.documentElement.clientHeight - avatarSize;
+    var clientHeight = document.documentElement.clientHeight - avatarSize/2;
     var outerRadius = Math.min(clientWidth, clientHeight - avatarSize / 2) / 2 - avatarSize / 2;
 
     // Create the force layout and specify some settings.
@@ -59,8 +56,10 @@ var network = function() {
 
     var playersConfig =  {
       radius: outerRadius,
+      radiusX: clientWidth / 2,
+      radiusY: (clientHeight - avatarSize/2) / 2,
       centerX: clientWidth / 2 - margin.left, // We need to adjust the translation of the drawing surface
-      centerY: clientHeight / 2,
+      centerY: clientHeight / 2 - margin.top,
       size: avatarSize,
       count: currentPlayers.length
     };
@@ -274,8 +273,8 @@ var network = function() {
     // We create our outermost <svg> and append it to the existing <div id='ids-graph'>.
     svgViewport = d3.select("#ids-graph").append("svg")
       .attr("id", "network-vis")
-      .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin
-        .top + margin.bottom))
+      .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " +
+        (height + margin.top + margin.bottom))
       .attr("preserveAspectRatio", "xMidYMin meet");
 
     // We append a <g> element that translates the origin to the top-left
@@ -339,8 +338,12 @@ var network = function() {
     var radialPlayers = [];
     players.forEach(function(p, i, players) {
       var radialPlayer, x, y;
-      x = config.centerX + config.radius * Math.cos(i * theta);
-      y = config.centerY + config.radius * Math.sin(i * theta);
+      // x = config.centerX + config.radius * Math.cos(i * theta);
+      // y = config.centerY + config.radius * Math.sin(i * theta);
+      // The radii values are calculated from the available width and height, respectively.
+      // This allows to arrange the players elliptically, thus making more room for the bubbles.
+      x = config.centerX + (config.radiusX - (config.size/2)) * Math.cos(i * theta);
+      y = (config.centerY - spacing) + (config.radiusY - (config.size/3)) * Math.sin(i * theta);
       radialPlayer = _.extend(p, {x:x}, {y:y});
       radialPlayers.push(radialPlayer);
     });
