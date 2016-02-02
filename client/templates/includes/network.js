@@ -165,7 +165,7 @@ var network = function() {
     // So we call 'createBubbleCloud()' with the initial dataset.
     initializing = false;
     createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
-
+    // calculateArea(playersConfig);
 
     // set up mouse events
     touchMouseEvents(drawingSurface, // target
@@ -482,11 +482,29 @@ var network = function() {
       return d && d._id;
     });
 
+    // Variables we will use to check the available space for the bubble cloud.
+    var maxBubblesArea = 0.75 * Math.trunc(Math.PI * config.radiusX * config.radiusY);
+    var listOfBubbleAreas = [];
+    var sumOfBubbleAreas = 0;
+
+
     // UPDATE selection
     // We update existing elements as needed.
     bubbles.each(function(d) {
       d.bubbleR = Math.floor(mapRadius(d.matchCount));
+      // We store each of the bubbles area value.
+      listOfBubbleAreas.push(Math.PI * d.bubbleR * d.bubbleR);
     });
+
+    // We use the collected area values to calculate the total area.
+    // If necessary, we dynamically reduce the bubble radii.
+    sumOfBubbleAreas = _.reduce(listOfBubbleAreas, function(memo, num) {
+      return memo + num;
+    }, 0);
+    // Is the maximum available space exceeded?
+    if (sumOfBubbleAreas > maxBubblesArea) {
+      reduceBubbleRadius(bubbles, listOfBubbleAreas, sumOfBubbleAreas, maxBubblesArea);
+    }
 
     bubbles.exit().remove();
 
@@ -510,7 +528,15 @@ var network = function() {
     // add it to each element's bound data for later use.
     bubbleGroup.each(function(d) {
       d.bubbleR = Math.floor(mapRadius(d.matchCount));
+      listOfBubbleAreas.push(Math.PI * d.bubbleR * d.bubbleR);
     });
+
+    sumOfBubbleAreas = _.reduce(listOfBubbleAreas, function(memo, num) {
+      return memo + num;
+    }, 0);
+    if (sumOfBubbleAreas > maxBubblesArea) {
+      reduceBubbleRadius(bubbleGroup, listOfBubbleAreas, sumOfBubbleAreas, maxBubblesArea);
+    }
 
     bubbleGroup.append("circle")
       .attr("r", 0)
@@ -849,6 +875,25 @@ var updateSelection = function(bubble) {
       });
 };
 
+
+/**
+ * Reduces the radius for each element in the selection.
+ * The new value is calculated by subtracting the share of the
+ * overlow from each element's radius and then we set the new value
+ * making it available for getting/setting attribute values and style
+ * properties.
+ * @param {Object} selection - A D3 selection (update or enter).
+ * @param {Array} areaList - An array storing the area values of each bubble element.
+ * @param {Number} areaSum - The total area of all bubbles currently displayed.
+ * @param {Number} maxArea - The maximum available area for the bubbles. Specified in relation
+ * to the area spanned by the player ring.
+ */
+var reduceBubbleRadius = function(selection, areaList, areaSum, maxArea) {
+  var overflow = (areaSum - maxArea) * 100 / maxArea / areaList.length;
+  selection.each(function(d) {
+    d.bubbleR = Math.floor(d.bubbleR - (d.bubbleR * overflow / 100));
+  });
+};
 
 // var getCurrentAvatar = function() {
 //
