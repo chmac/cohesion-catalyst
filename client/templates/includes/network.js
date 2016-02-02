@@ -13,7 +13,8 @@ var network = function() {
     links,
     bubbleGroup,
     currentNetworkIds = [],
-    dataset = [];
+    dataset = [],
+    bubbleGravity;
 
 
   Template.idNetwork.onRendered(function() {
@@ -39,9 +40,8 @@ var network = function() {
     // Don't start yet
     force = d3.layout.force()
       .nodes(currentNetworkIds)
-      // .links([])
       .size([clientWidth, clientHeight])
-      .gravity(0.7)
+      .gravity(0.2) // NOTE: value of 0.7 is quite good when w/o bubbleGravity()
       .on("tick", updatePositions)
       .friction(0.6);
 
@@ -178,6 +178,36 @@ var network = function() {
                      }
     );
 
+    /**
+     * Adds a non-symmetrical custom gravity to the layout.
+     * The 'gravity' force gets applied to each bubble to push and pull
+     * the vertical and horizontal positions depending on the available
+     * width and height, respectively. This is especially useful if
+     * the width and height of the visualization space are different.
+     * @param {Number} alpha - The built-in cooling temperature of the force simulation
+     * which starts at 0.1 and decreases steadily until the simulation stops.
+     * cf. [as of 2016-02-02] http://vallandingham.me/building_a_bubble_cloud.html
+     */
+    bubbleGravity = function(alpha) {
+      // We start at the center.
+      var cx = clientWidth / 2;
+      var cy = clientHeight / 2;
+
+      // We use the alpha parameter of the force layout to affect how much we
+      // want to push horizontally or vertically.
+      // We reduce the alpha value if width or height is greater, which results in a
+      // weaker pull towards the center, allowing the bubbles to spread along
+      // that particular axis.
+      var ax = playersConfig.radiusX > playersConfig.radiusY ? alpha / 4 : alpha;
+      // var ay = playersConfig.radiusY > playersConfig.radiusX ? alpha/1.5 : alpha;
+      var ay = alpha;
+
+      // We return a function that will modify the x and y values of the bubble elements.
+      return function(d) {
+        d.x += (cx - d.x) * ax;
+        d.y += (cy - d.y) * ay;
+      };
+    };
   }); // onRendered()
 
 
@@ -196,9 +226,11 @@ var network = function() {
    */
   function updatePositions(event) {
     // bubbleGroup.attr("transform", function(d) {
-    bubbles.attr("transform", function(d) {
-      return "translate(" + d.x + "," + d.y + ")";
-    });
+    bubbles
+      .each(bubbleGravity(event.alpha))
+      .attr("transform", function(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+      });
 
     links.attr("x1", function(d) {
         return d.source.x;
