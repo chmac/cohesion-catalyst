@@ -40,8 +40,8 @@ var network = function() {
     // Don't start yet
     force = d3.layout.force()
       .nodes(currentNetworkIds)
-      .size([clientWidth, clientHeight])
-      .gravity(0.2) // NOTE: value of 0.7 is quite good when w/o bubbleGravity()
+      .size([clientWidth-margin.left, clientHeight])
+      .gravity(0.7) // NOTE: value of 0.7 is quite good when w/o bubbleGravity()
       .on("tick", updatePositions)
       .friction(0.6);
 
@@ -227,7 +227,7 @@ var network = function() {
   function updatePositions(event) {
     // bubbleGroup.attr("transform", function(d) {
     bubbles
-      .each(bubbleGravity(event.alpha))
+      // .each(bubbleGravity(event.alpha))
       .attr("transform", function(d) {
         return "translate(" + d.x + "," + d.y + ")";
       });
@@ -320,7 +320,9 @@ var network = function() {
       .attr("height", height)
       .attr("class", "drawing-surface");
 
-    // FOR DEBUGGING: circle in the center
+    // =======================================
+    // FOR DEBUGGING: big circle in the center
+    // =======================================
     // drawingSurface.append("circle").attr({
     //   cx: currentWidth/2 - margin.left,
     //   cy: currentHeight/2,
@@ -370,17 +372,19 @@ var network = function() {
     var radialPlayers = [];
     players.forEach(function(p, i, players) {
       var radialPlayer, x, y;
-      // x = config.centerX + config.radius * Math.cos(i * theta);
-      // y = config.centerY + config.radius * Math.sin(i * theta);
+      x = config.centerX + config.radius * Math.cos(i * theta);
+      y = config.centerY + config.radius * Math.sin(i * theta);
       // The radii values are calculated from the available width and height, respectively.
       // This allows to arrange the players elliptically, thus making more room for the bubbles.
-      x = config.centerX + (config.radiusX - (config.size/2)) * Math.cos(i * theta);
-      y = (config.centerY - spacing) + (config.radiusY - (config.size/3)) * Math.sin(i * theta);
+      // x = config.centerX + (config.radiusX - (config.size/2)) * Math.cos(i * theta);
+      // y = (config.centerY - spacing) + (config.radiusY - (config.size/3)) * Math.sin(i * theta);
       radialPlayer = _.extend(p, {x:x}, {y:y});
       radialPlayers.push(radialPlayer);
     });
 
+    // =======================================
     // FOR DEBUGGING: big circle in the center
+    // =======================================
     // drawingSurface.append("circle")
     //   .attr({
     //     r: config.radius,
@@ -428,7 +432,14 @@ var network = function() {
     // perfectly match the 'width' and 'height' of the respecting <text> area.
     playerGroup.append("rect")
       .attr("class", "txt-background")
-      .attr("transform", "translate(0," + (config.size / 2 + spacing) + ")")
+      // We position the rect below or above the player avatar
+      // depending on its vertical position, i.e. above or below the vertical center.
+      .attr("transform", function(d) {
+        if (d.y < config.centerY) {
+          return "translate(0," + (-config.size / 2 + spacing) + ")";
+        }
+        return "translate(0," + (config.size / 2 + spacing) + ")";
+      })
       .style({
         fill: "#000",
         "fill-opacity": 0.6
@@ -436,7 +447,14 @@ var network = function() {
 
     playerGroup.append("text")
       .attr("text-anchor", "middle")
-      .attr("transform", "translate(0," + (config.size / 2 + spacing) + ")")
+      // We position the text below or above the player avatar
+      // depending on its vertical position, i.e. above or below the vertical center.
+      .attr("transform", function(d) {
+        if (d.y < config.centerY) {
+          return "translate(0," + (-config.size / 2 + spacing) + ")";
+        }
+        return "translate(0," + (config.size / 2 + spacing) + ")";
+      })
       .style("fill", "currentColor")
       .text(function(d) {
         return d.profile.name;
@@ -515,8 +533,8 @@ var network = function() {
     });
 
     // Variables we will use to check the available space for the bubble cloud.
-    var maxBubblesArea = 0.75 * Math.trunc(Math.PI * config.radiusX * config.radiusY);
-    var listOfBubbleAreas = [];
+    // var maxBubblesArea =  0.60 * Math.trunc(Math.PI * config.radiusX * config.radiusY);
+    var maxBubblesArea =  0.60 * Math.trunc(Math.PI * config.radius * config.radius);
     var sumOfBubbleAreas = 0;
 
 
@@ -524,18 +542,13 @@ var network = function() {
     // We update existing elements as needed.
     bubbles.each(function(d) {
       d.bubbleR = Math.floor(mapRadius(d.matchCount));
-      // We store each of the bubbles area value.
-      listOfBubbleAreas.push(Math.PI * d.bubbleR * d.bubbleR);
+      // We add each of the bubbles area value.
+      sumOfBubbleAreas += Math.PI * d.bubbleR * d.bubbleR;
     });
 
-    // We use the collected area values to calculate the total area.
-    // If necessary, we dynamically reduce the bubble radii.
-    sumOfBubbleAreas = _.reduce(listOfBubbleAreas, function(memo, num) {
-      return memo + num;
-    }, 0);
     // Is the maximum available space exceeded?
     if (sumOfBubbleAreas > maxBubblesArea) {
-      reduceBubbleRadius(bubbles, listOfBubbleAreas, sumOfBubbleAreas, maxBubblesArea);
+      reduceBubbleRadius(bubbles, sumOfBubbleAreas, maxBubblesArea);
     }
 
     bubbles.exit().remove();
@@ -560,14 +573,11 @@ var network = function() {
     // add it to each element's bound data for later use.
     bubbleGroup.each(function(d) {
       d.bubbleR = Math.floor(mapRadius(d.matchCount));
-      listOfBubbleAreas.push(Math.PI * d.bubbleR * d.bubbleR);
+      sumOfBubbleAreas += Math.PI * d.bubbleR * d.bubbleR;
     });
 
-    sumOfBubbleAreas = _.reduce(listOfBubbleAreas, function(memo, num) {
-      return memo + num;
-    }, 0);
     if (sumOfBubbleAreas > maxBubblesArea) {
-      reduceBubbleRadius(bubbleGroup, listOfBubbleAreas, sumOfBubbleAreas, maxBubblesArea);
+      reduceBubbleRadius(bubbleGroup, sumOfBubbleAreas, maxBubblesArea);
     }
 
     bubbleGroup.append("circle")
@@ -691,7 +701,7 @@ var network = function() {
     // and then start the force layout
     force
       .charge(function(d) {
-        return -Math.pow(d.bubbleR * 1.5, 2.0);
+        return -Math.pow(d.bubbleR * 1.2, 2.0);
       }).start();
 
   }; // createBubbleCloud()
@@ -910,20 +920,21 @@ var updateSelection = function(bubble) {
 
 /**
  * Reduces the radius for each element in the selection.
- * The new value is calculated by subtracting the share of the
- * overlow from each element's radius and then we set the new value
+ * First, we calculate the ratio between the total of bubble areas
+ * and the maximum area available within the players circle.
+ * Then, we take the square root of its reciprocal and muliply it with
+ * each element's radius and we also set this new value
  * making it available for getting/setting attribute values and style
  * properties.
  * @param {Object} selection - A D3 selection (update or enter).
- * @param {Array} areaList - An array storing the area values of each bubble element.
  * @param {Number} areaSum - The total area of all bubbles currently displayed.
  * @param {Number} maxArea - The maximum available area for the bubbles. Specified in relation
  * to the area spanned by the player ring.
  */
-var reduceBubbleRadius = function(selection, areaList, areaSum, maxArea) {
-  var overflow = (areaSum - maxArea) * 100 / maxArea / areaList.length;
+var reduceBubbleRadius = function(selection, areaSum, maxArea) {
+  var zoomFactor = areaSum / maxArea; // e.g.  a value of 1.2 means 20% too big
   selection.each(function(d) {
-    d.bubbleR = Math.floor(d.bubbleR - (d.bubbleR * overflow / 100));
+    d.bubbleR *= Math.sqrt(1.0 / zoomFactor);
   });
 };
 
