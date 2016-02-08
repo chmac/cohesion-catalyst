@@ -89,6 +89,11 @@ Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
     return this.ready();
   }
 
+  logger.info('user connected', {userId: currentUserId});
+  this.onStop(function() {
+    logger.info('user disconnected', {userId: currentUserId});
+  });
+
   return [
     Identifications.findCurrentIdentifications(currentUserId, currentTraining),
     Links.find({
