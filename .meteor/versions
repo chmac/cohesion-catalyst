@@ -63,9 +63,11 @@ localstorage@1.0.5
 logging@1.0.8
 meteor@1.1.10
 meteor-base@1.0.1
+meteorhacks:async@1.0.0
 meteorhacks:fast-render@2.10.0
 meteorhacks:inject-data@1.4.1
 meteorhacks:meteorx@1.0.2
+meteorhacks:npm@1.5.0
 meteorhacks:picker@1.0.3
 meteorhacks:unblock@1.1.0
 meteortoys:toykit@2.2.1
@@ -80,6 +82,7 @@ mongo-id@1.0.1
 mongo-livedata@1.0.9
 msavin:mongol@1.6.2
 npm-bcrypt@0.7.8_2
+npm-container@1.2.0
 npm-mongo@1.4.39_1
 observe-sequence@1.0.7
 ordered-dict@1.0.4
