@@ -50,6 +50,11 @@ var pool = function() {
     currentUser = Meteor.user();
     currentTrainingId = currentUser.profile.currentTraining;
 
+    clientLogger.logInfo("Template <idPool> rendered.", {
+      userID: currentUser._id,
+      trainingID: currentTrainingId
+    });
+
     // We access the template instance at 'this' and store it in a variable.
     templateInstance = this;
 
@@ -99,6 +104,16 @@ var pool = function() {
     }); // autorun()
 
   }); // onRendered()
+
+
+
+  Template.idPool.onDestroyed(function() {
+    clientLogger.logInfo("Template <idPool> destroyed.", {
+      userID: Meteor.userId(),
+      trainingID: Meteor.user().profile.currentTraining
+    });
+  }); //onDestroyed()
+
 
   /**
     *   add an ID, check if an ID with the same name is
@@ -501,6 +516,13 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
   var addToCurrentIdsWithRandomPosition = function(d) {
     var currentUser = Meteor.user(); // At this point, a user must exist.
     var currentTrainingId = currentUser.profile.currentTraining;
+
+    clientLogger.logInfo("User matched ID-Bubble.", {
+      userID: currentUser._id,
+      trainingID: currentTrainingId,
+      name: d.text
+    });
+
     var root = Identifications.findRoot(currentUser._id, currentTrainingId).fetch()[0];
 
     // Just in case....
@@ -528,7 +550,8 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       parentId: root._id,
       name: d.text,
       standardizedName: d.standardizedText,
-      editCompleted: true
+      editCompleted: true,
+      poolMatch: true
     };
 
     // We call the method 'insertIdentification' defined at {@see identifications.js}
