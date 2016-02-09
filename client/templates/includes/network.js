@@ -52,6 +52,12 @@ var network = function() {
 
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
+
+    clientLogger.logInfo("Template <idNetwork> rendered.", {
+      userID: currentUser._id,
+      trainingID: currentTrainingId
+    });
+
     var currentPlayers = Meteor.users.find({"profile.currentTraining": currentTrainingId}).fetch();
 
     var playersConfig =  {
@@ -217,6 +223,11 @@ var network = function() {
     var templateInstance = this;
     templateInstance.networkHandle.stop();
     templateInstance.playerHandle.stop();
+
+    clientLogger.logInfo("Template <idNetwork> destroyed.", {
+      userID: Meteor.userId(),
+      trainingID: Meteor.user().profile.currentTraining
+    });
   });
 
   /**
@@ -714,6 +725,13 @@ var network = function() {
    * @param {Object} d - The data object bound to the selected element.
    */
   var showCommonMemberships = function(d) {
+    clientLogger.logInfo("Memberships in network explored.", {
+      userID: Meteor.userId(),
+      trainingID: Meteor.user().profile.currentTraining,
+      idName: d.name,
+      memberList: d.createdBy
+    });
+
     var membershipLinks,
       membershipPlayers,
       idBubble;
@@ -844,6 +862,11 @@ var network = function() {
    * @param {String} playerId - The user '_id' value bound to this player.
    */
   var showLinksToCurrentPlayerIds = function(playerId) {
+    clientLogger.logInfo("Own ids in network explored.", {
+      userID: Meteor.userId(),
+      trainingID: Meteor.user().profile.currentTraining
+    });
+
     var currentLinks,
       currentPlayer,
       currentIdBubbles,
