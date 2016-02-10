@@ -37,6 +37,24 @@ Template.navigation.events({
     event.preventDefault();
     throwError("Please choose your smiley.");
     return false;
+  },
+  "click #myIds-link": function(event) {
+    clientLogger.logInfo("Clicked <my IDs> link.", {
+      userID: Meteor.userId(),
+      trainingID: Meteor.user().profile.currentTraining
+    });
+  },
+  "click #idPool-link": function(event) {
+    clientLogger.logInfo("Clicked <ID Pool> link.", {
+      userID: Meteor.userId(),
+      trainingID: Meteor.user().profile.currentTraining
+    });
+  },
+  "click #idNetwork-link": function(event) {
+    clientLogger.logInfo("Clicked <ID network> link.", {
+      userID: Meteor.userId(),
+      trainingID: Meteor.user().profile.currentTraining
+    });
   }
 
 });
