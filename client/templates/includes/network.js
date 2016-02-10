@@ -725,7 +725,7 @@ var network = function() {
    * @param {Object} d - The data object bound to the selected element.
    */
   var showCommonMemberships = function(d) {
-    clientLogger.logInfo("Memberships in network explored.", {
+    clientLogger.logInfo("Clicked ID bubble.", {
       userID: Meteor.userId(),
       trainingID: Meteor.user().profile.currentTraining,
       idName: d.name,
@@ -862,8 +862,8 @@ var network = function() {
    * @param {String} playerId - The user '_id' value bound to this player.
    */
   var showLinksToCurrentPlayerIds = function(playerId) {
-    clientLogger.logInfo("Own ids in network explored.", {
-      userID: Meteor.userId(),
+    clientLogger.logInfo("Clicked own avatar.", {
+      userID: playerId,
       trainingID: Meteor.user().profile.currentTraining
     });
 
