@@ -517,7 +517,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     var currentUser = Meteor.user(); // At this point, a user must exist.
     var currentTrainingId = currentUser.profile.currentTraining;
 
-    clientLogger.logInfo("User matched ID-Bubble.", {
+    clientLogger.logInfo("Matched ID bubble.", {
       userID: currentUser._id,
       trainingID: currentTrainingId,
       name: d.text
