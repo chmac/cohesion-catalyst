@@ -50,9 +50,13 @@ var pool = function() {
     currentUser = Meteor.user();
     currentTrainingId = currentUser.profile.currentTraining;
 
-    clientLogger.logInfo("Template <idPool> rendered.", {
+    clientLogger.logInfo({
+      trainingID: currentTrainingId,
       userID: currentUser._id,
-      trainingID: currentTrainingId
+      username: Meteor.user().profile.name,
+      view: "Match",
+      action: "RENDERED",
+      target: "Template"
     });
 
     // We access the template instance at 'this' and store it in a variable.
@@ -108,9 +112,13 @@ var pool = function() {
 
 
   Template.idPool.onDestroyed(function() {
-    clientLogger.logInfo("Template <idPool> destroyed.", {
+    clientLogger.logInfo({
+      trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
-      trainingID: Meteor.user().profile.currentTraining
+      username: Meteor.user().profile.name,
+      view: "Match",
+      action: "DESTROYED",
+      target: "Template"
     });
   }); //onDestroyed()
 
@@ -517,10 +525,15 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     var currentUser = Meteor.user(); // At this point, a user must exist.
     var currentTrainingId = currentUser.profile.currentTraining;
 
-    clientLogger.logInfo("Matched ID bubble.", {
-      userID: currentUser._id,
+    clientLogger.logInfo({
       trainingID: currentTrainingId,
-      name: d.text
+      userID: currentUser._id,
+      username: currentUser.profile.name,
+      view: "Match",
+      action: "MATCHED",
+      target: "Bubble",
+      metaTagID: d._id,
+      metaTagName: d.text
     });
 
     var root = Identifications.findRoot(currentUser._id, currentTrainingId).fetch()[0];
