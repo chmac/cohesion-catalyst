@@ -53,9 +53,13 @@ var network = function() {
     var currentUser = Meteor.user();
     var currentTrainingId = currentUser.profile.currentTraining;
 
-    clientLogger.logInfo("Template <idNetwork> rendered.", {
+    clientLogger.logInfo({
+      trainingID: currentTrainingId,
       userID: currentUser._id,
-      trainingID: currentTrainingId
+      username: currentUser.profile.name,
+      view: "Explore",
+      action: "RENDERED",
+      target: "Template"
     });
 
     var currentPlayers = Meteor.users.find({"profile.currentTraining": currentTrainingId}).fetch();
@@ -224,9 +228,13 @@ var network = function() {
     templateInstance.networkHandle.stop();
     templateInstance.playerHandle.stop();
 
-    clientLogger.logInfo("Template <idNetwork> destroyed.", {
+    clientLogger.logInfo({
+      trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
-      trainingID: Meteor.user().profile.currentTraining
+      username: Meteor.user().profile.name,
+      view: "Explore",
+      action: "DESTROYED Template",
+      target: "Template"
     });
   });
 
@@ -725,11 +733,17 @@ var network = function() {
    * @param {Object} d - The data object bound to the selected element.
    */
   var showCommonMemberships = function(d) {
-    clientLogger.logInfo("Clicked ID bubble.", {
-      userID: Meteor.userId(),
+
+    clientLogger.logInfo({
       trainingID: Meteor.user().profile.currentTraining,
-      idName: d.name,
-      memberList: d.createdBy
+      userID: Meteor.userId(),
+      username: Meteor.user().profile.name,
+      view: "Explore",
+      action: "CLICKED",
+      target: "Bubble",
+      metaTagID: d._id,
+      metaTagName: d.name,
+      metaTagCount: d.createdBy.length
     });
 
     var membershipLinks,
@@ -862,9 +876,14 @@ var network = function() {
    * @param {String} playerId - The user '_id' value bound to this player.
    */
   var showLinksToCurrentPlayerIds = function(playerId) {
-    clientLogger.logInfo("Clicked own avatar.", {
+
+    clientLogger.logInfo({
+      trainingID: Meteor.user().profile.currentTraining,
       userID: playerId,
-      trainingID: Meteor.user().profile.currentTraining
+      username: Meteor.user().profile.name,
+      view: "Explore",
+      action: "CLICKED",
+      target: "Avatar"
     });
 
     var currentLinks,
