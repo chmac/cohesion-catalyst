@@ -98,8 +98,17 @@ Template.myIds.onRendered(function() {
     type: currentUser.profile.avatar
   });
 
+  clientLogger.logInfo({
+    trainingID: Meteor.user().profile.currentTraining,
+    userID: Meteor.userId(),
+    username: Meteor.user().profile.name,
+    view: "Reflect",
+    action: "RENDERED",
+    target: "Template"
+  });
+
   if (currentTrainingId && Identifications.findCurrentIdentifications(currentUser._id, currentTrainingId).count() === 0) {
-    console.log("No IDs yet, inserting the rootNode...");
+    // console.log("No IDs yet, inserting the rootNode...");
     rootNode = {
       level: 0,
       x: xPos,
@@ -152,6 +161,19 @@ Template.myIds.onRendered(function() {
     if (isEmptyNode(currentActiveNode)) {
       return;
     }
+
+    clientLogger.logInfo({
+      trainingID: Meteor.user().profile.currentTraining,
+      userID: Meteor.userId(),
+      username: Meteor.user().profile.name,
+      view: "Reflect",
+      action: "MOVED",
+      target: "Tag",
+      tagID: currentActiveNode._id,
+      tagName: currentActiveNode.name,
+      tagLevel: currentActiveNode.level,
+      matchedTag: currentActiveNode.poolMatch ? currentActiveNode.poolMatch : "false"
+    });
 
     toggleDragIndicator(d3.select("#gid" + currentActiveNode._id));
     selectNodeElement(null);
@@ -338,6 +360,18 @@ Template.myIds.onRendered(function() {
         // via CSS pseudo-element ::selection (@see CSS file)
         // cf. https://developer.mozilla.org/en-US/docs/Web/API/document/execCommand [as of 2015-02-25]
         document.execCommand("selectAll", false, null);
+
+        clientLogger.logInfo({
+          trainingID: Meteor.user().profile.currentTraining,
+          userID: Meteor.userId(),
+          username: Meteor.user().profile.name,
+          view: "Reflect",
+          action: "CREATED",
+          target: "Tag",
+          tagID: newNodeId,
+          tagName: selectedNode.name,
+          tagLevel: selectedNode.level
+        });
 
       }
     }); // end Meteor.call("insertIdentification")
@@ -858,7 +892,16 @@ Template.myIds.onDestroyed(function() {
       deleteNodeAndLink(empty._id);
     });
   }
-});
+
+  clientLogger.logInfo({
+    trainingID: Meteor.user().profile.currentTraining,
+    userID: Meteor.userId(),
+    username: Meteor.user().profile.name,
+    view: "Reflect",
+    action: "DESTROYED",
+    target: "Template"
+  });
+}); // onDestroyed()
 
 
 /**
@@ -929,6 +972,19 @@ function selectNodeElement(element) {
         }
       });
 
+      clientLogger.logInfo({
+        trainingID: Meteor.user().profile.currentTraining,
+        userID: Meteor.userId(),
+        username: Meteor.user().profile.name,
+        view: "Reflect",
+        action: "EDITED",
+        target: "Tag",
+        tagID: selectedElement._id,
+        tagName: selectedElement.name,
+        tagLevel: selectedElement.level,
+        matchedTag: selectedElement.poolMatch ? selectedElement.poolMatch : "false"
+      });
+
       // deselect previously selected element
       var domGroupElement = d3.select("#gid" + selectedElement._id);
       domGroupElement
@@ -987,6 +1043,19 @@ function deleteNodeAndLink(id) {
       return throwError(
         "You can not remove an identification bubble with attached child-bubbles.");
     }
+
+    clientLogger.logInfo({
+      trainingID: Meteor.user().profile.currentTraining,
+      userID: Meteor.userId(),
+      username: Meteor.user().profile.name,
+      view: "Reflect",
+      action: "DELETED",
+      target: "Tag",
+      tagID: nodeId,
+      tagName: nodeDoc.name,
+      tagLevel: nodeDoc.level,
+      matchedTag: nodeDoc.poolMatch ? nodeDoc.poolMatch : "false"
+    });
 
     Meteor.call("removeIdentificationAndLink", nodeDoc, function(error, result) {
       if (error) {
