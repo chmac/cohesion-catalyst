@@ -38,22 +38,34 @@ Template.navigation.events({
     throwError("Please choose your smiley.");
     return false;
   },
-  "click #myIds-link": function(event) {
-    clientLogger.logInfo("Clicked <my IDs> link.", {
+  "click #reflect-link": function(event) {
+    clientLogger.logInfo({
+      trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
-      trainingID: Meteor.user().profile.currentTraining
+      username: Meteor.user().profile.name,
+      view: Router.current() && Router.current().route && Router.current().route.getName(),
+      action: "CLICKED",
+      target: "Reflect link"
     });
   },
-  "click #idPool-link": function(event) {
-    clientLogger.logInfo("Clicked <ID Pool> link.", {
+  "click #match-link": function(event) {
+    clientLogger.logInfo({
+      trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
-      trainingID: Meteor.user().profile.currentTraining
+      username: Meteor.user().profile.name,
+      view: Router.current() && Router.current().route && Router.current().route.getName(),
+      action: "CLICKED",
+      target: "Match link"
     });
   },
-  "click #idNetwork-link": function(event) {
-    clientLogger.logInfo("Clicked <ID network> link.", {
+  "click #explore-link": function(event) {
+    clientLogger.logInfo({
+      trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
-      trainingID: Meteor.user().profile.currentTraining
+      username: Meteor.user().profile.name,
+      view: Router.current() && Router.current().route && Router.current().route.getName(),
+      action: "CLICKED",
+      target: "Explore link"
     });
   }
 
