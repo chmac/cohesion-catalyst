@@ -19,16 +19,16 @@
 
         <ul class="nav navbar-nav main-navigation">
           <li class="{{activeRouteClass 'intro' }}">
-            <a href="{{pathFor 'intro'}}">intro</a>
+            <a href="{{pathFor 'intro'}}">Smile</a>
           </li>
           <li class="{{activeRouteClass 'myIds' }} {{#unless avatar}} disabled {{/unless}}">
-            <a id="myIds-link" href="{{pathFor 'myIds'}}">my IDs</a>
+            <a id="reflect-link" href="{{pathFor 'myIds'}}">Reflect</a>
           </li>
           <li class="{{activeRouteClass 'idPool' }} {{#unless avatar}} disabled {{/unless}}">
-            <a id="idPool-link" href="{{pathFor 'idPool'}}">ID pool</a>
+            <a id="match-link" href="{{pathFor 'idPool'}}">Match</a>
           </li>
           <li class="{{activeRouteClass 'idNetwork' }} {{#unless avatar}} disabled {{/unless}}">
-            <a id="idNetwork-link" href="{{pathFor 'idNetwork'}}">ID network</a>
+            <a id="explore-link" href="{{pathFor 'idNetwork'}}">Explore</a>
           </li>
         </ul>
 
