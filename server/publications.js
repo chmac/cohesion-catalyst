@@ -89,17 +89,23 @@ Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
     return this.ready();
   }
 
-  // logger.info("Subscribed to <myIdentificationsAndLinks>", {
-  //   userID: currentUserId,
-  //   trainingID: currentTraining
-  // });
-  //
-  // this.onStop(function() {
-  //   logger.info("Unsubscribed from <myIdentificationsAndLinks>", {
-  //     userId: currentUserId,
-  //     trainingId: currentTraining
-  //   });
-  // });
+  Meteor.call("writeLog", moment(), {
+    trainingID: currentTraining,
+    userID: currentUserId,
+    username: Meteor.users.findOne({_id: currentUserId}).profile.name,
+    action: "SUBSCRIBED",
+    target: "myIdentificationsAndLinks"
+  });
+
+  this.onStop(function() {
+    Meteor.call("writeLog", moment(), {
+      trainingID: currentTraining,
+      userID: currentUserId,
+      username: Meteor.users.findOne({_id: currentUserId}).profile.name,
+      action: "UNSUBSCRIBED",
+      target: "myIdentificationsAndLinks"
+    });
+  });
 
   return [
     Identifications.findCurrentIdentifications(currentUserId, currentTraining),
@@ -124,10 +130,6 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
     return subscription.ready();
   }
 
-  // logger.info("Subscribed to <poolIdentifications>", {
-  //   userID: currentUserId,
-  //   trainingID: currentTraining
-  // });
   Meteor.call("writeLog", moment(), {
     trainingID: currentTraining,
     userID: currentUserId,
@@ -137,10 +139,6 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
   });
 
   this.onStop(function() {
-    // logger.info("Unsubscribed from <poolIdentifications>", {
-    //   userId: currentUserId,
-    //   trainingId: currentTraining
-    // });
     Meteor.call("writeLog", moment(), {
       trainingID: currentTraining,
       userID: currentUserId,
@@ -183,17 +181,23 @@ Meteor.publish("networkIdentifications", function(currentTraining) {
     return this.ready();
   }
 
-  // logger.info("Subscribed to <networkIdentifications>", {
-  //   userID: currentUserId,
-  //   trainingID: currentTraining
-  // });
-  //
-  // this.onStop(function() {
-  //   logger.info("Unsubscribed from <networkIdentifications>", {
-  //     userId: currentUserId,
-  //     trainingId: currentTraining
-  //   });
-  // });
+  Meteor.call("writeLog", moment(), {
+    trainingID: currentTraining,
+    userID: currentUserId,
+    username: Meteor.users.findOne({_id: currentUserId}).profile.name,
+    action: "SUBSCRIBED",
+    target: "networkIdentifications"
+  });
+
+  this.onStop(function() {
+    Meteor.call("writeLog", moment(), {
+      trainingID: currentTraining,
+      userID: currentUserId,
+      username: Meteor.users.findOne({_id: currentUserId}).profile.name,
+      action: "UNSUBSCRIBED",
+      target: "networkIdentifications"
+    });
+  });
 
   // MetaCollection.find( {createdBy : {$exists:true}, $where:"this.createdBy.length>1"} )
   return [
