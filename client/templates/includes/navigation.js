@@ -43,7 +43,7 @@ Template.navigation.events({
       trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
       username: Meteor.user().profile.name,
-      view: mapRouteNames(),
+      view: mapRouteName(),
       action: "ROUTED",
       target: "Reflect path"
     });
@@ -53,7 +53,7 @@ Template.navigation.events({
       trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
       username: Meteor.user().profile.name,
-      view: mapRouteNames(),
+      view: mapRouteName(),
       action: "ROUTED",
       target: "Match path"
     });
@@ -63,7 +63,7 @@ Template.navigation.events({
       trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
       username: Meteor.user().profile.name,
-      view: mapRouteNames(),
+      view: mapRouteName(),
       action: "ROUTED",
       target: "Explore path"
     });
@@ -71,7 +71,11 @@ Template.navigation.events({
 
 });
 
-function mapRouteNames() {
+/**
+ * Helper function to map a route name to a screen/view name.
+ * Used for logging the correct names. 
+ */
+function mapRouteName() {
   var nameMap = {
     myIds: "Reflect",
     idPool: "Match",
@@ -79,5 +83,4 @@ function mapRouteNames() {
   };
   var name = Router.current() && Router.current().route && Router.current().route.getName();
   return nameMap[name];
-
 }
