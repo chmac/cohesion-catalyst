@@ -43,9 +43,9 @@ Template.navigation.events({
       trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
       username: Meteor.user().profile.name,
-      view: Router.current() && Router.current().route && Router.current().route.getName(),
-      action: "CLICKED",
-      target: "Reflect link"
+      view: mapRouteNames(),
+      action: "ROUTED",
+      target: "Reflect path"
     });
   },
   "click #match-link": function(event) {
@@ -53,9 +53,9 @@ Template.navigation.events({
       trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
       username: Meteor.user().profile.name,
-      view: Router.current() && Router.current().route && Router.current().route.getName(),
-      action: "CLICKED",
-      target: "Match link"
+      view: mapRouteNames(),
+      action: "ROUTED",
+      target: "Match path"
     });
   },
   "click #explore-link": function(event) {
@@ -63,10 +63,21 @@ Template.navigation.events({
       trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
       username: Meteor.user().profile.name,
-      view: Router.current() && Router.current().route && Router.current().route.getName(),
-      action: "CLICKED",
-      target: "Explore link"
+      view: mapRouteNames(),
+      action: "ROUTED",
+      target: "Explore path"
     });
   }
 
 });
+
+function mapRouteNames() {
+  var nameMap = {
+    myIds: "Reflect",
+    idPool: "Match",
+    idNetwork: "Explore"
+  };
+  var name = Router.current() && Router.current().route && Router.current().route.getName();
+  return nameMap[name];
+
+}
