@@ -89,10 +89,17 @@ Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
     return this.ready();
   }
 
-  logger.info('user connected', {userId: currentUserId});
-  this.onStop(function() {
-    logger.info('user disconnected', {userId: currentUserId});
-  });
+  // logger.info("Subscribed to <myIdentificationsAndLinks>", {
+  //   userID: currentUserId,
+  //   trainingID: currentTraining
+  // });
+  //
+  // this.onStop(function() {
+  //   logger.info("Unsubscribed from <myIdentificationsAndLinks>", {
+  //     userId: currentUserId,
+  //     trainingId: currentTraining
+  //   });
+  // });
 
   return [
     Identifications.findCurrentIdentifications(currentUserId, currentTraining),
@@ -116,6 +123,32 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
   if (!currentUserId) {
     return subscription.ready();
   }
+
+  // logger.info("Subscribed to <poolIdentifications>", {
+  //   userID: currentUserId,
+  //   trainingID: currentTraining
+  // });
+  Meteor.call("writeLog", moment(), {
+    trainingID: currentTraining,
+    userID: currentUserId,
+    username: Meteor.users.findOne({_id: currentUserId}).profile.name,
+    action: "SUBSCRIBED",
+    target: "poolIdentifications"
+  });
+
+  this.onStop(function() {
+    // logger.info("Unsubscribed from <poolIdentifications>", {
+    //   userId: currentUserId,
+    //   trainingId: currentTraining
+    // });
+    Meteor.call("writeLog", moment(), {
+      trainingID: currentTraining,
+      userID: currentUserId,
+      username: Meteor.users.findOne({_id: currentUserId}).profile.name,
+      action: "UNSUBSCRIBED",
+      target:"poolIdentifications"
+    });
+  });
 
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
   // The 'check(value, pattern)' function is provided by the 'check' package.
@@ -149,6 +182,19 @@ Meteor.publish("networkIdentifications", function(currentTraining) {
   if (!currentUserId) {
     return this.ready();
   }
+
+  // logger.info("Subscribed to <networkIdentifications>", {
+  //   userID: currentUserId,
+  //   trainingID: currentTraining
+  // });
+  //
+  // this.onStop(function() {
+  //   logger.info("Unsubscribed from <networkIdentifications>", {
+  //     userId: currentUserId,
+  //     trainingId: currentTraining
+  //   });
+  // });
+
   // MetaCollection.find( {createdBy : {$exists:true}, $where:"this.createdBy.length>1"} )
   return [
     MetaCollection.find({
