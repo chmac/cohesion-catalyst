@@ -233,7 +233,7 @@ var network = function() {
       userID: Meteor.userId(),
       username: Meteor.user().profile.name,
       view: "Explore",
-      action: "DESTROYED Template",
+      action: "DESTROYED",
       target: "Template"
     });
   });
