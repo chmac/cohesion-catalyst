@@ -93,6 +93,13 @@ Template.loginForm.events({
               }
           });
           Session.set("formContainer", null);
+
+          var logInterval = Meteor.setInterval(function() {
+            var timestamp = TimeSync.serverTime(moment());
+            Meteor.call("autoLog", timestamp);
+          }, 180 * 1000);
+          Session.set("logInterval", logInterval);
+
           if (Meteor.user().profile.avatar) {
             Router.go("myIds");
           } else {
@@ -181,6 +188,13 @@ Template.createAccountForm.events({
             return throwError("Error while creating account: " + error.reason);
           }
           Session.set("formContainer", null);
+
+          var logInterval = Meteor.setInterval(function() {
+            var timestamp = TimeSync.serverTime(moment());
+            Meteor.call("autoLog", timestamp);
+          }, 180 * 1000);
+          Session.set("logInterval", logInterval);
+
           Router.go("intro");
         });
     }
