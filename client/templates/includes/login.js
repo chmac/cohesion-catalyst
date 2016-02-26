@@ -14,12 +14,6 @@ Template.loginForm.onCreated(function() {
 });
 
 Template.loginForm.helpers({
-  loginForm: function() {
-    return Session.equals("formContainer", "loginForm");
-  },
-  createAccount: function() {
-    return Session.equals("formContainer", "createAccountForm");
-  },
   errorMessage: function(field) {
     return Session.get("displayErrorMessage")[field];
   },
@@ -63,12 +57,12 @@ Template.loginForm.events({
             // not be found or if the user entered an incorrect password.
             return throwError("Login Error: " + error.reason);
           }
-          // Update the user's profile with the currently selected training.
-          // We will use that field to define publications and subscriptions, respectively.
+          // After successful login, get the user's id in order to
+          // check for admin role.
           var userId = Meteor.userId();
           if (Roles.userIsInRole(userId, "admin")) {
-            console.log("User is admin");
-            Session.set("formContainer", null);
+            // Hide the modal dialog after successful login
+            Modal.hide();
             Router.go("/admin");
           }
         });
@@ -92,13 +86,15 @@ Template.loginForm.events({
                 return throwError("Error: " + error.reason);
               }
           });
-          Session.set("formContainer", null);
 
           var logInterval = Meteor.setInterval(function() {
             var timestamp = TimeSync.serverTime(moment());
             Meteor.call("autoLog", timestamp);
           }, 180 * 1000);
           Session.set("logInterval", logInterval);
+
+          // Hide the modal dialog after successful login.
+          Modal.hide();
 
           if (Meteor.user().profile.avatar) {
             Router.go("myIds");
@@ -108,16 +104,6 @@ Template.loginForm.events({
         });
       }
     }
-  },
-  "click #create-account-link": function(event, template) {
-    event.preventDefault();
-    // Use the global Session object to specify the current form to display.
-    Session.set("formContainer", "createAccountForm");
-  },
-  "click #login-link": function(event, template) {
-    event.preventDefault();
-    // Use the global Session object to specify the current form to display.
-    Session.set("formContainer", "loginForm");
   }
 });
 
@@ -187,7 +173,7 @@ Template.createAccountForm.events({
             // Let the user know that the creation of an account failed.
             return throwError("Error while creating account: " + error.reason);
           }
-          Session.set("formContainer", null);
+          // Session.set("formContainer", null);
 
           var logInterval = Meteor.setInterval(function() {
             var timestamp = TimeSync.serverTime(moment());
@@ -195,6 +181,8 @@ Template.createAccountForm.events({
           }, 180 * 1000);
           Session.set("logInterval", logInterval);
 
+          // Hide the modal dialog after successful sign up.
+          Modal.hide();
           Router.go("intro");
         });
     }
