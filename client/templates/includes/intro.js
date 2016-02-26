@@ -1,6 +1,6 @@
 Template.intro.onRendered(function() {
 
-  // We prevent the screen scrolling on touch devices 
+  // We prevent the screen scrolling on touch devices
   d3.select(".avatar-container").on("touchmove", function() {
     if (d3.event) {
       d3.event.preventDefault();
