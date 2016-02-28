@@ -8,21 +8,46 @@
   position: relative;
 }
 
-@media all and (min-width: 900px) /*and (max-height: 700px)*/{
+@media all and (min-width: 769px) /*and (max-height: 700px)*/{
   .welcome-container {
-    margin: 8% auto 0 auto;
+    margin: 6% auto 0 auto;
     width: 55%;
   }
 
   .welcome-text {
     position: absolute;
     left: 73.5%;
-    top: 70%;
-    width: 200px;
+    top: 69%;
+    width: 100%;
     font-size: 0.7875em;
     color: #fff;
   }
-}
+
+  /* flex container (i.e. parent of flex items) */
+  .signup-or-login {
+    padding-top: 0.7em;
+    width: 50%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* flex items (i.e. children of flex container)*/
+  #go-to-create-account,
+  #go-to-login {
+    width: 80%;
+    text-align: center;
+  }
+
+  #go-to-create-account {
+    padding: 1.1em 0 0.5em 0;
+  }
+
+  #go-to-login {
+    padding: 0.5em 0;
+  }
+} /* End @media all and (min-width: 769px) */
 
 @media all and (max-width: 768px) {
   .welcome-container {
@@ -34,13 +59,44 @@
     position: absolute;
     left: 73.5%;
     top: 69%;
-    width: 200px;
+    width: 100%;
     font-size: 0.7875em;
     color: #fff;
   }
+
+  /* flex container (i.e. parent of flex items) */
+  .signup-or-login {
+    padding-top: 1em;
+    width: 50%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* flex items (i.e. children of flex container)*/
+  #go-to-create-account,
+  #go-to-login {
+    width: 80%;
+    text-align: center;
+    padding: 1.2em 0;
+  }
+} /* End @media all and (max-width: 768px) */
+
+#welcome-vis {
+  display: block;
+  padding: 1em;
 }
 
- #welcome-vis {
-   display: block;
-   padding: 1em;
- }
+.btn-signup-or-login {
+  width: 12.125em;
+}
+
+div.signup-or-login {
+  opacity: 0;
+}
+
+div.signup-or-login.expose {
+  opacity: 1;
+  transition: opacity .2s;
+}
