@@ -4,12 +4,33 @@
     <svg class ="centering" id="welcome-vis" viewBox="0 0 300 300">
     </svg>
     <div class="welcome-text">
-      <p>the friendly tool to establish familiarity and connection between individuals</p>
+      <p>the friendly tool to establish <br />familiarity and connection <br />between individuals</p>
     </div>
   </div>
-  <!-- <div class="welcome-text">
-    <p>the friendly tool to establish familiarity and connection between individuals</p>
-  </div> -->
-  {{> loginForm}}
+
+  {{> homeEntry}}
 </div>
+</template>
+
+<template name="homeEntry">
+    <div class="centering signup-or-login">
+      <!-- Modal trigger -->
+      <div id="go-to-create-account">
+        <p>Hi there! First time around?</p>
+        <button type="button" class="btn btn-default btn-signup-or-login">Create your account!</button>
+      </div>
+
+      <svg width=250 height=40>
+        <line x1="10" y1="22" x2="105" y2="22" stroke="#fff" stroke-width="1" stroke-linecap="round"></line>
+        <!-- <circle cx="125" cy="21" r="20" fill="none" stroke="#fff" stroke-width="1"></circle> -->
+        <text x="125" y="22" dy="5" fill="#fff" text-anchor="middle">OR</text>
+        <line x1="145" y1="22" x2="240" y2="22" stroke="#fff" stroke-width="1" stroke-linecap="round"></line>
+      </svg>
+
+      <!-- Modal trigger -->
+      <div id="go-to-login">
+        <p>Already have an account?</p>
+        <button type="button" class="btn btn-default btn-signup-or-login">Welcome back!</button>
+      </div>
+    </div>
 </template>
