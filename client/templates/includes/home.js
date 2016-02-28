@@ -121,7 +121,15 @@ Template.home.events({
     if (Meteor.user()) {
       return;
     }
-    // Use the global Session object to specify the current form to display.
-    Session.set("formContainer", "loginForm");
+    // Add the CSS class to make the div-element appear.
+    d3.select("div.signup-or-login").classed("expose", true);
+  },
+  "click #go-to-create-account": function(event, template) {
+    event.preventDefault();
+    Modal.show("createAccountForm");
+  },
+  "click #go-to-login": function(event, template) {
+    event.preventDefault();
+    Modal.show("loginForm");
   }
 });
