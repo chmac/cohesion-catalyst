@@ -1,0 +1,13 @@
+<template name="usersList">
+  <h2>Users</h2>
+  <div>
+    <a href="{{pathFor 'userNew'}}">
+      Add new user
+    </a>
+  </div>
+  <ul>
+    {{#each user in users}}
+    <li><a href="{{pathFor route='userShow' data=user}}">{{user.profile.name}}</a></li>
+    {{/each}}
+  </ul>
+</template>
