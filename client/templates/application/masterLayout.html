@@ -1,6 +1,21 @@
 <template name="masterLayout">
-  {{> navigation}}
-  <div>
-    {{> yield}}
+
+  {{> header}}
+
+  <div class="ui bottom attached segment pushable">
+
+    {{> navigation}}
+
+    <div class="pusher">
+
+      <div class="ui coca-content">
+
+        {{> yield }}
+
+      </div>
+
+    </div>
+
   </div>
+
 </template>
