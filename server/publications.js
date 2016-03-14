@@ -46,7 +46,16 @@ Meteor.publish("globalMetaIdentifications", function(currentTraining) {
     level: {
       $gt: 0
     },
-    editCompleted: true
+    editCompleted: true,
+    $or: [
+      {
+        blacklisted: {
+          $exists: false
+        }
+      }, {
+        blacklisted: false
+      }
+    ]
   }).observe({
     added: function(doc) {
       Meteor.call("addMetaDoc", doc, errorFunc);
