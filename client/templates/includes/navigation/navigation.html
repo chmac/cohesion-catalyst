@@ -1,8 +1,35 @@
 <template name="navigation">
-  <p>Links to Collections will go in sidebar</p>
-  <div class="">
-      <a href="{{pathFor 'usersList'}}">Users</a>
-      <a href="{{pathFor 'trainingsList'}}">Trainings</a>
-      <a href="{{pathFor 'idsList'}}">Identifications</a>
+
+  <div class="ui left thin vertical menu visible sidebar" id="admin-aside">
+
+    <div class="item">
+      <div class="header">
+        <i class="user icon"></i>Users
+      </div>
+      <div class="menu">
+        <a href="{{pathFor 'usersList'}}" class="item">View all</a>
+        <a href="#" class="item">Add user</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="header">
+          <i class="calendar icon"></i>Trainings
+      </div>
+      <div class="menu">
+        <a href="{{pathFor 'trainingsList'}}" class="item">View all</a>
+        <a href="#" class="item">Add training</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="header">
+          <i class="heart icon"></i>Identifications
+      </div>
+      <div class="menu">
+        <a href="{{pathFor 'idsList'}}" class="item">View all</a>
+      </div>
+    </div>
   </div>
+
 </template>
