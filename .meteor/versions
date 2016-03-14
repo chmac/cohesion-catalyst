@@ -19,6 +19,7 @@ caching-compiler@1.0.0
 caching-html-compiler@1.0.2
 callback-hook@1.0.4
 check@1.1.0
+coffeescript@1.0.11
 dburles:collection-helpers@1.0.4
 ddp@1.2.2
 ddp-client@1.2.1
@@ -33,6 +34,7 @@ ejson@1.0.7
 email@1.0.8
 es5-shim@4.1.14
 fastclick@1.0.7
+flemay:less-autoprefixer@1.2.0
 fortawesome:fontawesome@4.5.0
 geojson-utils@1.0.4
 hot-code-push@1.0.0
@@ -75,9 +77,12 @@ reactive-var@1.0.6
 reload@1.1.4
 retry@1.0.4
 routepolicy@1.0.6
+semantic:ui@2.1.8
+semantic:ui-data@2.1.8
 service-configuration@1.0.5
 session@1.1.1
 sha@1.0.4
+softwarerero:accounts-t9n@1.1.7
 spacebars@1.0.7
 spacebars-compiler@1.0.7
 srp@1.0.4
@@ -88,5 +93,7 @@ tracker@1.0.9
 ui@1.0.8
 underscore@1.0.4
 url@1.0.5
+useraccounts:core@1.13.1
+useraccounts:semantic-ui@1.13.1
 webapp@1.2.3
 webapp-hashing@1.0.5

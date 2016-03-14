@@ -23,3 +23,6 @@ alanning:roles
 dburles:collection-helpers
 aldeed:collection2
 fortawesome:fontawesome
+semantic:ui
+flemay:less-autoprefixer
+useraccounts:semantic-ui
