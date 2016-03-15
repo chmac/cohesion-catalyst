@@ -12,8 +12,26 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.versionsFrom('1.2.1');
+
   api.use('ecmascript');
-  api.addFiles('common.js');
+  api.use('aldeed:collection2');
+  api.use('aldeed:simple-schema');
+
+  api.addFiles([
+    'lib/schemas.js',
+    'lib/collections/users.js',
+    'lib/collections/trainings.js',
+    'lib/collections/identifications.js',
+    'lib/collections/meta_collection.js',
+  ], ['client', 'server']);
+
+  api.addFiles([
+    'lib/startup.js'
+  ], ['server']);
+
+  api.export('Trainings', ['client', 'server']);
+  api.export('Identifications', ['client', 'server']);
+  api.export('MetaCollection', ['client', 'server']);
 });
 
 Package.onTest(function(api) {
