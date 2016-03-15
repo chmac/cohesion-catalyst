@@ -7,6 +7,6 @@ Meteor.publish("singleUser", function(id) {
   return Meteor.users.find(id);
 });
 
-Meteor.publish("trainings", function() {
+Meteor.publish("listOfTrainings", function() {
   return Trainings.find();
 });
