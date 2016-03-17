@@ -1,5 +1,16 @@
 <template name="usersList">
-  <h2>Users</h2>
+
+  <h2 class="ui header">
+
+    <i class="circular users icon"></i>
+
+    <div class="content">
+      Users
+      <div class="sub header">Overview</div>
+    </div>
+
+  </h2>
+
   <div>
     <a href="{{pathFor 'userNew'}}">
       Add new user
@@ -10,4 +21,82 @@
     <li><a href="{{pathFor route='userShow' data=user}}">{{user.profile.name}}</a></li>
     {{/each}}
   </ul>
+
+  {{> tabular table=TabularTables.Users class="ui compact celled striped table"}}
+  <!-- <table class="ui sortable compact celled striped table">
+    <thead>
+      <tr>
+        <th class="one column wide">Admin</th>
+        <th class="">Name</th>
+        <th>UserID</th>
+        <th>Training</th>
+        <th class="one column wide">Status</th>
+        <th class="one column wide">Edit</th>
+        <th class="one column wide">Block</th>
+        <th class="one column wide">Delete</th>
+
+      </tr>
+    </thead>
+
+    <tbody>
+      {{#each user in users}}
+        {{> userItem user}}
+      {{/each}}
+    </tbody>
+
+    <tfoot>
+      <tr>
+        <th>{{users.count}} Users</th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th> Online</th>
+        <th></th>
+        <th> Blocked</th>
+        <th></th>
+      </tr>
+    </tfoot>
+  </table> -->
+</template>
+
+<template name="userIsAdminCell">
+	{{#if isAdmin this._id}}<i class="teal big checkmark icon"></i>{{/if}}
+</template>
+
+<template name="userIsOnlineCell">
+	{{#if this.status.online}}
+    <i class="teal big smile icon"></i>
+  {{else}}
+    <i class="grey big meh icon"></i>
+  {{/if}}
+</template>
+
+<template name="userEditCell">
+	<a href="#"><i class="circular inverted blue write icon"></i></a>
+</template>
+
+<template name="userBlockCell">
+  {{#unless isAdmin this._id}}
+    <div class="ui fitted slider checkbox">
+      <input type="checkbox"> <label></label>
+    </div>
+  {{/unless}}
+</template>
+
+<template name="userDeleteCell">
+	<a href="#"><i class="circular inverted red remove user icon"></i></a>
+</template>
+
+
+<template name="userItem">
+  <tr>
+  <td>todo</td>
+  <td>{{this.profile.name}}</td>
+  <td>{{this._id}}</td>
+  <td>{{this.profile.currentTraining}}</td>
+  <td>todo</td>
+  <td class="center aligned"><i class="circular inverted blue write icon"></i></td>
+  <td class="center aligned"><i class="big ban icon"></i></td>
+  <td class="center aligned"><i class="circular inverted red remove user icon"></i></td>
+  </tr>
 </template>
