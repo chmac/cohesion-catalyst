@@ -6,13 +6,15 @@ Template.usersList.helpers({
 
 
 
-
+// ------------------------------------------------------------------------ //
+// userBlockCell
+// A subtemplate to be included within 'usersList' template.
+// ------------------------------------------------------------------------ //
 
 Template.userBlockCell.onRendered(function() {
-  var templateInstance = this;
+  // Initialize Semantic UI checkbox behavior
   $(".ui.checkbox").checkbox();
 });
-
 
 Template.userBlockCell.events({
   "change .ui.checkbox": function(event, template) {
