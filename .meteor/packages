@@ -41,3 +41,5 @@ npm-container
 momentjs:moment
 mizzao:timesync
 peppelg:bootstrap-3-modal
+coca:common
+mizzao:user-status
