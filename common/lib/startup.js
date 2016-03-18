@@ -6,9 +6,9 @@ Meteor.startup(function() {
     // Define the users who have admin rights and adding those users to roles
     // Borrowed from the example at https://github.com/alanning/meteor-roles
     var users = [
-      {name:"nadeschda",email:"nadja.zollo@gmail.com",roles:["admin"]},
-      {name:"haschi",email:"hartmut@hartmut-schirmacher.de",roles:["admin"]},
-      {name:"steff",email:"mail@stefanie-rathje.com",roles:["admin"]}
+      {name:"Nadja",email:"nadja.zollo@gmail.com",roles:["admin"]},
+      {name:"Hartmut",email:"hartmut@hartmut-schirmacher.de",roles:["admin"]},
+      {name:"Steffi",email:"mail@stefanie-rathje.com",roles:["admin"]}
     ];
 
     _.each(users, function (user) {
@@ -16,8 +16,7 @@ Meteor.startup(function() {
 
       id = Accounts.createUser({
         username: user.name,
-        // email: user.email,
-        password: "cocacoma",
+        password: "admin1",
         profile: { name: user.name }
       });
 
