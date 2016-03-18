@@ -68,6 +68,12 @@ Schemas.User = new SimpleSchema({
     type: Boolean,
     optional: true
   },
+  // We add 'status' to our schema because we use the 'mizzao:user-status' package.
+  status: {
+    type: Object,
+    optional: true,
+    blackbox: true
+  },
   // In order to avoid an 'Exception in setInterval callback' from Meteor
   heartbeat: {
       type: Date,
