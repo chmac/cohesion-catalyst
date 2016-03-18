@@ -1,0 +1,23 @@
+<template name="masterLayout">
+
+  {{> header}}
+
+  <!-- {{#if currentUser}} -->
+  <div class="ui bottom attached segment pushable">
+
+    {{> navigation}}
+
+    <div class="pusher">
+
+      <div class="ui coca-content" style="width: {{width}}">
+
+        {{> yield }}
+
+      </div>
+
+    </div>
+
+  </div>
+  <!-- {{/if}} -->
+
+</template>

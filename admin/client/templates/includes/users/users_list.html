@@ -1,0 +1,48 @@
+<template name="usersList">
+  <h2 class="ui header">
+    <i class="circular users icon"></i>
+    <div class="content">
+      Users
+      <div class="sub header">Overview</div>
+    </div>
+  </h2>
+    {{> tabular table=TabularTables.Users class="ui compact celled striped table"}}
+</template>
+
+
+
+<template name="userIsAdminCell">
+	{{#if isAdmin this._id}}<i class="teal big checkmark icon"></i>{{/if}}
+</template>
+
+
+
+<template name="userIsOnlineCell">
+	{{#if this.status.online}}
+    <i class="teal big smile icon"></i>
+  {{else}}
+    <i class="grey big meh icon"></i>
+  {{/if}}
+</template>
+
+
+
+<template name="userEditCell">
+	<a href="#"><i class="circular inverted blue write icon"></i></a>
+</template>
+
+
+
+<template name="userBlockCell">
+  {{#unless isAdmin this._id}}
+    <div class="ui fitted slider checkbox">
+      <input type="checkbox"> <label></label>
+    </div>
+  {{/unless}}
+</template>
+
+
+
+<template name="userDeleteCell">
+	<a href="#"><i class="circular inverted red remove user icon"></i></a>
+</template>

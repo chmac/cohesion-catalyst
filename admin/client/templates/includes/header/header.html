@@ -1,0 +1,14 @@
+<template name="header">
+
+  <div class="ui large top attached menu borderless">
+
+    <a href="{{pathFor 'home'}}" class="item">Cohesion Catalyst Admin</a>
+
+    <div class="right menu">
+      {{# if currentUser}} {{currentUser.profile.name}} {{/ if}}
+      {{> atNavButton }}
+    </div>
+
+  </div>
+
+</template>

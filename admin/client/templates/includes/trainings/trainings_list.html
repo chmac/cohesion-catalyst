@@ -1,0 +1,21 @@
+<template name="trainingsList">
+
+  <h2 class="ui header">
+
+    <i class="circular calendar icon"></i>
+
+    <div class="content">
+      Trainings
+      <div class="sub header">Overview</div>
+    </div>
+
+  </h2>
+
+
+  <ul>
+    {{#each training in trainings}}
+    <li>{{training.title}}</li>
+    {{/each}}
+  </ul>
+
+</template>
