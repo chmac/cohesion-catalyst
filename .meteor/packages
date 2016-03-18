@@ -30,3 +30,4 @@ coca:common
 reactive-var
 alexgreg:meteor-tabular-semantic
 mizzao:user-status
+useraccounts:iron-routing
