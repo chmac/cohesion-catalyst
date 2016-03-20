@@ -27,17 +27,17 @@ Furthermore, the two applications use the same (private) package that provides c
 2. Whenever you start the apps locally, run the main app first, then set the `MONGO_URL` environment variable for the admin app right before you start it:  
 
     1. From the command line, inside the main   `/app` directory, start the app and the MongoDB driver with the usual command:
-    ```
-    $ meteor  
 
-    ```
-
+    <pre>
+      <code>$ meteor</code>
+    </pre>
 
     2. Since MongoDB is listening on port `3001` we can then specify the `MONGO_URL` environment variable for the admin app and set a different `port` on start. So, in another shell, from inside your `/admin` app directory use the following commands:
-    ```
-    $ MONGO_URL=mongodb://:localhost:3001/meteor meteor --port 3100  
 
-    ```
+    <pre>
+      <code>$ MONGO_URL=mongodb://:localhost:3001/meteor meteor --port 3100</code>
+    </pre>
+
 
 ## MUPX deploy configuration
 
