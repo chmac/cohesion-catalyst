@@ -20,21 +20,16 @@ Furthermore, the two applications use the same (private) package that provides c
     # Set environment variable to locate shared private packages used with Meteor
     export PACKAGE_DIRS="$HOME/path/to/shared-packages-directory"
     ```
-    For example, given that the private package is located in the directory `/global-packages` and assuming that locally the project exists in a `Code` folder `PACKAGE_DIRS` would point to     `Users/nadja/Code/coca-project/global-packages`
-
-
+    For example, given that the private package is located in the directory `/global-packages` and assuming that locally the project exists in a `Code` folder `PACKAGE_DIRS` would point to     `Users/nadja/Code/coca-project/global-packages`  
 
 2. Whenever you start the apps locally, run the main app first, then set the `MONGO_URL` environment variable for the admin app right before you start it:  
 
     1. From the command line, inside the main   `/app` directory, start the app and the MongoDB driver with the usual command:
-
     <pre>
       <code>$ meteor</code>
     </pre>
 
-
     2. Since MongoDB is listening on port `3001` we can then specify the `MONGO_URL` environment variable for the admin app and set a different `port` on start. So, in another shell, from inside your `/admin` app directory use the following commands:
-
     <pre>
       <code>$ MONGO_URL=mongodb://localhost:3001/meteor meteor --port 3100</code>
     </pre>
