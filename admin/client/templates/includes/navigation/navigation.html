@@ -2,34 +2,45 @@
 
   <div class="ui left thin vertical menu visible sidebar" id="admin-aside">
 
-    <div class="item">
-      <div class="header">
-        <i class="user icon"></i>Users
-      </div>
-      <div class="menu">
-        <a href="{{pathFor 'usersList'}}" class="item">View all</a>
-        <a href="{{pathFor 'userNew'}}" class="item">Add user</a>
-      </div>
-    </div>
+    <a href="{{pathFor 'home'}}" class="item">
+      <h5 class="header">
+        <i class="dashboard icon"></i>Dashboard
+      </h5>
+    </a>
 
-    <div class="item">
-      <div class="header">
-          <i class="calendar icon"></i>Trainings
-      </div>
-      <div class="menu">
-        <a href="{{pathFor 'trainingsList'}}" class="item">View all</a>
-        <a href="#" class="item">Add training</a>
-      </div>
-    </div>
+    {{#if currentUser}}
 
-    <div class="item">
-      <div class="header">
-          <i class="heart icon"></i>Identifications
+      <div class="item">
+        <div class="header">
+          <i class="user icon"></i>Users
+        </div>
+        <div class="menu">
+          <a href="{{pathFor 'usersList'}}" class="item">View all</a>
+          <a href="{{pathFor 'userNew'}}" class="item">Add user</a>
+        </div>
       </div>
-      <div class="menu">
-        <a href="{{pathFor 'idsList'}}" class="item">View all</a>
+
+      <div class="item">
+        <div class="header">
+            <i class="calendar icon"></i>Trainings
+        </div>
+        <div class="menu">
+          <a href="{{pathFor 'trainingsList'}}" class="item">View all</a>
+          <a href="#" class="item">Add training</a>
+        </div>
       </div>
-    </div>
+
+      <div class="item">
+        <div class="header">
+            <i class="heart icon"></i>Identifications
+        </div>
+        <div class="menu">
+          <a href="{{pathFor 'idsList'}}" class="item">View all</a>
+        </div>
+      </div>
+
+    {{/if}}
+
   </div>
 
 </template>
