@@ -8,5 +8,15 @@ Router.route("/", {
   name: "home"
 });
 
+var requireAdminRights = function() {
+  if (!Roles.userIsInRole(Meteor.userId(), "admin")) {
+    this.layout("masterLayout");
+    this.render("noAdmin");
+  } else {
+    this.next();
+  }
+};
 
-AccountsTemplates.configureRoute('signIn');
+Router.onBeforeAction(requireAdminRights, {
+  except: ["home"]
+});
