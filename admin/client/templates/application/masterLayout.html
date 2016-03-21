@@ -2,7 +2,6 @@
 
   {{> header}}
 
-  <!-- {{#if currentUser}} -->
   <div class="ui bottom attached segment pushable">
 
     {{> navigation}}
@@ -18,6 +17,13 @@
     </div>
 
   </div>
-  <!-- {{/if}} -->
 
+</template>
+
+<template name="noAdmin">
+  <div class="ui fluid center aligned basic fitted segment">
+    <div class="ui blue huge compact message">
+      You need to have admin rights to access the content of this site!
+    </div>
+  </div>
 </template>

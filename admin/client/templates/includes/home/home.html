@@ -1,3 +1,19 @@
 <template name="home">
-  <h2>Admin Dashboard</h2>
+
+  <div class="ui fluid center aligned basic fitted segment">
+    {{#if currentUser}}
+
+      Dashboard will go here...
+
+    {{else}}
+
+      <!--  AccountsTemplates form -->
+      <div class="at-grid ui middle aligned centered grid">
+        <div class="at-column column">
+          {{> atForm state='signIn'}}
+        </div>
+      </div>
+
+    {{/if}}
+  </div>
 </template>
