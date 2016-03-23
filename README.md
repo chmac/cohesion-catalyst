@@ -35,6 +35,73 @@ Furthermore, the two applications use the same (private) package that provides c
     </pre>
 
 
-## MUPX deploy configuration
+## Deployment configuration
+We use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps to our own server. In order to do so we have to create two separate Meteor Up projects in separate directories, each of which containing the specific configuration for each app.
 
-### ToDo
+Required environment variables for the _main_ app:
+* `PORT`
+* `ROOT_URL`
+* `PACKAGE_DIRS`
+
+Required environment variables for the admin app:
+* `PORT`
+* `ROOT_URL`
+* `PACKAGE_DIRS`
+* `MONGO_URL`
+
+The admin app doesn't need to install MongoDB so we set `"setupMongo": false`.
+
+### Example mup.json for the admin app
+```javascript
+{
+  // Server authentication info
+  "servers": [
+    {
+      "host": "<hostname>",
+      "username": "root",
+      //"password": "password",
+      // prefer pem file (ssh based authentication)
+      "pem": "~/.ssh/id_rsa"
+    }
+  ],
+
+  // Install MongoDB on the server. Does not destroy the local MongoDB on future setups
+  "setupMongo": false,
+
+  // WARNING: Node.js is required! Only skip if you already have Node.js installed on server.
+  "setupNode": true,
+
+  // WARNING: If nodeVersion omitted will setup 0.10.36 by default. Do not use v, only version number.
+  "nodeVersion": "0.10.40",
+
+  // Install PhantomJS in the server
+  "setupPhantom": true,
+
+  // Application name (no spaces).
+  "appName": "ccat_admin",
+
+  // Location of app (local directory).
+  "app": "../../admin",
+
+  // Configure environment
+  "env": {
+    "PORT": 8000,
+    "ROOT_URL": "<url>",
+    "PACKAGE_DIRS": "../../global-packages",
+    "MONGO_URL": "mongodb://127.0.0.1/meteor"
+  },
+
+  // Meteor Up checks if the app comes online just after the deployment.
+  // Before mup checks that, it will wait for the number of seconds configured below.
+  "deployCheckWaitTime": 15,
+
+  // show a progress bar while uploading.
+  // Make it false when you deploy using a CI box.
+  "enableUploadProgressBar": true,
+
+  "buildOptions": {
+    // build with the debug mode on
+    "debug": true
+  }
+}
+```
