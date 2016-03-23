@@ -88,30 +88,42 @@ var pool = function() {
     // set width and height in layout
     layout.setDimensions(width, height);
 
-    // set up autorunner (i.e. reactive computation) to observe MetaIDs that come, go, or change
-    templateInstance.autorun(function() {
-      MetaCollection.find({
-        createdBy: {$nin: [currentUser._id]},
-        createdAtTraining: currentTrainingId
-      }).observe({
-        added: function(doc) {
-          addMetaID(doc);
+    // We use a flag to indicate the initial query results that
+    // should not affect the 'added()' callback.
+    var initializing = true;
+
+    var idsPoolCursor =  MetaCollection.find({
+      createdBy: {$nin: [currentUser._id]},
+      createdAtTraining: currentTrainingId
+    });
+
+    templateInstance.idsPoolHandle = idsPoolCursor.observe({
+      added: function(doc) {
+        addMetaID(doc);
+        // We want to prevent multiple calls of 'draw()'
+        // while the 'added()' callback delivers the initial result of the query.
+        if (!initializing) {
           draw();
-        },
-        changed: function(newDoc,oldDoc) {
-          // draw();
-        },
-        removed: function(doc) {
-          deleteMetaID(doc);
         }
-      });
-    }); // autorun()
+      },
+      removed: function(doc) {
+        deleteMetaID(doc);
+      }
+    }); // observe()
+
+    // At this point, 'observe' has returned and the initial query results are delivered.
+    // So we call 'draw()' for the initial dataset.
+    initializing = false;
+    draw();
 
   }); // onRendered()
 
 
 
   Template.idPool.onDestroyed(function() {
+    var templateInstance = this;
+    templateInstance.idsPoolHandle.stop();
+
     clientLogger.logInfo({
       trainingID: Meteor.user().profile.currentTraining,
       userID: Meteor.userId(),
