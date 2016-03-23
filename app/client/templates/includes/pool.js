@@ -172,8 +172,8 @@ var pool = function() {
     *   delete ID from screen, identified by text
     */
   var deleteMetaID = function(doc) {
-    var durationTime = 750;
-    var delayTime = 500;
+    var durationTime = 400;
+    var delayTime = 250;
 
     for(var i=0; i<ids.length; i++) {
       if(ids[i] && ids[i].text == doc.name) {
@@ -396,9 +396,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     p,
     pB,
     currentRadius,
-    currentRadiusB,
     currentScale,
-    currentScaleB,
     currentFontSize;
 
   group = d3.select("#gid" + idA._id);
@@ -412,8 +410,6 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
   if (idB) {
     groupB = d3.select("#gid" + idB._id);
     bubbleB = groupB.select("circle");
-    currentRadiusB = bubbleB.attr("r");
-    currentScaleB = d3.transform(bubbleB.attr("transform")).scale[0];
     foB = groupB.select(".foreign-object");
     pB = foB.select("p.txt-inside-circle");
   }
@@ -475,23 +471,29 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
 
     // We only apply "OUT" transitions for the bubble which will
     // switch positions from the last spot to the newly empty spot.
-    bubbleB
-      .transition()
-      .delay(delay)
-      .duration(duration)
-      .attr("r", 0);
+    // It is possible that the element in the last spot of
+    // the IDs-array is not rendered on screen, which will result in the
+    // D3 selections of bubbleB (and foB, and pB) being empty.
+    // So we need to check for an empty selection.
+    if (!bubbleB.empty()) {
+      bubbleB
+        .transition()
+        .delay(delay)
+        .duration(duration)
+        .attr("r", 0);
 
-    foB
-      .transition()
-      .delay(delay)
-      .duration(duration)
-      .attr("transform", "scale(0)");
+      foB
+        .transition()
+        .delay(delay)
+        .duration(duration)
+        .attr("transform", "scale(0)");
 
-    pB
-      .transition()
-      .delay(delay)
-      .duration(duration)
-      .style("font-size", 0);
+      pB
+        .transition()
+        .delay(delay)
+        .duration(duration)
+        .style("font-size", 0);
+    }
 
   } // "OUT-IN"
 
@@ -518,8 +520,6 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       .style("font-size", 0);
 
   } // "OUT"
-
-
 
 };
 
