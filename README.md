@@ -1,6 +1,6 @@
 # coca-project
 
-Aimed to develop Cohesion Catalyst, a modern web application to discover multicollectivity. _(ToDo: add link to website)__
+Aimed to develop Cohesion Catalyst, a modern web application to discover multicollectivity. _(ToDo: add link to website)_
 
 
 ## Table of Contents
