@@ -1,6 +1,6 @@
 # coca-project
 
-Aimed to develop Cohesion Catalyst, a modern web application to discover multicollectivity. (ToDo: add linke to website)  
+Aimed to develop Cohesion Catalyst, a modern web application to discover multicollectivity. _(ToDo: add link to website)__
 
 
 ## Table of Contents
@@ -21,7 +21,7 @@ The project structure is as follows:
 * `/app` - the _main_ application for regular users
 * `/admin` - an admin app for special users with admin rights who can control the content in the database.
 * `/global-packages` - location of private Meteor packages
-* `deployment` - all things deploy :nut_and_bolt:
+* `/deployment` - all things deploy :nut_and_bolt:
 
 
 ## Local configuration
@@ -78,7 +78,7 @@ Required environment variables for the admin app:
 * The admin app should not install MongoDB so you set `"setupMongo": false`.
 * `PACKAGE_DIRS` also needs to be exported in `~/.bashrc` on the server. Otherwise, the following error occurs:  
 `error: unknown package in top-level dependencies: coca:common`  
-(ToDo: Figure out if it makes any sense to  set it via `mup.json`)
+_(ToDo: Figure out if it makes any sense to  set it via `mup.json`)_
 
 
 ## Meteor UP X issue
