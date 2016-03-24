@@ -1,42 +1,65 @@
-# C.Cat - Cohesion Catalyst <small>(coca-project)</small>
+# coca-project
 
-Cohesion Catalyst is a web application built with [Meteor](http://guide.meteor.com/#what-is-meteor), a full-stack JavaScript platform for modern web and mobile applications.  
+Aimed to develop Cohesion Catalyst, a modern web application to discover multicollectivity. (ToDo: add linke to website)  
 
-The __coca-project__ consists of two Meteor apps that share the same [MongoDB](https://docs.mongodb.org/manual/introduction/) database:
-1. a _main_ application for regular users
-2. an admin app for special users with admin rights who can control the content in the database.  
 
-In order to let these two applications share the same data, we need to set the environment variable `MONGO_URL` of the admin app such that it points to the main application database instance. Additionally, it is required to change the `port` the admin app listens on (defaults to `3000`).  
+## Table of Contents
 
-Furthermore, the two applications use the same (private) package that provides common collections and schema definitions. Since this package is located outside of the two application contexts we need to make it available for Meteor via the environment variable `PACKAGE_DIRS`.
+1. [Project structure](#project-structure)  
+2. [Local configuration](#local-configuration)
+3. [Deployment](#deployment)
+4. [Meteor UP X issue](#meteor-up-x-issue) / :monkey: patch
+5. [Working with Docker](#working-with-docker)
+
+
+
+## Project structure
+
+The __coca-project__ consists of two [Meteor](http://guide.meteor.com/#what-is-meteor) apps that share the same [MongoDB](https://docs.mongodb.org/manual/introduction/) database. Furthermore, the two applications use the same private (i.e. unpublished) Meteor package that provides common collections and schema definitions. We use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps to our own server.
+
+The project structure is as follows:
+* `/app` - the _main_ application for regular users
+* `/admin` - an admin app for special users with admin rights who can control the content in the database.
+* `/global-packages` - location of private Meteor packages
+* `deployment` - all things deploy :nut_and_bolt:
+
 
 ## Local configuration
-(i.e. for developing on your local machine)  
 
-1. Export the environment variable `PACKAGE_DIRS` to your shell and set it to point to the location of the shared packages.  
-
-    To accomplish this, add the following to your `~/.bash_profile` file:  
-    ```
-    # Set environment variable to locate shared private packages used with Meteor
-    export PACKAGE_DIRS="$HOME/path/to/shared-packages-directory"
-    ```
-    For example, given that the private package is located in the directory `/global-packages` and assuming that locally the project exists in a `Code` folder `PACKAGE_DIRS` would point to     `Users/nadja/Code/coca-project/global-packages`  
-
-2. Whenever you start the apps locally, run the main app first, then set the `MONGO_URL` environment variable for the admin app right before you start it:  
-
-    1. From the command line, inside the main   `/app` directory, start the app and the MongoDB driver with the usual command:
-    <pre>
-      <code>$ meteor</code>
-    </pre>
-
-    2. Since MongoDB is listening on port `3001` we can then specify the `MONGO_URL` environment variable for the admin app and set a different `port` on start. So, in another shell, from inside your `/admin` app directory use the following commands:
-    <pre>
-      <code>$ MONGO_URL=mongodb://localhost:3001/meteor meteor --port 3100</code>
-    </pre>
+In order to let the two applications share the same database and private packages, you need to configure the environment. Since the private packages are located outside of the two application contexts, you need to make it available to Meteor's package manager via the environment variable `PACKAGE_DIRS`. For the admin app the environment variable `MONGO_URL` needs to be set such that it points to the main application database instance. Additionally, it is required to change the `port` the admin app listens on.
 
 
-## Deployment configuration
-We use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps to our own server. In order to do so we have to create two separate Meteor Up projects in separate directories, each of which containing the specific configuration for each app.
+#### Setting `PACKAGE_DIRS`
+
+You need to export (i.e. add) the environment variable `PACKAGE_DIRS` to your shell and set it to point to the location of the shared packages.
+
+To accomplish this, add the following to the `.bashrc` file in your home directory:  
+```
+# Set environment variable to locate shared private packages used with Meteor
+export PACKAGE_DIRS="~/path/to/coca-project/global-packages"
+```
+
+#### Setting `MONGO_URL`
+
+When you are developing on your local machine and whenever you start the apps locally, run the main app first, then set the `MONGO_URL` environment variable for the admin app right before you start it:  
+
+1. From the command line, inside the main `/app` directory, start the app and the MongoDB driver with the usual command:
+<pre>
+  <code>$ meteor</code>
+</pre>
+
+2. Since MongoDB is listening on port `3001` you can then specify the `MONGO_URL` environment variable for the admin app and set a different port on start using the `--port` flag.  
+So, in another shell, from inside your `/admin` app directory use the following commands:
+<pre>
+  <code>$ MONGO_URL=mongodb://localhost:3001/meteor meteor --port 3100</code>
+</pre>
+
+
+## Deployment
+
+In order to use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps you have to create two separate Meteor Up projects in separate directories, each of which containing the specific `mup.json` file for each app.  
+
+As is the case locally configuring the environment applies for deployment as well.
 
 Required environment variables for the _main_ app:
 * `PORT`
@@ -49,59 +72,46 @@ Required environment variables for the admin app:
 * `PACKAGE_DIRS`
 * `MONGO_URL`
 
-The admin app doesn't need to install MongoDB so we set `"setupMongo": false`.
 
-### Example mup.json for the admin app
-```javascript
-{
-  // Server authentication info
-  "servers": [
-    {
-      "host": "<hostname>",
-      "username": "root",
-      //"password": "password",
-      // prefer pem file (ssh based authentication)
-      "pem": "~/.ssh/id_rsa"
-    }
-  ],
+#### Note:
 
-  // Install MongoDB on the server. Does not destroy the local MongoDB on future setups
-  "setupMongo": false,
+* The admin app should not install MongoDB so you set `"setupMongo": false`.
+* `PACKAGE_DIRS` also needs to be exported in `~/.bashrc` on the server. Otherwise, the following error occurs:  
+`error: unknown package in top-level dependencies: coca:common`  
+(ToDo: Figure out if it makes any sense to  set it via `mup.json`)
 
-  // WARNING: Node.js is required! Only skip if you already have Node.js installed on server.
-  "setupNode": true,
 
-  // WARNING: If nodeVersion omitted will setup 0.10.36 by default. Do not use v, only version number.
-  "nodeVersion": "0.10.40",
+## Meteor UP X issue
 
-  // Install PhantomJS in the server
-  "setupPhantom": true,
+Although setting `MONGO_URL` in the admin app's `mup.json` to point to the main application database it doesn't work. The deployment of the admin app fails because connecting to `mongodb:27017` fails.  
 
-  // Application name (no spaces).
-  "appName": "ccat_admin",
+It seems to be a known [issue](https://github.com/arunoda/meteor-up/issues/758) and a workaround fix can be found in [this comment](https://github.com/arunoda/meteor-up/issues/758#issuecomment-164343450).  
 
-  // Location of app (local directory).
-  "app": "../../admin",
-
-  // Configure environment
-  "env": {
-    "PORT": 8000,
-    "ROOT_URL": "<url>",
-    "PACKAGE_DIRS": "../../global-packages",
-    "MONGO_URL": "mongodb://127.0.0.1/meteor"
-  },
-
-  // Meteor Up checks if the app comes online just after the deployment.
-  // Before mup checks that, it will wait for the number of seconds configured below.
-  "deployCheckWaitTime": 15,
-
-  // show a progress bar while uploading.
-  // Make it false when you deploy using a CI box.
-  "enableUploadProgressBar": true,
-
-  "buildOptions": {
-    // build with the debug mode on
-    "debug": true
-  }
-}
+The script `/opt/ccat_admin/config/start.sh` (provided by MUP X) is missing the following two lines within the `else` block:
 ```
+--link=mongodb:mongodb \
+--env=MONGO_URL=mongodb://mongodb:27017/ccat_app \
+```
+
+
+## Working with Docker
+
+
+To get access to the deployed apps you need to work with the [Docker CLI](https://docs.docker.com/engine/reference/commandline/cli/). Therefore, you need to login as root user.  
+
+E.g., for inspecting the running containers use:
+
+```
+$ docker ps
+```
+
+
+To get access to the `log` files of the main application that are written to the `$HOME` directory run the following command (logged in as root)
+
+```
+docker exec -it ccat_app bash
+```
+
+where `ccat_app` is the name of the running application container (use `docker ps` if you don't know the name). After that, `cd` into the home directory where you will find the `ccat-log` directory.
+
+See also the information given on the [MUP X project page](https://github.com/arunoda/meteor-up/tree/mupx#accessing-the-database) about accessing  MongoDB.
