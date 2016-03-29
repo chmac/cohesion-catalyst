@@ -7,6 +7,8 @@
     </div>
   </h2>
     {{> tabular table=TabularTables.Users class="ui compact celled striped table"}}
+
+    {{> userDeleteApproveModal}}
 </template>
 
 
@@ -28,7 +30,7 @@
 
 
 <template name="userEditCell">
-	<a href="#"><i class="circular inverted blue write icon"></i></a>
+	<a href="#"><i class="link circular inverted blue write icon"></i></a>
 </template>
 
 
@@ -44,5 +46,32 @@
 
 
 <template name="userDeleteCell">
-	<a href="#"><i class="circular inverted red remove user icon"></i></a>
+	<div class="user-delete-button"><i class="link circular inverted red remove user icon"></i></div>
+</template>
+
+
+
+<template name="userDeleteApproveModal">
+  <div class="ui basic modal" id="user-delete-approve">
+    <div class="ui icon header">
+      <i class="user remove icon"></i>
+      Delete user &ldquo;{{username}}&rdquo;
+    </div>
+    <div class="content">
+      <div class="description">
+        <p>The user you selected and all associated data will be removed from the database.
+           Are you sure you want to do this?</p>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui deny red basic inverted button">
+        <i class="remove icon"></i>
+        No
+      </div>
+      <div class="ui approve green inverted button">
+        <i class="checkmark icon"></i>
+        Yes
+      </div>
+    </div>
+</div>
 </template>
