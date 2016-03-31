@@ -14,16 +14,16 @@
 
 
 <template name="userIsAdminCell">
-	{{#if isAdmin this._id}}<i class="teal big checkmark icon"></i>{{/if}}
+	{{#if isAdmin this._id}}<i class="yellow big certificate icon"></i>{{/if}}
 </template>
 
 
 
 <template name="userIsOnlineCell">
 	{{#if this.status.online}}
-    <i class="teal big smile icon"></i>
+    <i class="green big smile icon"></i>
   {{else}}
-    <i class="grey big meh icon"></i>
+    <i class="disabled grey big meh icon"></i>
   {{/if}}
 </template>
 
