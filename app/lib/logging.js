@@ -11,17 +11,31 @@ if (Meteor.isClient) {
     Meteor.call("writeLog", timestamp, data);
   };
 
-  if (Meteor.user()) {
-    var logInterval = Session.get("logInterval");
-    if (logInterval) {
-      Meteor.clearInterval(logInterval);
+  // Based on the user status (i.e. logged-in or logged-out)
+  // we start or stop monitoring their activity, respectively.
+  Tracker.autorun(function(computation) {
+    if (Meteor.userId()) {
+      try {
+        // 'UserStatus' is provided by 'mizzao:user-status' package.
+        // We want automatic monitoring of the client's idle state
+        // so we can use this information to schedule our periodic logging.
+        UserStatus.startMonitor({
+          threshold: 60000,
+          interval: 5000,
+          idleOnBlur: false
+        });
+        // computation.stop();
+      }
+      catch(exception) {
+        // ignore
+      }
+    } else {
+      // We want to stop the running monitor if a user logs out.
+      if (UserStatus.isMonitoring()) {
+        UserStatus.stopMonitor();
+      }
     }
-    logInterval = Meteor.setInterval(function() {
-      var timestamp = TimeSync.serverTime(moment());
-      Meteor.call("autoLog", timestamp);
-    }, 180 * 1000);
-    Session.set("logInterval", logInterval);
-  }
+  });
 } // Meteor.isClient
 
 
@@ -148,11 +162,11 @@ if (Meteor.isServer) {
      * Retrieves the current cohesion level for each connected user/client and writes the
      * information to a log file.
      * This method is called repeatedly using Meteor.setInterval()
-     * @param {Object} timestamp - The current date/time captured on the client,
-     * but synced with server time.
+     * @param {Object} timestamp - The current time captured on the server.
+     * @param {string} id - The current user's id.
      */
-    autoLog: function(timestamp) {
-      var currentUser = Meteor.user();
+    autoLog: function(timestamp, id) {
+      var currentUser = Meteor.users.findOne({_id:id});
       var currentTrainingId = currentUser.profile.currentTraining;
 
       var networkCursor = MetaCollection.find({
@@ -200,7 +214,7 @@ if (Meteor.isServer) {
 
       periodicLogger.info("Cohesion level", groupedMembershipsMap );
     }
-  });
+  }); // methods
 
   //  Write column headers
   Meteor.call("writeLog", undefined, {
@@ -217,5 +231,54 @@ if (Meteor.isServer) {
     metaTagID: "MetatagID",
     metaTagName: "MetatagName",
     metaTagCount: "Count"
+  });
+
+  // Initialize the handle to use with 'Meteor.clearInterval()' in order
+  // to cancel the repeating function call.
+  // HEADS UP: Since we are using 'Meteor.setInterval()' on the server
+  // the return value will be of type 'object' (in contrast to a type of
+  // 'number' when used on the client).
+  var intervalHandle = null;
+
+  UserStatus.events.on("connectionLogin", function(fields) {
+    console.log("login");
+    if (!fields.userId) {
+      return;
+    }
+    if (intervalHandle) {
+      Meteor.clearInterval(intervalHandle);
+    }
+    intervalHandle = Meteor.setInterval(function() {
+      var timestamp = Date.now();
+      Meteor.call("autoLog", timestamp. fields.userId);
+    }, 5 * 1000);
+  });
+
+  UserStatus.events.on("connectionLogout", function(fields) {
+    console.log("logout");
+    if (intervalHandle) {
+      Meteor.clearInterval(intervalHandle);
+    }
+  });
+
+  UserStatus.events.on("connectionIdle", function(fields) {
+        console.log("idle");
+    if (intervalHandle) {
+      Meteor.clearInterval(intervalHandle);
+    }
+  });
+
+  UserStatus.events.on("connectionActive", function(fields) {
+    console.log("active");
+    if (!fields.userId) {
+      return;
+    }
+    if (intervalHandle) {
+      Meteor.clearInterval(intervalHandle);
+    }
+    intervalHandle = Meteor.setInterval(function() {
+      var timestamp = Date.now();
+      Meteor.call("autoLog", timestamp, fields.userId);
+    }, 5 * 1000);
   });
 } // Meteor.isServer
