@@ -31,11 +31,6 @@ Template.navigation.events({
     event.preventDefault();
     // The Meteor.logout() function is provided by the 'accounts-password' package.
     Meteor.logout();
-    // We want to cancel the repeating logging if a user logs out.2
-    var interval = Session.get("logInterval");
-    if (interval) {
-      Meteor.clearInterval(interval);
-    }
     Router.go("home");
   },
   "click .disabled": function(event) {
