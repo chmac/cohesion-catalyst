@@ -87,12 +87,6 @@ Template.loginForm.events({
               }
           });
 
-          var logInterval = Meteor.setInterval(function() {
-            var timestamp = TimeSync.serverTime(moment());
-            Meteor.call("autoLog", timestamp);
-          }, 180 * 1000);
-          Session.set("logInterval", logInterval);
-
           // Hide the modal dialog after successful login.
           Modal.hide();
 
