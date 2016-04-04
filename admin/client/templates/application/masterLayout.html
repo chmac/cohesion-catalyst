@@ -20,7 +20,13 @@
 
 </template>
 
+
+
 <template name="noAdmin">
+  {{!--
+    noAdmin template is rendered based on the Router.onBeforeAction 
+      hook 'requireAdminRights()' (see router.js)
+  --}}
   <div class="ui fluid center aligned basic fitted segment">
     <div class="ui blue huge compact message">
       You need to have admin rights to access the content of this site!

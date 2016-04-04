@@ -29,3 +29,60 @@ Template.userBlockCell.events({
     }
   }
 });
+
+
+
+// ------------------------------------------------------------------------ //
+// userDeleteCell
+// A subtemplate to be included within 'usersList' template.
+// ------------------------------------------------------------------------ //
+
+Template.userDeleteCell.events({
+  "click .user-delete-button": function(event, template) {
+    event.preventDefault();
+    Session.set("userToDeleteName", this.profile.name);
+    Session.set("userToDeleteID", this._id);
+    $(".ui.basic.modal").modal("show");
+  }
+});
+
+
+
+// ------------------------------------------------------------------------ //
+// userDeleteApproveModal
+// A subtemplate to be included within 'usersList' template.
+// ------------------------------------------------------------------------ //
+
+Template.userDeleteApproveModal.onRendered(function() {
+  // Initialize Semantic UI modal behavior with settings.
+  $(".ui.basic.modal").modal({
+    closable: false,
+    onHidden: function() {
+      Session.set("userToDeleteName", null);
+      Session.set("userToDeleteID", null);
+    },
+    onApprove: function() {
+      Meteor.call("users.remove", Session.get("userToDeleteID"), function(error) {
+        // error identification
+        if (error) {
+          switch(error.error) {
+            case "users.remove.not-authorized":
+              console.log("You need to have admin rights to delete a user.");
+              break;
+            case "users.remove.not-allowed":
+              console.log("You are not allowed to delete your own account.");
+              break;
+            default:
+              console.log("Unauthorized action.");
+          }
+        }
+      });
+    }
+  });
+});
+
+Template.userDeleteApproveModal.helpers({
+  username: function() {
+    return Session.get("userToDeleteName");
+  }
+});

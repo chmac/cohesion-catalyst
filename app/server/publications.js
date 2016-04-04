@@ -107,13 +107,18 @@ Meteor.publish("myIdentificationsAndLinks", function(currentTraining) {
   });
 
   this.onStop(function() {
-    Meteor.call("writeLog", moment(), {
-      trainingID: currentTraining,
-      userID: currentUserId,
-      username: Meteor.users.findOne({_id: currentUserId}).profile.name,
-      action: "UNSUBSCRIBED",
-      target: "myIdentificationsAndLinks"
-    });
+    // We need to check if user still exists since the user may be removed by
+    // the admin.
+    var user = Meteor.users.findOne({_id: currentUserId});
+    if (user) {
+      Meteor.call("writeLog", moment(), {
+        trainingID: currentTraining,
+        userID: currentUserId,
+        username: user.profile.name,
+        action: "UNSUBSCRIBED",
+        target: "myIdentificationsAndLinks"
+      });
+    }
   });
 
   return [
@@ -148,13 +153,18 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
   });
 
   this.onStop(function() {
-    Meteor.call("writeLog", moment(), {
-      trainingID: currentTraining,
-      userID: currentUserId,
-      username: Meteor.users.findOne({_id: currentUserId}).profile.name,
-      action: "UNSUBSCRIBED",
-      target:"poolIdentifications"
-    });
+    // We need to check if user still exists since the user may be removed by
+    // the admin.
+    var user = Meteor.users.findOne({_id: currentUserId});
+    if (user) {
+      Meteor.call("writeLog", moment(), {
+        trainingID: currentTraining,
+        userID: currentUserId,
+        username: user.profile.name,
+        action: "UNSUBSCRIBED",
+        target:"poolIdentifications"
+      });
+    }
   });
 
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.
@@ -199,13 +209,18 @@ Meteor.publish("networkIdentifications", function(currentTraining) {
   });
 
   this.onStop(function() {
-    Meteor.call("writeLog", moment(), {
-      trainingID: currentTraining,
-      userID: currentUserId,
-      username: Meteor.users.findOne({_id: currentUserId}).profile.name,
-      action: "UNSUBSCRIBED",
-      target: "networkIdentifications"
-    });
+    // We need to check if user still exists since the user may be removed by
+    // the admin.
+    var user = Meteor.users.findOne({_id: currentUserId});
+    if (user) {
+      Meteor.call("writeLog", moment(), {
+        trainingID: currentTraining,
+        userID: currentUserId,
+        username: user.profile.name,
+        action: "UNSUBSCRIBED",
+        target: "networkIdentifications"
+      });
+    }
   });
 
   // MetaCollection.find( {createdBy : {$exists:true}, $where:"this.createdBy.length>1"} )
