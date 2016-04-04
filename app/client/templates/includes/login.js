@@ -167,13 +167,6 @@ Template.createAccountForm.events({
             // Let the user know that the creation of an account failed.
             return throwError("Error while creating account: " + error.reason);
           }
-          // Session.set("formContainer", null);
-
-          var logInterval = Meteor.setInterval(function() {
-            var timestamp = TimeSync.serverTime(moment());
-            Meteor.call("autoLog", timestamp);
-          }, 180 * 1000);
-          Session.set("logInterval", logInterval);
 
           // Hide the modal dialog after successful sign up.
           Modal.hide();
