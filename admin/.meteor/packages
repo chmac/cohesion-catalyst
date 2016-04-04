@@ -31,3 +31,5 @@ reactive-var
 alexgreg:meteor-tabular-semantic
 mizzao:user-status
 useraccounts:iron-routing
+check
+matb33:collection-hooks
