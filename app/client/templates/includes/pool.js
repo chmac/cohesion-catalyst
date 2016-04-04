@@ -124,14 +124,19 @@ var pool = function() {
     var templateInstance = this;
     templateInstance.idsPoolHandle.stop();
 
-    clientLogger.logInfo({
-      trainingID: Meteor.user().profile.currentTraining,
-      userID: Meteor.userId(),
-      username: Meteor.user().profile.name,
-      view: "Match",
-      action: "DESTROYED",
-      target: "Template"
-    });
+    // 'onDestroyed' may be triggered because the user was removed by
+    // the admin so we need to check if the user still exists.
+    var currentUser = Meteor.user();
+    if (currentUser) {
+      clientLogger.logInfo({
+        trainingID: currentUser.profile.currentTraining,
+        userID: currentUser._id,
+        username: currentUser.profile.name,
+        view: "Match",
+        action: "DESTROYED",
+        target: "Template"
+      });
+    }
   }); //onDestroyed()
 
 
