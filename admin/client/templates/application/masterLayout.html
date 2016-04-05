@@ -2,6 +2,8 @@
 
   {{> header}}
 
+  {{> sAlert}}
+
   <div class="ui bottom attached segment pushable">
 
     {{> navigation}}
@@ -9,7 +11,6 @@
     <div class="pusher">
 
       <div class="ui coca-content" style="width: {{width}}">
-
         {{> yield }}
 
       </div>
@@ -24,7 +25,7 @@
 
 <template name="noAdmin">
   {{!--
-    noAdmin template is rendered based on the Router.onBeforeAction 
+    noAdmin template is rendered based on the Router.onBeforeAction
       hook 'requireAdminRights()' (see router.js)
   --}}
   <div class="ui fluid center aligned basic fitted segment">
