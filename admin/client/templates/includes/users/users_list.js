@@ -42,7 +42,7 @@ Template.userDeleteCell.events({
     event.preventDefault();
     Session.set("userToDeleteName", this.profile.name);
     Session.set("userToDeleteID", this._id);
-    $(".ui.basic.modal").modal("show");
+    $(".ui.modal").modal("show");
   }
 });
 
@@ -55,26 +55,30 @@ Template.userDeleteCell.events({
 
 Template.userDeleteApproveModal.onRendered(function() {
   // Initialize Semantic UI modal behavior with settings.
-  $(".ui.basic.modal").modal({
+  $(".ui.modal").modal({
+    duration: 250,
     closable: false,
     onHidden: function() {
       Session.set("userToDeleteName", null);
       Session.set("userToDeleteID", null);
     },
     onApprove: function() {
-      Meteor.call("users.remove", Session.get("userToDeleteID"), function(error) {
+      Meteor.call("users.remove", Session.get("userToDeleteID"), function(error, result) {
         // error identification
         if (error) {
           switch(error.error) {
             case "users.remove.not-authorized":
-              console.log("You need to have admin rights to delete a user.");
+              sAlert.error("You need to have admin rights to delete a user.");
               break;
             case "users.remove.not-allowed":
-              console.log("You are not allowed to delete your own account.");
+              sAlert.error("You are not allowed to delete your own account.");
               break;
             default:
-              console.log("Unauthorized action.");
+              sAlert.error("Unauthorized action.");
           }
+        } else {
+          // successully removed user
+          sAlert.success("User has successully been removed.");
         }
       });
     }
