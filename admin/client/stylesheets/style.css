@@ -1,3 +1,7 @@
 .coca-content {
   padding: 1em;
 }
+
+#admin-aside {
+  border-top: none;
+}
