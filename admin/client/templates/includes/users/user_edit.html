@@ -1,3 +1,60 @@
 <template name="userEdit">
-  <h2>Edit User</h2>
+  <h2 class="ui header">
+    <i class="circular write icon"></i>
+    <div class="content">
+      User: {{user.profile.name}}
+      <div class="sub header">Edit</div>
+    </div>
+  </h2>
+
+  <div class="ui basic segment">
+    <div class="ui stackable grid">
+      <div class="column">
+        {{> quickForm
+            collection="Meteor.users"
+            doc=user
+            id="user-update-form"
+            buttonContent="Save Changes"
+            type="method-update"
+            omitFields="services, status, heartbeat, blocked, roles"
+        }}
+
+
+
+          <h3 class="ui dividing header">
+            User Roles
+          </h3>
+          {{#each role in roles}}
+            {{#if userEditIsInRole user._id role.name}}
+              <button class="ui green button user-edit-remove-role"
+                data-role-name="{{role.name}}" data-user-id="{{user._id}}">
+                  {{role.name}}
+                  <i class="right checkmark icon"></i>
+              </button>
+            {{else}}
+              <button class="ui button user-edit-add-role"
+                data-role-name="{{role.name}}" data-user-id="{{user._id}}">
+                  {{role.name}}
+              </button>
+            {{/if}}
+          {{/each}}
+
+        <h3 class="ui dividing header">
+          Change Password
+        </h3>
+        {{#autoForm
+          id="user-change-password"
+          schema="AdminSchemas.ChangePassword"
+          type="method"
+          meteormethod="user.edit.change.password"
+        }}
+
+        {{> afQuickField name="password"}}
+
+        {{/autoForm}}
+
+
+      </div> <!-- div.column -->
+    </div> <!-- div.ui.stackable.grid -->
+  </div> <!-- div..ui.basic.segment -->
 </template>
