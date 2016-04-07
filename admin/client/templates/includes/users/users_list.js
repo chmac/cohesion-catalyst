@@ -11,22 +11,32 @@ Template.usersList.helpers({
 // A subtemplate to be included within 'usersList' template.
 // ------------------------------------------------------------------------ //
 
-Template.userBlockCell.onRendered(function() {
-  // Initialize Semantic UI checkbox behavior
-  $(".ui.checkbox").checkbox();
+Template.userBlockCell.helpers({
+  isBlocked: function() {
+    return this.blocked;
+  }
 });
 
 Template.userBlockCell.events({
-  "change .ui.checkbox": function(event, template) {
-    if (template.$(event.currentTarget).hasClass("checked")) {
-      console.log("********* Block user");
-      console.log("this._id ", this._id);
-      console.log("this.profile.name ", this.profile.name);
-    } else {
-      console.log("********* Unblock user");
-      console.log("this._id ", this._id);
-      console.log("this.profile.name ", this.profile.name);
-    }
+  "click .user-block-button": function(event, template) {
+    Meteor.call("users.toggle.blocked", this._id, function(error, result) {
+      // error identification
+      if (error) {
+        switch(error.error) {
+          case "users.toggle.blocked.not-authorized":
+            sAlert.error("You need to have admin rights to block or unblock a user.");
+            break;
+          case "users.toggle.blocked.not-found":
+            sAlert.error("This user record does not exist.");
+            break;
+          default:
+            sAlert.error("An unexpected error occured: ", error.reason);
+        }
+      } else {
+        // successfully blocked user
+        sAlert.success("User record has successfully been updated.");
+      }
+    });
   }
 });
 
@@ -77,7 +87,7 @@ Template.userDeleteApproveModal.onRendered(function() {
               sAlert.error("Unauthorized action.");
           }
         } else {
-          // successully removed user
+          // successfully removed user
           sAlert.success("User has successully been removed.");
         }
       });
