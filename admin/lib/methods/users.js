@@ -93,6 +93,51 @@ Meteor.methods({
     }
 
     return "OK";
+  },
+
+  "user.edit.add.role": function(id, role) {
+
+    // Check arguments
+    check(id, String);
+    check(role, String);
+
+    // Only admins have the right to edit a user.
+    if (!Roles.userIsInRole(this.userId, "admin")) {
+      throw new Meteor.Error("user.edit.add.role.not-authorized",
+        "Must be admin to add role to user.");
+    }
+
+    Roles.addUsersToRoles(id, role);
+
+    return "OK";
+  },
+
+  "user.edit.remove.role": function(id, role) {
+
+    // Check arguments
+    check(id, String);
+    check(role, String);
+
+    // Only admins have the right to edit a user.
+    if (!Roles.userIsInRole(this.userId, "admin")) {
+      throw new Meteor.Error("user.edit.remove.role.not-authorized",
+        "Must be admin to add role to user.");
+    }
+
+    Roles.removeUsersFromRoles(id, role);
+
+    return "OK";
+  },
+
+  "user.edit.change.password": function(doc) {
+
+    // Only admins have the right to edit a user.
+    if (!Roles.userIsInRole(this.userId, "admin")) {
+      throw new Meteor.Error("user.edit.change.password.not-authorized",
+        "Must be admin to change password.");
+    }
+
+    // TODO
   }
 
 }); // methods()
