@@ -3,8 +3,8 @@ Meteor.publish("listOfUsers", function() {
 });
 
 Meteor.publish("singleUser", function(id) {
-  // check(id, String);
-  return Meteor.users.find(id);
+  check(id, String);
+  return Meteor.users.find({_id: id});
 });
 
 Meteor.publish("listOfTrainings", function() {
