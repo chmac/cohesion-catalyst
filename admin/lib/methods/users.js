@@ -17,7 +17,22 @@ Meteor.users.after.remove(function(userId, doc) {
   Identifications.remove({createdBy: doc._id});
 });
 
-// TODO add collection hook after (before?) updating 'blocked' users
+// When the user doc is updated, we detect if there are any changes
+// to the 'blocked' field. For a blocked user, we want to update their
+// created identification documents
+Meteor.users.after.update(function (userId, doc, fieldNames, modifier) {
+  if (doc.blocked !== this.previous.blocked) {
+    var editState = !doc.blocked;
+    Identifications.update({createdBy: doc._id}, {
+      $set: {
+        editCompleted: editState
+      }
+    },
+    {
+      multi: true
+    });
+  }
+});
 
 // ------------------------------------------------------------------------ //
 // Methods
@@ -42,7 +57,42 @@ Meteor.methods({
     }
 
     return Meteor.users.remove(id);
+  },
 
+
+  "users.toggle.blocked": function(id) {
+
+    // Make sure id is a string.
+    check(id, String);
+
+    // Only admins have the right to block/unblock a user.
+    if (!Roles.userIsInRole(this.userId, "admin")) {
+      throw new Meteor.Error("users.toggle.blocked.not-authorized",
+        "Must be admin to block/unblock a user.");
+    }
+
+    var user = Meteor.users.findOne(id);
+    if(!user) {
+      throw new Meteor.Error("users.toggle.blocked.not-found",
+        "Cannot find selected user in database.");
+    }
+
+    if (!user.blocked) {
+      Meteor.users.update(id, {
+        $set: {
+          blocked: true,
+          "services.resume.loginTokens": []
+        }
+      });
+    } else {
+      Meteor.users.update(id, {
+        $set: {
+          blocked: false
+        }
+      });
+    }
+
+    return "OK";
   }
 
-});
+}); // methods()
