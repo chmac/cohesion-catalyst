@@ -2,13 +2,6 @@ Template.userEdit.helpers({
   userEditIsInRole: function(userId, roleName) {
     return Roles.userIsInRole(userId, roleName);
   }
-  // user: function() {
-  //   var userDoc = Meteor.users.findOne(Router.current().params._id);
-  //   if (userDoc) {
-  //     return userDoc;
-  //   }
-  //   return false;
-  // }
 });
 
 Template.userEdit.events({
