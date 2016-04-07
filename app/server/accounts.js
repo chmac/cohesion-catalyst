@@ -19,3 +19,26 @@ Accounts.onCreateUser(function(options, user) {
 
   return user;
 });
+
+
+
+/**
+ * Validates the attempted login.
+ * This method is provided by Meteor's account system.
+ * cf. http://docs.meteor.com/#/full/accounts_validateloginattempt
+ *
+ * Here, we check if the account of the user who tries to log in is blocked.
+ * @param {Object} attemptInfo - An object containing information about
+ * the login attempt (e.g. attemptInfo.user holds the Meteor user object).
+ * @return {Boolean} True if attempted login is successful, otherwise a
+ * Meteor.Error is thrown for blocked user accounts which aborts the login.
+ */
+Accounts.validateLoginAttempt(function(attemptInfo) {
+  var user = attemptInfo.user;
+
+  if (user && user.blocked) {
+    throw new Meteor.Error("not-allowed", "Cannot login to blocked user account.");
+  }
+
+  return true;
+});
