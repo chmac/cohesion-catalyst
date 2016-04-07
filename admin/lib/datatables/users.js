@@ -1,6 +1,10 @@
 TabularTables.Users = new Tabular.Table({
   name: "Users",
   collection: Meteor.users,
+  // We need to specify data fields of our user document that is
+  // not included in the columns 'data'
+  // https://atmospherejs.com/aldeed/tabular#publishing-extra-fields
+  extraFields: ["blocked"],
   columnDefs: [
     {
       targets: "",
