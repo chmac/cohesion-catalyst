@@ -1,5 +1,8 @@
-// We configure the 'sAlert' notification on client startup.
+// Configurations on client-side startup.
 Meteor.startup(function() {
+
+  AutoForm.setDefaultTemplate("semanticUI");
+  
   sAlert.config({
     effect: "scale",
     timeout: 4000,
