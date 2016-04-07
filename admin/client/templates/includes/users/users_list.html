@@ -37,8 +37,8 @@
 
 <template name="userBlockCell">
   {{#unless isAdmin this._id}}
-    <div class="ui fitted slider checkbox">
-      <input type="checkbox"> <label></label>
+    <div class="user-block-button">
+      <i class="{{#if isBlocked}} red {{else}} disabled grey {{/if}} link big ban icon"></i>
     </div>
   {{/unless}}
 </template>
