@@ -5,6 +5,20 @@ Template.userEdit.helpers({
 });
 
 Template.userEdit.events({
+  "click .user-edit-reset": function(event, template) {
+    var targetUserId = event.target.dataset.userId;
+    Meteor.call("user.edit.reset", targetUserId, function(error, result) {
+      if (error) {
+        if (error.error === "user.edit.reset.not-authorized") {
+          sAlert.error("You need to have admin rights to reset.");
+        } else {
+          sAlert.error("An unexpected error occured: ", error.reason);
+        }
+      } else {
+        sAlert.success("Identifications successfully reset.");
+      }
+    });
+  },
   "click .user-edit-add-role": function(event, template) {
     var roleName = event.target.dataset.roleName;
     var targetUserId = event.target.dataset.userId;
