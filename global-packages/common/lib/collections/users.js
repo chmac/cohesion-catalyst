@@ -24,6 +24,27 @@ Schemas.User = new SimpleSchema({
     // Third-party login packages may not require either.
     optional: true
   },
+  profile: {
+    type: Schemas.UserProfile,
+    optional: true
+  },
+  // We add `roles` to our schema because we use the 'meteor-roles' package.
+  // We specify [String] as type since we do not use role groups.
+  // If this changes in the future, we have to specify the type as 'Object'.
+  roles: {
+    type: [String],
+    optional: true
+  },
+  blocked : {
+    type: Boolean,
+    optional: true
+  },
+  // We add 'status' to our schema because we use the 'mizzao:user-status' package.
+  status: {
+    type: Object,
+    optional: true,
+    blackbox: true
+  },
   emails: {
     type: Array,
     // For accounts-password, either emails or username is required, but not both. It is OK to make this
@@ -47,29 +68,8 @@ Schemas.User = new SimpleSchema({
   createdAt: {
     type: Date
   },
-  profile: {
-    type: Schemas.UserProfile,
-    optional: true
-  },
   // We add the services field to our schema (needed when using any of the accounts packages).
   services: {
-    type: Object,
-    optional: true,
-    blackbox: true
-  },
-  // We add `roles` to our schema because we use the 'meteor-roles' package.
-  // We specify [String] as type since we do not use role groups.
-  // If this changes in the future, we have to specify the type as 'Object'.
-  roles: {
-    type: [String],
-    optional: true
-  },
-  blocked : {
-    type: Boolean,
-    optional: true
-  },
-  // We add 'status' to our schema because we use the 'mizzao:user-status' package.
-  status: {
     type: Object,
     optional: true,
     blackbox: true

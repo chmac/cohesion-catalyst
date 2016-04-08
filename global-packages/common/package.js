@@ -1,6 +1,6 @@
 Package.describe({
   name: 'coca:common',
-  version: '0.0.1',
+  version: '0.0.2',
   // Brief, one-line summary of the package.
   summary: '',
   // URL to the Git repository containing the source code for this package.
@@ -23,6 +23,7 @@ Package.onUse(function(api) {
     'lib/collections/trainings.js',
     'lib/collections/identifications.js',
     'lib/collections/meta_collection.js',
+    'lib/collections/links.js'
   ], ['client', 'server']);
 
   api.addFiles([
@@ -32,6 +33,7 @@ Package.onUse(function(api) {
   api.export('Trainings', ['client', 'server']);
   api.export('Identifications', ['client', 'server']);
   api.export('MetaCollection', ['client', 'server']);
+  api.export('Links', ['client', 'server']);
 });
 
 Package.onTest(function(api) {
