@@ -10,7 +10,24 @@
   <div class="ui basic segment">
     <div class="ui stackable grid">
       <div class="column">
-
+        {{#unless isAdmin user._id}}
+          <h3 class="ui dividing header">
+            Reset Identifications
+          </h3>
+          <p>
+            Press the button below to erase all the identifications currently stored
+            and associated with this user.
+          </p>
+          <div class="ui button user-edit-reset" data-user-id="{{user._id}}">
+            Reset
+          </div>
+        {{/unless}}
+        <h3 class="ui dividing header">
+          Edit Data
+        </h3>
+        <p>
+          You can edit the following fields of the user document.
+        </p>
         {{> quickForm
             collection="Meteor.users"
             doc=user
@@ -28,6 +45,9 @@
         <h3 class="ui dividing header">
           Change Password
         </h3>
+        <p>
+          A password requires at least 6 characters.
+        </p>
         {{#autoForm
           id="user-change-password"
           schema="AdminSchemas.ChangePassword"
@@ -60,10 +80,10 @@
           providing buttons to add and remove them, respectively.
         }}
         <h3 class="ui dividing header">
-          User Roles
+          Change User Roles
         </h3>
         <p>
-          Add or remove the currently available user roles.
+          Add or remove the currently available user roles (press the button to toggle).
         </p>
         {{#each role in roles}}
           {{#if userEditIsInRole user._id role.name}}
