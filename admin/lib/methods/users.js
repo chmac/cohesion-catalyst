@@ -12,9 +12,16 @@ Meteor.users.before.remove(function(userId, doc) {
     }
   });
 });
+
 // When a user is removed from the DB we want to remove all their created ids.
 Meteor.users.after.remove(function(userId, doc) {
-  Identifications.remove({createdBy: doc._id});
+  Identifications.remove({
+    createdBy: doc._id
+  });
+  Links.remove({
+    "target.createdBy": doc._id,
+    "source.createdBy": doc._id
+  });
 });
 
 // When the user doc is updated, we detect if there are any changes
