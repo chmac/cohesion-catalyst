@@ -1,4 +1,4 @@
-Links = new Mongo.Collection("links");
+// Links = new Mongo.Collection("links");
 
 /**
  * We define permissions for write operations on our collection.
