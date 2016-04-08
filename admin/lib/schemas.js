@@ -7,6 +7,7 @@ AdminSchemas.ChangePassword = new SimpleSchema({
     type: String
   },
   password: {
-    type: String
+    type: String,
+    min: 6
   }
 });
