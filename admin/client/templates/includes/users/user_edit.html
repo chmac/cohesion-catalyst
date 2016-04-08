@@ -10,35 +10,21 @@
   <div class="ui basic segment">
     <div class="ui stackable grid">
       <div class="column">
+
         {{> quickForm
             collection="Meteor.users"
             doc=user
-            id="user-update-form"
-            buttonContent="Save Changes"
+            id="user-update"
+            buttonClasses="ui positive submit button"
+            buttonContent="Update"
             type="method-update"
-            omitFields="services, status, heartbeat, blocked, roles"
+            omitFields="createdAt, services, status, heartbeat, blocked, roles"
         }}
 
 
-
-          <h3 class="ui dividing header">
-            User Roles
-          </h3>
-          {{#each role in roles}}
-            {{#if userEditIsInRole user._id role.name}}
-              <button class="ui green button user-edit-remove-role"
-                data-role-name="{{role.name}}" data-user-id="{{user._id}}">
-                  {{role.name}}
-                  <i class="right checkmark icon"></i>
-              </button>
-            {{else}}
-              <button class="ui button user-edit-add-role"
-                data-role-name="{{role.name}}" data-user-id="{{user._id}}">
-                  {{role.name}}
-              </button>
-            {{/if}}
-          {{/each}}
-
+        {{!
+          Use autoForm to edit the password.
+        }}
         <h3 class="ui dividing header">
           Change Password
         </h3>
@@ -49,9 +35,52 @@
           meteormethod="user.edit.change.password"
         }}
 
-        {{> afQuickField name="password"}}
+          {{!
+            Store the _id of the current edited user in an invisible form field
+            and provide the 'data-schema-key' for processing it with autoForm.
+            HEADS UP: After the form is submitted, the user id will be gone
+            and another password change immediately afterwards will fail, because
+            the _id is required. Reloading the page makes the value available again.
+          }}
+          <div class="ui form" style="display:none;">
+            <div class="field">
+              <label>User ID</label>
+              <input type="text" value="{{user._id}}" name="_id" omitfields="createdAtupdatedAt" required="" data-schema-key="_id" autocomplete="off">
+            </div>
+          </div>
+
+          {{> afQuickField name="password"}}
+          <button type="submit" class="ui positive submit button">Change Password</button>
 
         {{/autoForm}}
+
+
+        {{!
+          Display the roles defined for Meteor.users collection,
+          providing buttons to add and remove them, respectively.
+        }}
+        <h3 class="ui dividing header">
+          User Roles
+        </h3>
+        <p>
+          Add or remove the currently available user roles.
+        </p>
+        {{#each role in roles}}
+          {{#if userEditIsInRole user._id role.name}}
+            <button class="ui positive button user-edit-remove-role"
+              data-role-name="{{role.name}}" data-user-id="{{user._id}}">
+                {{role.name}}
+                <i class="right checkmark icon"></i>
+            </button>
+          {{else}}
+            <button class="ui button user-edit-add-role"
+              data-role-name="{{role.name}}" data-user-id="{{user._id}}">
+                {{role.name}}
+            </button>
+          {{/if}}
+        {{/each}}
+
+
 
 
       </div> <!-- div.column -->
