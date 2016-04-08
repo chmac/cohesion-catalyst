@@ -131,13 +131,22 @@ Meteor.methods({
 
   "user.edit.change.password": function(doc) {
 
+    // We cannot call 'Accounts.setPassword' from the client.
+    if (this.isSimulation) {
+      return;
+    }
+    // Check arguments
+    check(doc, Object);
+    check(doc._id, String);
+    check(doc.password, String);
+
     // Only admins have the right to edit a user.
     if (!Roles.userIsInRole(this.userId, "admin")) {
       throw new Meteor.Error("user.edit.change.password.not-authorized",
         "Must be admin to change password.");
     }
 
-    // TODO
+    Accounts.setPassword(doc._id, doc.password);
   }
 
 }); // methods()
