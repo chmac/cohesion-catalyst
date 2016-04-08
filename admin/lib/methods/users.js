@@ -147,6 +147,33 @@ Meteor.methods({
     }
 
     Accounts.setPassword(doc._id, doc.password);
+  },
+
+  "user.edit.reset": function(id) {
+
+    // Check arguments
+    check(id, String);
+
+    // Only admins have the right to edit a user.
+    if (!Roles.userIsInRole(this.userId, "admin")) {
+      throw new Meteor.Error("user.edit.rest.not-authorized",
+        "Must be admin to reset user identifications.");
+    }
+
+    // Remove all identifications except the avatar at root level.
+    Identifications.remove({
+      createdBy: id,
+      level: {
+        $gt: 0
+      }
+    });
+
+    // Remove all links accordingly.
+    Links.remove({
+      "target.createdBy": id,
+      "source.createdBy": id
+    });
+
   }
 
 }); // methods()
