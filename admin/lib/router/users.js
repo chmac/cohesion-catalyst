@@ -29,11 +29,14 @@ Router.route("/users/:_id/edit", {
     return Meteor.subscribe("singleUser", this.params._id);
   },
   data: function() {
-    return Meteor.users.findOne({_id: this.params._id});
+    return {
+      user: Meteor.users.findOne({_id: this.params._id}),
+      roles: Meteor.roles.find()
+    };
   }
 });
 
 
 Router.onBeforeAction("dataNotFound", {
-  only: "userShow"
+  only: "userEdit"
 });
