@@ -163,7 +163,7 @@ Meteor.methods({
 
     // Only admins have the right to edit a user.
     if (!Roles.userIsInRole(this.userId, "admin")) {
-      throw new Meteor.Error("user.edit.rest.not-authorized",
+      throw new Meteor.Error("user.edit.reset.not-authorized",
         "Must be admin to reset user identifications.");
     }
 
