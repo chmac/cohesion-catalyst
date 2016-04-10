@@ -10,6 +10,7 @@
   <div class="ui basic segment">
     <div class="ui stackable grid">
       <div class="column">
+
         {{#unless isAdmin user._id}}
           <h3 class="ui dividing header">
             Reset Identifications
@@ -22,21 +23,47 @@
             Reset
           </div>
         {{/unless}}
+
+
         <h3 class="ui dividing header">
           Edit Data
         </h3>
         <p>
-          You can edit the following fields of the user document.
+          Edit the fields of the user document as needed.
         </p>
-        {{> quickForm
-            collection="Meteor.users"
+
+        <div class="ui form">
+          <div class="field" style="margin-bottom: 1em;">
+            <label>Username</label>
+            <input placeholder="{{user.username}}" readonly="" type="text">
+          </div>
+          {{#unless isAdmin user._id}}
+            <div class="field" style="margin-bottom: 1em;">
+              <label>Current Training</label>
+              <input placeholder="{{currentTrainingInfo user.profile.currentTraining}}" readonly="" type="text">
+            </div>
+          {{/unless}}
+        </div>
+
+        {{!
+          Use autoForm to edit the user data.
+        }}
+
+        {{#autoForm
+            schema="AdminSchemas.UserData"
             doc=user
             id="user-update"
-            buttonClasses="ui positive submit button"
-            buttonContent="Update"
             type="method-update"
-            omitFields="createdAt, services, status, heartbeat, blocked, roles"
+            meteormethod="user.edit.update.data"
         }}
+          {{> afQuickField name="profile.name"}}
+          {{#if isAdmin user._id}}
+            {{> afQuickField name="emails"}}
+          {{else}}
+            {{> afFormGroup name="profile.avatar" options=avatarOptions firstOption=user.avatar}}
+          {{/if}}
+          <button type="submit" class="ui positive submit button">Update</button>
+        {{/autoForm}}
 
 
         {{!
