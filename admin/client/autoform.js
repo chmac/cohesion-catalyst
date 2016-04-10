@@ -20,5 +20,11 @@ AutoForm.hooks({
     onSuccess: function(formType, result) {
       sAlert.success("Password successfully changed.");
     }
+  },
+  "user-update": {
+    onSuccess: function(formType, result) {
+      sAlert.success("User data successfully upddated.", {onRouteClose: false});
+      Router.go("/users");
+    }
   }
 });
