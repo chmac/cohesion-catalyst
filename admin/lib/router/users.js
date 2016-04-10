@@ -26,7 +26,10 @@ Router.route("/users/:_id", {
 Router.route("/users/:_id/edit", {
   name:"userEdit",
   waitOn: function() {
-    return Meteor.subscribe("singleUser", this.params._id);
+    return [
+      Meteor.subscribe("singleUser", this.params._id),
+      Meteor.subscribe("listOfTrainings")
+    ];
   },
   data: function() {
     return {
