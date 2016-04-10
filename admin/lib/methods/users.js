@@ -184,8 +184,6 @@ Meteor.methods({
 
   "user.edit.update.data": function(modifier, id) {
 
-    console.log(modifier);
-    console.log(id);
     // Check arguments
     check(id, String);
     check(modifier, Object);
