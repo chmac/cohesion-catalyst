@@ -180,7 +180,36 @@ Meteor.methods({
       "target.createdBy": id,
       "source.createdBy": id
     });
+  },
 
+  "user.edit.update.data": function(modifier, id) {
+
+    console.log(modifier);
+    console.log(id);
+    // Check arguments
+    check(id, String);
+    check(modifier, Object);
+    check(modifier.$set, Object);
+    check(modifier.$set.profile, Match.Optional(AdminSchemas.UserProfile));
+    check(modifier.$set.emails, Match.Optional([Object]));
+    var eMails = modifier.$set.emails;
+    check(eMails, Match.Optional(Match.Where(function(eMails) {
+      _.each(eMails, function (obj) {
+        // check() will throw error if there is a problem
+        check(obj.address, Match.Optional(String));
+        check(obj.verified, Match.Optional(Boolean));
+      });
+      // We return true if there is no problem
+      return true;
+    })));
+
+    // Only admins have the right to edit a user.
+    if (!Roles.userIsInRole(this.userId, "admin")) {
+      throw new Meteor.Error("user.edit.update.data.not-authorized",
+        "Must be admin to edit user data.");
+    }
+
+    return Meteor.users.update({_id: id}, modifier);
   }
 
 }); // methods()
