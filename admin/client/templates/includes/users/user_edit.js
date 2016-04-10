@@ -1,6 +1,12 @@
 Template.userEdit.helpers({
   userEditIsInRole: function(userId, roleName) {
     return Roles.userIsInRole(userId, roleName);
+  },
+  currentTrainingInfo: function(trainingId) {
+    var training = Trainings.findOne(trainingId);
+    return training.title + " - " +
+      moment(training.date).format("MMMM Do YYYY") + " - " +
+      training._id;
   }
 });
 
