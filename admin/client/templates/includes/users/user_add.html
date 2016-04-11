@@ -1,14 +1,85 @@
 <template name="userNew">
-
   <h2 class="ui header">
-
     <i class="circular add user icon"></i>
-
     <div class="content">
       Users
       <div class="sub header">Create and add a new user</div>
     </div>
-
   </h2>
 
+  <div class="ui basic segment">
+    <div class="ui stackable grid">
+      <div class="column">
+
+        <h3 class="ui dividing header">
+          User Type
+        </h3>
+        <p>
+          Please select whether you want to add a normal user or a user with admin rights.
+        </p>
+
+        {{!
+          Use autoForm to select the user type. Determines which other form to show.
+        }}
+
+        {{#autoForm schema="AdminSchemas.UserType" id="user-type-select"}}
+          {{> afQuickField name="typeSelect" noselect=true}}
+        {{/autoForm}}
+
+
+        {{!
+          Use autoForm to add an admin user.
+        }}
+
+        {{#if isUserType "typeSelect" "user-type-select" value="admin"}}
+          <h3 class="ui dividing header">
+            Add Admin
+          </h3>
+          <p>
+            Please provide the admin data.
+          </p>
+          {{#autoForm
+              schema="AdminSchemas.UserData"
+              id="user-create-admin"
+              type="method"
+              meteormethod="user.create"
+          }}
+            {{> afQuickField name="profile.name"}}
+            {{> afQuickField name="emails"}}
+            {{> afFieldInput name="role" type="hidden" value="admin"}}
+
+            <button type="submit" class="ui positive submit button">Add Admin</button>
+          {{/autoForm}}
+        {{/if}}
+
+
+        {{!
+          Use autoForm to add normal user.
+        }}
+
+        {{#if isUserType "typeSelect" "user-type-select" value="normal"}}
+          <h3 class="ui dividing header">
+            Add User
+          </h3>
+          <p>
+            Please provide the user data.
+          </p>
+          {{#autoForm
+              schema="AdminSchemas.UserData"
+              id="user-create-normal"
+              type="method"
+              meteormethod="user.create"
+          }}
+
+            {{> afQuickField name="profile.name"}}
+            {{> afQuickField name="profile.avatar" options=avatarOptions placeholder="Select an avatar"}}
+            {{> afFormGroup name="profile.currentTraining" options=trainingOptions value=currentTraining noselect=true}}
+
+            <button type="submit" class="ui positive submit button">Add User</button>
+          {{/autoForm}}
+        {{/if}}
+
+      </div> <!-- div.column -->
+    </div> <!-- div.ui.stackable.grid -->
+  </div> <!-- div..ui.basic.segment -->
 </template>
