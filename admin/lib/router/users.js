@@ -6,7 +6,10 @@ Router.route("/users", {
 });
 
 Router.route("/users/new", {
-  name: "userNew"
+  name: "userNew",
+  waitOn: function() {
+    return Meteor.subscribe("listOfTrainings");
+  }
 });
 
 // Part of the route is dynamic, indicated by ':' symbol,
