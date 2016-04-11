@@ -208,6 +208,64 @@ Meteor.methods({
     }
 
     return Meteor.users.update({_id: id}, modifier);
+  },
+
+  "user.create": function(doc) {
+    // We run this operation only on server-side
+    if (!this.isSimulation) {
+
+      // check arguments
+      check(doc, Object);
+      check(doc.emails, Match.Optional([Object]));
+      var eMails = doc.emails;
+      check(eMails, Match.Optional(Match.Where(function(eMails) {
+        _.each(eMails, function (obj) {
+          // check() will throw error if there is a problem
+          check(obj.address, Match.Optional(String));
+          check(obj.verified, Match.Optional(Boolean));
+        });
+        // We return true if there is no problem
+        return true;
+      })));
+
+      // Only admins have the right to edit a user.
+      if (!Roles.userIsInRole(this.userId, "admin")) {
+        throw new Meteor.Error("user.add.not-authorized",
+          "Must be admin to create a new user account.");
+      }
+
+      var newUserId;
+
+      // Is this a normal user?
+      if (!doc.role) {
+        newUserId = Accounts.createUser({
+          username: doc.profile.name + "_" + doc.profile.currentTraining,
+          password: "password",
+          profile: {
+            name: doc.profile.name,
+            avatar: doc.profile.avatar || null,
+            currentTraining: doc.profile.currentTraining
+          }
+        });
+      } else {
+        // Otherwise we create a new admin user
+        newUserId = Accounts.createUser({
+          username: doc.profile.name,
+          profile: {
+            name: doc.profile.name
+          },
+          password: "password"
+        });
+
+        Roles.addUsersToRoles(newUserId, doc.role);
+
+        _.each(doc.emails, function(email) {
+          Accounts.addEmail(newUserId, email.address, email.verified);
+        });
+      }
+
+      return newUserId;
+    }
   }
 
 }); // methods()
