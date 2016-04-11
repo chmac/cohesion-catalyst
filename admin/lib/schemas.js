@@ -14,7 +14,8 @@ AdminSchemas.ChangePassword = new SimpleSchema({
 
 AdminSchemas.UserProfile = new SimpleSchema({
   name: {
-    type: String
+    type: String,
+    min: 5
   },
   avatar: {
     type: String,
@@ -46,22 +47,35 @@ AdminSchemas.UserData = new SimpleSchema({
     optional: true
   },
   "emails.$": {
-    type: Object,
-    optional:true
+    type: Object
   },
   "emails.$.address": {
     type: String,
-    regEx: SimpleSchema.RegEx.Email,
-    optional:true
+    regEx: SimpleSchema.RegEx.Email
   },
   "emails.$.verified": {
-    type: Boolean,
-    optional:true
+    type: Boolean
   },
   role: {
     type: String,
     optional: true,
     allowedValues: ["admin"],
     label: "Role"
+  }
+});
+
+AdminSchemas.UserType = new SimpleSchema({
+  typeSelect: {
+    type: String,
+    autoform: {
+      type: "select-radio-inline",
+      options: function() {
+        return [
+          {label: "User", value: "normal"},
+          {label: "Admin", value: "admin"}
+        ];
+      }
+    },
+    label: "Type"
   }
 });
