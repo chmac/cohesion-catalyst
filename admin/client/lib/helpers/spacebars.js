@@ -28,3 +28,7 @@ Template.registerHelper("trainingOptions", function() {
     };
   });
 });
+
+Template.registerHelper("currentTraining", function() {
+  return Trainings.findOne({isCurrentTraining: true})._id;
+});
