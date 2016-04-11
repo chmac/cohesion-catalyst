@@ -10,6 +10,9 @@
  * Meteor.Error is thrown for non-admin users which aborts the login.
  */
 Accounts.validateLoginAttempt(function(attemptInfo) {
+  if (!attemptInfo.allowed) {
+    return false;
+  }
   var userId = attemptInfo.user._id;
   if (!Roles.userIsInRole(userId, "admin")) {
     throw new Meteor.Error("not-allowed", "You need to have admin rights to login.");
