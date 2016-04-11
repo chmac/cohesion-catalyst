@@ -2,7 +2,9 @@
 // cf. [as of 2016-04-08] https://github.com/aldeed/meteor-autoform/#callbackshooks
 AutoForm.addHooks([
   "user-update",
-  "user-change-password"
+  "user-change-password",
+  "user-create-normal",
+  "user-create-admin"
 ], {
   beginSubmit: function() {
     $(".ui.button").addClass("disabled");
@@ -12,6 +14,16 @@ AutoForm.addHooks([
   },
   onError: function(formType, error) {
     sAlert.error(error.message);
+  }
+});
+
+AutoForm.addHooks([
+  "user-create-normal",
+  "user-create-admin"
+], {
+  onSuccess: function() {
+    sAlert.success("New user successfully created.", {onRouteClose:false});
+    Router.go("/users");
   }
 });
 

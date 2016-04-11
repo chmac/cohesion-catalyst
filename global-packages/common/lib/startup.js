@@ -16,7 +16,7 @@ Meteor.startup(function() {
 
       id = Accounts.createUser({
         username: user.name,
-        password: "admin1",
+        password: "password",
         profile: { name: user.name }
       });
 
