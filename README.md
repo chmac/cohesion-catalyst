@@ -18,7 +18,7 @@ Aimed to develop Cohesion Catalyst, a modern web application to discover multico
 The __coca-project__ consists of two [Meteor](http://guide.meteor.com/#what-is-meteor) apps that share the same [MongoDB](https://docs.mongodb.org/manual/introduction/) database. Furthermore, the two applications use the same private (i.e. unpublished) Meteor package that provides common collections and schema definitions. We use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps to our own server.
 
 The project structure is as follows:
-* `/app` - the _main_ application for regular users
+* `/app` - the _main_ application for normal users
 * `/admin` - an admin app for special users with admin rights who can control the content in the database.
 * `/global-packages` - location of private Meteor packages
 * `/deployment` - all things deploy :nut_and_bolt:
