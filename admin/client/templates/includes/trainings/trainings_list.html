@@ -1,21 +1,24 @@
 <template name="trainingsList">
-
   <h2 class="ui header">
-
     <i class="circular calendar icon"></i>
-
     <div class="content">
       Trainings
       <div class="sub header">Overview</div>
     </div>
-
   </h2>
+  {{> tabular table=TabularTables.Trainings class="ui compact celled striped table"}}
+</template>
 
+<template name="trainingIsCurrentCell">
+	{{#if isCurrentTraining this._id}}
+    <i class="green big checkmark icon"></i>
+  {{/if}}
+</template>
 
-  <ul>
-    {{#each training in trainings}}
-    <li>{{training.title}}</li>
-    {{/each}}
-  </ul>
+<template name="trainingEditCell">
+	<a href="{{pathFor 'trainingEdit'}}"><i class="link circular inverted blue write icon"></i></a>
+</template>
 
+<template name="trainingDeleteCell">
+	<div class="training-delete-button"><i class="link circular inverted red remove icon"></i></div>
 </template>
