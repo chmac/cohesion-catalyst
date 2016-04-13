@@ -29,7 +29,7 @@
           Edit Data
         </h3>
         <p>
-          Edit the fields of the user document as needed.
+          Edit the fields of the user document as needed. Please note: some fields are read only.
         </p>
 
         <div class="ui form">
@@ -43,6 +43,10 @@
               <input placeholder="{{currentTrainingInfo user.profile.currentTraining}}" readonly="" type="text">
             </div>
           {{/unless}}
+          <div class="field" style="margin-bottom: 1em;">
+            <label>Name</label>
+            <input placeholder="{{user.profile.name}}" readonly="" type="text">
+          </div>
         </div>
 
         {{!
@@ -56,7 +60,6 @@
             type="method-update"
             meteormethod="user.edit.update.data"
         }}
-          {{> afQuickField name="profile.name"}}
           {{#if isAdmin user._id}}
             {{> afQuickField name="emails"}}
           {{else}}
