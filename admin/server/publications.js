@@ -11,6 +11,10 @@ Meteor.publish("listOfTrainings", function() {
   return Trainings.find();
 });
 
+Meteor.publish("singleTraining", function(id) {
+  return Trainings.find({_id: id});
+});
+
 // The 'Meteor.roles' collection is provided by the 'alanning:roles' package,
 // but it is not automatically published to the client.
 // Here, we make it available to every client and no subscription is required.
