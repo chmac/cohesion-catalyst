@@ -26,13 +26,15 @@ fortawesome:fontawesome
 semantic:ui
 flemay:less-autoprefixer
 useraccounts:semantic-ui
-coca:common
 reactive-var
+matb33:collection-hooks   # collection-hooks needs to above our private coca:common package
+
+coca:common
+
 alexgreg:meteor-tabular-semantic
 mizzao:user-status
 useraccounts:iron-routing
 check
-matb33:collection-hooks
 juliancwirko:s-alert
 juliancwirko:s-alert-scale
 aldeed:autoform
