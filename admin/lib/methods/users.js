@@ -13,7 +13,10 @@ Meteor.users.before.remove(function(userId, doc) {
   });
 });
 
-// When a user is removed from the DB we want to remove all their created ids.
+// When a user is removed from the DB we want to
+// - remove all their created ids
+// - remove the links associated with the ids
+// - update the trainings collection to remove the user from the 'players' array
 Meteor.users.after.remove(function(userId, doc) {
   Identifications.remove({
     createdBy: doc._id
@@ -21,6 +24,13 @@ Meteor.users.after.remove(function(userId, doc) {
   Links.remove({
     "target.createdBy": doc._id,
     "source.createdBy": doc._id
+  });
+  Trainings.update({
+    _id: doc.profile.currentTraining
+  }, {
+    $pull: {
+      players: doc._id
+    }
   });
 });
 
