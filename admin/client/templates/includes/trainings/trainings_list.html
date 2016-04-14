@@ -7,7 +7,10 @@
     </div>
   </h2>
   {{> tabular table=TabularTables.Trainings class="ui compact celled striped table"}}
+  {{> trainingDeleteApproveModal}}
 </template>
+
+
 
 <template name="trainingIsCurrentCell">
 	{{#if isCurrentTraining this._id}}
@@ -15,10 +18,41 @@
   {{/if}}
 </template>
 
+
+
 <template name="trainingEditCell">
 	<a href="{{pathFor 'trainingEdit'}}"><i class="link circular inverted blue write icon"></i></a>
 </template>
 
+
+
 <template name="trainingDeleteCell">
 	<div class="training-delete-button"><i class="link circular inverted red remove icon"></i></div>
+</template>
+
+
+
+<template name="trainingDeleteApproveModal">
+  <div class="ui modal" id="training-delete-approve">
+    <div class="ui icon header">
+      <i class="calendar outline icon"></i>
+      Delete training &ldquo;{{training.title}}&rdquo;, scheduled {{training.date}}
+    </div>
+    <div class="content">
+      <div class="description">
+        <p>The training you selected will be removed from the database.
+           Are you sure you want to do this?</p>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui deny red inverted button">
+        <i class="remove icon"></i>
+        No
+      </div>
+      <div class="ui approve green inverted button">
+        <i class="checkmark icon"></i>
+        Yes
+      </div>
+    </div>
+</div>
 </template>
