@@ -133,8 +133,7 @@ Template.createAccountForm.events({
     var username,
       password,
       training,
-      trainingId,
-      trainings = []
+      trainingId
       ;
 
     event.preventDefault();
@@ -143,10 +142,6 @@ Template.createAccountForm.events({
     password = template.find("#account-password").value;
     training = template.find("#account-training-select option").value;
     trainingId = template.find("#account-training-select option:selected").id;
-    trainings.push({
-      trainingId: trainingId,
-      titleDate: training
-    });
 
     if (!isEmpty(username) &&
       !isEmpty(password) &&
@@ -160,8 +155,7 @@ Template.createAccountForm.events({
             name: username,
             avatar: null,
             currentTraining: trainingId
-          },
-          trainings: trainings
+          }
         }, function(error) {
           if (error) {
             // Let the user know that the creation of an account failed.
