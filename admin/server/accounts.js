@@ -19,3 +19,20 @@ Accounts.validateLoginAttempt(function(attemptInfo) {
   }
   return true;
 });
+
+
+Accounts.onCreateUser(function(options, user) {
+
+  if (options.profile) {
+    user.profile = options.profile;
+  }
+
+  // Add the new user to the 'players' field (an array) of the current training document.
+  if (options.profile.currentTraining) {
+    Trainings.update(options.profile.currentTraining, {
+      $push: {players: user._id}
+    });
+  }
+
+  return user;
+});
