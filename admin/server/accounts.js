@@ -20,7 +20,8 @@ Accounts.validateLoginAttempt(function(attemptInfo) {
   return true;
 });
 
-
+// When an admin creates a new normal user,
+// we want to add this user to the 'players' array of the selected training.
 Accounts.onCreateUser(function(options, user) {
 
   if (options.profile) {
