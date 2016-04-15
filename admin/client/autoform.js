@@ -4,7 +4,8 @@ AutoForm.addHooks([
   "user-update",
   "user-change-password",
   "user-create-normal",
-  "user-create-admin"
+  "user-create-admin",
+  "training-update"
 ], {
   beginSubmit: function() {
     $(".ui.button").addClass("disabled");
@@ -37,6 +38,15 @@ AutoForm.hooks({
     onSuccess: function(formType, result) {
       sAlert.success("User data successfully upddated.", {onRouteClose: false});
       Router.go("/users");
+    }
+  }
+});
+
+AutoForm.hooks({
+  "training-update": {
+    onSuccess: function(formType, result) {
+      sAlert.success("Training data successfully updated.", {onRouteClose: false});
+      Router.go("/trainings");
     }
   }
 });
