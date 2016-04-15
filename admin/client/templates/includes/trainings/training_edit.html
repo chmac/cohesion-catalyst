@@ -1,3 +1,57 @@
 <template name="trainingEdit">
-  {{training._id}}
+  <h2 class="ui header">
+    <i class="circular write icon"></i>
+    <div class="content">
+      Training: {{training._id}}
+    </div>
+</h2>
+
+  <div class="ui basic segment">
+    <div class="ui stackable grid">
+      <div class="column">
+
+        <h3 class="ui dividing header">
+          Edit Data
+        </h3>
+        <p>
+          Edit the fields of the training document as needed.
+        </p>
+
+        {{> quickForm
+          collection="Trainings"
+          doc=training
+          id="training-update"
+          type="method-update"
+          meteormethod="training.edit.update.data"
+          omitFields="players, isCurrentTraining"
+          buttonContent="Update"
+        }}
+
+        <h3 class="ui dividing header">
+          Current Training
+        </h3>
+        <p>
+          Select or deselect this training to be the current active one.
+          If you deselect a current training, another training from the
+          collection will automatically be selected. If there is no other
+          training available, a new default training is created and marked
+          as current (press the button to toggle).
+        </p>
+
+        {{#if isCurrentTraining training._id}}
+          <button class="ui positive button training-edit-change-current"
+            data-current-training="true" data-training-id="{{training._id}}">
+              Current training
+              <i class="right checkmark icon"></i>
+          </button>
+        {{else}}
+          <button class="ui button training-edit-change-current"
+            data-current-training="false" data-training-id="{{training._id}}">
+              Make current training
+          </button>
+        {{/if}}
+
+      </div> <!-- div.column -->
+    </div> <!-- div.ui.stackable.grid -->
+  </div> <!-- div..ui.basic.segment -->
 </template>

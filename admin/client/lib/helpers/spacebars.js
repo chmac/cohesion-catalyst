@@ -34,8 +34,6 @@ Template.registerHelper("currentTraining", function() {
 });
 
 Template.registerHelper("isCurrentTraining", function(id) {
-  return Trainings.findOne({
-    _id: id,
-    isCurrentTraining: true
-  });
+  var training = Trainings.findOne({_id: id});
+  return training && training.isCurrentTraining;
 });
