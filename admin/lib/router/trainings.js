@@ -5,6 +5,10 @@ Router.route("/trainings", {
   }
 });
 
+Router.route("/trainings/new", {
+  name: "trainingNew"
+});
+
 Router.route("/trainings/:_id/edit", {
   name: "trainingEdit",
   waitOn: function() {
