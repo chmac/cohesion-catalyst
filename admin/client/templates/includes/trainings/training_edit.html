@@ -38,30 +38,6 @@
           as current (press the button to toggle).
         </p>
 
-        <!-- {{#autoForm
-          id="training-change-current"
-          schema="AdminSchemas.CurrentTraining"
-          doc=training
-          type="method"
-          meteormethod="training.edit.change.current"
-
-        }}
-        <div class="ui form" >
-          <div class="field">
-            <label>Training ID</label>
-            <input type="text" value="{{training._id}}" name="_id" required="" data-schema-key="_id" autocomplete="off">
-          </div>
-        </div>
-
-          {{> afFormGroup name="isCurrentTraining" type="select-radio-inline" options=currentTrainingOptions value=training.isCurrentTraining}}
-          {{> afFormGroup name="isCurrentTraining" type="boolean-checkbox" value=training.isCurrentTraining}}
-          <div class="form-group">
-            <button type="submit" class="ui positive submit button">Submit</button>
-          </div>
-        {{/autoForm}} -->
-
-
-
         {{#if isCurrentTraining training._id}}
           <button class="ui positive button training-edit-change-current"
             data-current-training="true" data-training-id="{{training._id}}">
