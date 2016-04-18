@@ -5,6 +5,13 @@ Router.route("/trainings", {
   }
 });
 
+Router.route("/trainings/new", {
+  name: "trainingNew",
+  waitOn: function() {
+    return Meteor.subscribe("listOfTrainings");
+  }
+});
+
 Router.route("/trainings/:_id/edit", {
   name: "trainingEdit",
   waitOn: function() {
