@@ -175,7 +175,6 @@ Meteor.methods({
     check(doc.date, Match.Optional(Date));
     check(doc.description, Match.Optional(String));
     check(doc.isCurrentTraining, Boolean);
-    console.log(doc);
 
     // Is the new training intended to be the current training?
     if (doc.isCurrentTraining) {
