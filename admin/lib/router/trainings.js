@@ -6,7 +6,10 @@ Router.route("/trainings", {
 });
 
 Router.route("/trainings/new", {
-  name: "trainingNew"
+  name: "trainingNew",
+  waitOn: function() {
+    return Meteor.subscribe("listOfTrainings");
+  }
 });
 
 Router.route("/trainings/:_id/edit", {
