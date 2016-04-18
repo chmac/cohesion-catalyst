@@ -30,7 +30,8 @@ Template.registerHelper("trainingOptions", function() {
 });
 
 Template.registerHelper("currentTraining", function() {
-  return Trainings.findOne({isCurrentTraining: true})._id;
+  var currentTraining = Trainings.findOne({isCurrentTraining: true});
+  return currentTraining && currentTraining._id;
 });
 
 Template.registerHelper("isCurrentTraining", function(id) {

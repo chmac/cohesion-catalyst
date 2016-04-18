@@ -161,6 +161,41 @@ Meteor.methods({
     });
 
     return Trainings.insert(newDefaultTraining);
+  },
+
+  /**
+   * Creates a new training based on the submitted form data.
+   * @param {Object} doc - The new training document to be inserted in the collection.
+   */
+  "training.create": function(doc) {
+
+    // Check arguments received from client
+    check(doc, Object);
+    check(doc.title, String);
+    check(doc.date, Match.Optional(Date));
+    check(doc.description, Match.Optional(String));
+    check(doc.isCurrentTraining, Boolean);
+
+    // Is the new training intended to be the current training?
+    if (doc.isCurrentTraining) {
+      // We look for the training in the collection
+      // that is marked as current.
+      var currentTraining = Trainings.findOne({
+        isCurrentTraining: true
+      });
+
+      // We only need to update if we found a current training.
+      if (currentTraining) {
+        // We set the found current training to false
+        Trainings.update({_id: currentTraining._id}, {
+          $set: {
+            isCurrentTraining: false
+          }
+        });
+      }
+    }
+
+    return Trainings.insert(doc);
   }
 
 });

@@ -1,0 +1,49 @@
+<template name="trainingNew">
+  <h2 class="ui header">
+    <i class="circular calendar icon"></i>
+    <div class="content">
+      Training
+      <div class="sub header">Create and add a new training</div>
+    </div>
+  </h2>
+
+  <div class="ui basic segment">
+    <div class="ui stackable grid">
+      <div class="column">
+
+        <h3 class="ui dividing header">
+          Add Default Training
+        </h3>
+        <p>
+          Press the button below to quickly create a new default training with one click.
+          This newly created training will be set as the current training. Once the new
+          training document is added to the collection you can edit the data as needed.
+        </p>
+        <div class="ui button training-create-default" data-current-training="{{currentTraining}}">
+          Add Default Training
+        </div>
+
+
+        <h3 class="ui dividing header">
+          Add Training
+        </h3>
+        <p>
+          Please provide the training data.
+        </p>
+        {{#autoForm
+          collection="Trainings"
+          id="training-create"
+          type="method"
+          meteormethod="training.create"
+        }}
+          {{> afQuickField name="title"}}
+          {{> afQuickField name="description"}}
+          {{> afQuickField name="date"}}
+          {{> afQuickField name="isCurrentTraining" checkboxType="toggle"}}
+
+          <button type="submit" class="ui positive submit button">Add Training</button>
+        {{/autoForm}}
+      </div> <!-- div.column -->
+    </div> <!-- div.ui.stackable.grid -->
+  </div> <!-- div..ui.basic.segment -->
+</template>
