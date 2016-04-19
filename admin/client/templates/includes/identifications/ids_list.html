@@ -1,3 +1,33 @@
 <template name="idsList">
-  <h2>Identifications</h2>
+  <h2 class="ui header">
+    <i class="circular tags icon"></i>
+    <div class="content">
+      Identifications
+      <div class="sub header">Overview</div>
+    </div>
+  </h2>
+  {{> tabular table=TabularTables.Identifications class="ui selectable compact celled striped table"}}
+</template>
+
+
+<template name="idIsMatchedCell">
+  {{#if isPoolMatch this._id}}
+    <i class="green big checkmark icon"></i>
+  {{/if}}
+</template>
+
+<template name="idBlacklistCell">
+  <div class="id-blacklist-button">
+    <i class="{{#if isBlacklisted}} red {{else}} disabled grey {{/if}} link big flag icon"></i>
+  </div>
+</template>
+
+<template name="idCreatedByBlockCell">
+  <div class="user-block-button">
+    <i class="{{#if userIsBlocked this.createdBy}} red {{else}} disabled grey {{/if}} link big ban icon"></i>
+  </div>
+</template>
+
+<template name="idCreatedByNameCell">
+  {{createdByName this.createdBy}}
 </template>

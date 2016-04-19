@@ -38,3 +38,8 @@ Template.registerHelper("isCurrentTraining", function(id) {
   var training = Trainings.findOne({_id: id});
   return training && training.isCurrentTraining;
 });
+
+Template.registerHelper("userIsBlocked", function(id) {
+  var user = Meteor.users.findOne({_id: id});
+  return user && user.blocked;
+});
