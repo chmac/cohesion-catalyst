@@ -19,6 +19,13 @@ TabularTables.Trainings = new Tabular.Table({
     {
       data: "date",
       title: "Scheduled Date",
+      render: function (val, type, doc) {
+        if (val instanceof Date) {
+          return moment(val).calendar();
+        } else {
+          return "Not listed";
+        }
+      }
     },
     {
       data: "_id",
