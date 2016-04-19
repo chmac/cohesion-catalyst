@@ -3,7 +3,57 @@
   <div class="ui fluid center aligned basic fitted segment">
     {{#if currentUser}}
 
-      Dashboard will go here...
+      <div class="ui three column grid">
+
+        <div class="column">
+            <a class="ui fluid card" href="{{pathFor 'usersList'}}">
+              <div class="content">
+                <div class="ui statistic">
+                  <div class="value">
+                    <i class="big users icon"></i><br>
+                    {{usersCount}}
+                  </div>
+                  <div class="label">
+                    Users
+                  </div>
+                </div>
+              </div>
+            </a>
+        </div>
+
+        <div class="column">
+            <a class="ui fluid card" href="{{pathFor 'trainingsList'}}">
+              <div class="content">
+                <div class="ui statistic">
+                  <div class="value">
+                    <i class="big calendar icon"></i><br>
+                    {{trainingsCount}}
+                  </div>
+                  <div class="label">
+                    Trainings
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+
+        <div class="column">
+            <a class="ui fluid card" href="{{pathFor 'idsList'}}">
+              <div class="content">
+                <div class="ui statistic">
+                  <div class="value">
+                    <i class="big tags icon"></i><br>
+                    {{idsCount}}
+                  </div>
+                  <div class="label">
+                    Identifications
+                  </div>
+              </div>
+            </div>
+            </a>
+        </div>
+
+      </div> <!-- div.column -->
 
     {{else}}
 

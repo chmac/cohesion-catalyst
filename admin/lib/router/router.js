@@ -5,7 +5,14 @@ Router.configure({
 });
 
 Router.route("/", {
-  name: "home"
+  name: "home",
+  waitOn: function() {
+    return [
+      Meteor.subscribe("listOfUsers"),
+      Meteor.subscribe("listOfTrainings"),
+      Meteor.subscribe("listOfIdentifications")
+    ];
+  }
 });
 
 var requireAdminRights = function() {
