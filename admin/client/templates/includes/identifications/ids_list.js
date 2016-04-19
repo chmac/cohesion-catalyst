@@ -56,3 +56,31 @@ Template.idCreatedByNameCell.helpers({
     return user && user.profile.name;
   }
 });
+
+// ------------------------------------------------------------------------ //
+// idCreatedByBlockCell
+// A subtemplate to be included within 'idsList' template.
+// (include via 'tmpl' option in 'TabularTables.Identifications')
+// ------------------------------------------------------------------------ //
+Template.idCreatedByBlockCell.events({
+  "click .user-block-button": function(event, template) {
+    Meteor.call("users.toggle.blocked", this.createdBy, function(error, result) {
+      // error identification
+      if (error) {
+        switch(error.error) {
+          case "users.toggle.blocked.not-authorized":
+            sAlert.error("You need to have admin rights to block or unblock a user.");
+            break;
+          case "users.toggle.blocked.not-found":
+            sAlert.error("This user record does not exist.");
+            break;
+          default:
+            sAlert.error("An unexpected error occured: ", error.reason);
+        }
+      } else {
+        // successfully blocked user
+        sAlert.success("User record has successfully been updated.");
+      }
+    });
+  }
+});
