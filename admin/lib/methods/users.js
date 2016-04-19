@@ -39,10 +39,9 @@ Meteor.users.after.remove(function(userId, doc) {
 // created identification documents
 Meteor.users.after.update(function (userId, doc, fieldNames, modifier) {
   if (doc.blocked !== this.previous.blocked) {
-    var editState = !doc.blocked;
     Identifications.update({createdBy: doc._id}, {
       $set: {
-        editCompleted: editState
+        blacklisted: doc.blocked
       }
     },
     {
