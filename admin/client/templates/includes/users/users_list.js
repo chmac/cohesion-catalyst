@@ -11,12 +11,6 @@ Template.usersList.helpers({
 // A subtemplate to be included within 'usersList' template.
 // ------------------------------------------------------------------------ //
 
-Template.userBlockCell.helpers({
-  isBlocked: function() {
-    return this.blocked;
-  }
-});
-
 Template.userBlockCell.events({
   "click .user-block-button": function(event, template) {
     Meteor.call("users.toggle.blocked", this._id, function(error, result) {
