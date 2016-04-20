@@ -4,7 +4,6 @@ Meteor.publish("avatars", function() {
 });
 
 Meteor.publish("trainings", function() {
-  // TODO: Add filter for trainings which are out of date
   return Trainings.find();
 });
 
