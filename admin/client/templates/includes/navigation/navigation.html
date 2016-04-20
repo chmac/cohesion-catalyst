@@ -1,6 +1,6 @@
 <template name="navigation">
-
-  <div class="ui left thin vertical menu visible sidebar" id="admin-aside">
+<!-- TODO show active route -->
+  <div class="ui inverted left thin vertical menu visible sidebar" id="admin-aside">
 
     <a href="{{pathFor 'home'}}" class="item">
       <h5 class="header">
@@ -15,8 +15,8 @@
           <i class="users icon"></i>Users
         </div>
         <div class="menu">
-          <a href="{{pathFor 'usersList'}}" class="item">View all</a>
-          <a href="{{pathFor 'userNew'}}" class="item">Add user</a>
+          <a href="{{pathFor 'usersList'}}" class="{{activeRouteClass 'usersList'}} item">View all</a>
+          <a href="{{pathFor 'userNew'}}" class="{{activeRouteClass 'userNew'}} item">Add user</a>
         </div>
       </div>
 
@@ -25,8 +25,8 @@
             <i class="calendar icon"></i>Trainings
         </div>
         <div class="menu">
-          <a href="{{pathFor 'trainingsList'}}" class="item">View all</a>
-          <a href="{{pathFor 'trainingNew'}}" class="item">Add training</a>
+          <a href="{{pathFor 'trainingsList'}}" class="{{activeRouteClass 'trainingsList'}} item">View all</a>
+          <a href="{{pathFor 'trainingNew'}}" class="{{activeRouteClass 'trainingNew'}} item">Add training</a>
         </div>
       </div>
 
@@ -35,7 +35,7 @@
             <i class="tags icon"></i>Identifications
         </div>
         <div class="menu">
-          <a href="{{pathFor 'idsList'}}" class="item">View all</a>
+          <a href="{{pathFor 'idsList'}}" class="{{activeRouteClass 'idsList'}} item">View all</a>
         </div>
       </div>
 
