@@ -1,4 +1,9 @@
-// Links = new Mongo.Collection("links");
+/**
+ * The 'Links' collection and its schema are defined
+ * within the private package coca:common which is shared between
+ * this project and the admin app project.
+ */
+
 
 /**
  * We define permissions for write operations on our collection.
