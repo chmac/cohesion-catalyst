@@ -1,5 +1,5 @@
-// On server startup, if collection in database is empty,
-// we create some initial data.
+// On server startup, we create some initial data for the
+// 'Avatars' collection if there isn't any data yet.
 Meteor.startup(function() {
   // Fixture avatars data
   if (Avatars.find().count() === 0) {
