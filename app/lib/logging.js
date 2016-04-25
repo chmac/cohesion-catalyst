@@ -163,11 +163,11 @@ if (Meteor.isServer) {
      * information to a log file.
      * This method is called repeatedly using Meteor.setInterval()
      * @param {Object} timestamp - The current time captured on the server.
-     * @param {string} id - The current user's id.
+     * @param {string} id - The _id of the first active user who triggered the autolog.
      */
     autoLog: function(timestamp, id) {
-      var currentUser = Meteor.users.findOne({_id:id});
-      var currentTrainingId = currentUser.profile.currentTraining;
+      var activeUser = Meteor.users.findOne({_id:id});
+      var currentTrainingId = activeUser.profile.currentTraining;
 
       var networkCursor = MetaCollection.find({
         $nor: [
@@ -188,31 +188,58 @@ if (Meteor.isServer) {
         createdAtTraining: currentTrainingId
       });
 
-      var memberships = _.filter(networkCursor.fetch(), function(a){
-        return _.contains(a.createdBy, currentUser._id);
+      // We find all the users of the current training.
+      var networkUsers = Meteor.users.find({"profile.currentTraining": currentTrainingId}, {
+        fields: {
+          "profile.name": 1
+        }
       });
 
-      var groupedMembershipsMap = _.chain(memberships)
-        .groupBy(function(a) {
-          return a.createdBy.length;
-        })
-        .map(function(value, key){
-          return {
-            logDate: moment(timestamp).format("YYYY-MM-DD"),
-            logTime: moment(timestamp).format("HH:mm:ss"),
-            trainingID: currentTrainingId,
-            userID:currentUser._id,
-            username:currentUser.profile.name,
-            cohesion : key,
-            count: _.pluck(value, "_id").length,
-            metaTagIds: _.pluck(value, "_id"),
-            metaTagNames: _.pluck(value, "name"),
-            creators: _.pluck(value, "createdBy")
-          };
-        })
-        .value();
+      // We use Meteor's <cursor>.map() function here to retrieve
+      // the information about memberships and cohesion level
+      // for every user document
+      var networkMemberships = networkUsers.map(function(doc) {
+        // For each user document we create an object with basic information
+        var cohesionInfo = {
+          logDate: moment(timestamp).format("YYYY-MM-DD"),
+          logTime: moment(timestamp).format("HH:mm:ss"),
+          trainingID: currentTrainingId,
+          userID: doc._id,
+          username: doc.profile.name
+        };
 
-      periodicLogger.info("Cohesion level", groupedMembershipsMap );
+        // We use underscore.js to filter out the user-specific network data
+        // to retrieve each user's memberships.
+        var memberships = _.filter(networkCursor.fetch(), function(item){
+          return _.contains(item.createdBy, doc._id);
+        });
+
+        // Doing some underscore.js magic:
+        // - First we group each of the user's memberships by their
+        //   numbers of creators. These values indicate the level of cohesion
+        //   and will the keys of the returned object.
+        // - Then we map those objects to get the values we want.
+        cohesionInfo.groupedMemberships = _.chain(memberships)
+          .groupBy(function(item) {
+            return item.createdBy.length;
+          })
+          .map(function(value, key) {
+            return {
+              cohesion: key,
+              count: _.pluck(value, "_id").length,
+              metaTag: {
+                ids: _.pluck(value, "_id"),
+                names: _.pluck(value, "name"),
+                creators: _.pluck(value, "createdBy")
+              }
+            };
+          })
+          .value();
+
+        return cohesionInfo;
+      });
+
+      periodicLogger.info("Cohesion level", networkMemberships);
     }
   }); // methods
 
@@ -240,42 +267,48 @@ if (Meteor.isServer) {
   // 'number' when used on the client).
   var intervalHandle = null;
 
-  UserStatus.events.on("connectionLogin", function(fields) {
-    console.log("login");
-    if (!fields.userId) {
-      return;
-    }
-    if (intervalHandle) {
-      Meteor.clearInterval(intervalHandle);
-    }
-    intervalHandle = Meteor.setInterval(function() {
-      var timestamp = Date.now();
-      Meteor.call("autoLog", timestamp. fields.userId);
-    }, 5 * 1000);
-  });
+  var statusCount = UserStatus.connections.find({userId: {$exists: true}, idle: false}).count();
 
   UserStatus.events.on("connectionLogout", function(fields) {
-    console.log("logout");
-    if (intervalHandle) {
+    statusCount = UserStatus.connections.find({userId: {$exists: true}, idle: false}).count();
+    // When a user logs out, we need to check if there is
+    // no other user left who is active (there may be
+    // other logged-in users but they are idle, i.e. they are not active)
+    if (statusCount < 1 && intervalHandle) {
       Meteor.clearInterval(intervalHandle);
+      intervalHandle = null;
     }
   });
 
   UserStatus.events.on("connectionIdle", function(fields) {
-        console.log("idle");
-    if (intervalHandle) {
+    statusCount = UserStatus.connections.find({userId: {$exists: true}, idle: false}).count();
+    // When a user goes idle we need to check if there is
+    // no other user left who is active
+    if (statusCount < 1 && intervalHandle) {
+      console.log("clearing Interval");
       Meteor.clearInterval(intervalHandle);
+      intervalHandle = null;
     }
   });
 
   UserStatus.events.on("connectionActive", function(fields) {
-    console.log("active");
+    // The 'connectionActive' event may also be called when there is
+    // no userId (e.g. right after a user has logged out) in which
+    // case we are not interested and can return.
     if (!fields.userId) {
       return;
     }
+
+    statusCount = UserStatus.connections.find({userId: {$exists: true}, idle: false}).count();
+
     if (intervalHandle) {
-      Meteor.clearInterval(intervalHandle);
+      // At this point, there is at least one client active and an interval
+      // is already scheduled, so we can return here.
+      return;
     }
+
+    // We set the interval to call the autoLog method.
+    // This will be executed as soon as there is an active user.
     intervalHandle = Meteor.setInterval(function() {
       var timestamp = Date.now();
       Meteor.call("autoLog", timestamp, fields.userId);
