@@ -31,7 +31,6 @@ Router.route("/reflect", {
       ];
     }
   }
-  // fastRender: true
 });
 
 Router.route("/match", {
@@ -58,6 +57,25 @@ Router.route("/explore", {
   }
 });
 
+
+Router.route("/bullseye", {
+  name: "bullseye",
+  template: "bullseye",
+  layoutTemplate: "bullseyeLayout",
+  onBeforeAction: function() {
+    if (!Meteor.userId()) {
+      if (Meteor.loggingIn()) {
+        this.render("loading");
+      } else {
+        this.render("bullseyeLogin");
+      }
+    } else {
+      this.next();
+    }
+  }
+});
+
+
 // This function is used in the 'onBeforeAction' hook function in order to
 // check if the user is logged in before rendering the templates for a route.
 // cf. Greif S., Coleman T.: Discover Meteor. Page 114.
@@ -77,4 +95,6 @@ var requireLogin = function() {
 // current users login status before the routing process runs. Using the 'onBeforeAction' method
 // we can add a hook action that tells the router to run this function before the route function.
 // cf. https://github.com/iron-meteor/iron-router/blob/devel/Guide.md#using-hooks [as of 2015-05-03]
-Router.onBeforeAction(requireLogin);
+Router.onBeforeAction(requireLogin, {
+  except: ["bullseye"]
+});
