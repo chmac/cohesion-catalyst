@@ -8,7 +8,6 @@ d3js:d3
 iron:router
 accounts-password
 twbs:bootstrap
-ian:accounts-ui-bootstrap-3
 sacha:spin
 meteorhacks:fast-render
 alanning:roles
@@ -42,3 +41,4 @@ mizzao:timesync
 peppelg:bootstrap-3-modal
 coca:common
 mizzao:user-status
+useraccounts:bootstrap
