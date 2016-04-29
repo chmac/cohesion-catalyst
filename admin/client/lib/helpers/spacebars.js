@@ -6,6 +6,10 @@ Template.registerHelper("isAdmin", function(userId) {
   return Roles.userIsInRole(userId, "admin");
 });
 
+Template.registerHelper("isBullseyeViewer", function(userId) {
+  return Roles.userIsInRole(userId, "view-bullseye");
+});
+
 Template.registerHelper("avatarOptions", function() {
   return [
     {label: "Wink", value: "#smiley-wink"},
