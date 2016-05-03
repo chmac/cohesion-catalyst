@@ -60,7 +60,7 @@ Router.route("/explore", {
 
 Router.route("/bullseye", {
   name: "bullseye",
-  template: "bullseye",
+  template: "bullseyeView",
   layoutTemplate: "bullseyeLayout",
   onBeforeAction: function() {
     if (!Meteor.userId()) {
@@ -72,7 +72,12 @@ Router.route("/bullseye", {
     } else {
       this.next();
     }
-  }
+  },
+  // data: function() {
+  //   return {
+  //
+  //   };
+  // }
 });
 
 
