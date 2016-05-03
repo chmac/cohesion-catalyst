@@ -1,3 +1,11 @@
+Meteor.publish("bullseyeUser", function() {
+  return Meteor.users.find({
+    roles: {
+      $in: ["view-bullseye"]
+    }
+  });
+});
+
 Meteor.publish("listOfUsers", function() {
   return Meteor.users.find();
 });
