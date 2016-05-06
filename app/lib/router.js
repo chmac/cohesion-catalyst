@@ -24,7 +24,7 @@ Router.route("/smile", {
 Router.route("/reflect", {
   name: "myIds",
   waitOn: function() {
-    if (Meteor.user()) {
+    if (Meteor.user() && !Roles.userIsInRole(Meteor.userId(),"view-bullseye")) {
       return [
         Meteor.subscribe("myIdentificationsAndLinks", Meteor.user().profile.currentTraining),
         Meteor.subscribe("globalMetaIdentifications", Meteor.user().profile.currentTraining)
@@ -36,7 +36,7 @@ Router.route("/reflect", {
 Router.route("/match", {
   name: "idPool",
   waitOn: function() {
-    if (Meteor.user()) {
+    if (Meteor.user() && !Roles.userIsInRole(Meteor.userId(), "view-bullseye")) {
       return [
         Meteor.subscribe("globalMetaIdentifications", Meteor.user().profile.currentTraining),
         Meteor.subscribe("poolIdentifications", Meteor.user().profile.currentTraining)
@@ -48,7 +48,7 @@ Router.route("/match", {
 Router.route("/explore", {
   name: "idNetwork",
   waitOn: function() {
-    if (Meteor.user()) {
+    if (Meteor.user() && !Roles.userIsInRole(Meteor.userId(), "view-bullseye")) {
       return [
         Meteor.subscribe("globalMetaIdentifications", Meteor.user().profile.currentTraining),
         Meteor.subscribe("currentPlayers", Meteor.user().profile.currentTraining)
@@ -70,14 +70,12 @@ Router.route("/bullseye", {
         this.render("bullseyeLogin");
       }
     } else {
+      if (!Roles.userIsInRole(Meteor.userId(),"view-bullseye")) {
+        Router.go("home");
+      }
       this.next();
     }
-  },
-  // data: function() {
-  //   return {
-  //
-  //   };
-  // }
+  }
 });
 
 
@@ -92,6 +90,9 @@ var requireLogin = function() {
       this.render("home");
     }
   } else {
+    if (Roles.userIsInRole(Meteor.userId(),"view-bullseye")) {
+      Router.go("bullseye");
+    }
     this.next();
   }
 };
