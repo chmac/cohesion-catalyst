@@ -6,9 +6,12 @@
 }
 
 
-.word-label {
-  animation: rotateWord 7s linear infinite;
+/*.word-label,*/
+#splash-wrapper {
+  /*animation: rotateWord 7s linear infinite;*/
+  animation: rotateWord 60s linear infinite;
 }
+
 
 @keyframes rotateWord {
   from {
