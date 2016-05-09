@@ -291,6 +291,19 @@ Meteor.methods({
         "Must be admin to change bullseye view.");
     }
 
+    
+    // var newUserId = Accounts.createUser({
+    //   username: "BullsEye",
+    //   profile: {
+    //     name: "BullsEye",
+    //     currentView: "splash"
+    //   },
+    //   password: "password"
+    // });
+    //
+    // Roles.addUsersToRoles(newUserId, "view-bullseye");
+
+
     return Meteor.users.update({_id: id}, modifier);
   }
 
