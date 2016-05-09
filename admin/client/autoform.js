@@ -6,7 +6,8 @@ AutoForm.addHooks([
   "user-create-normal",
   "user-create-admin",
   "training-update",
-  "training-create"
+  "training-create",
+  "bullseye-user-update"
 ], {
   beginSubmit: function() {
     $(".ui.button").addClass("disabled");
@@ -39,6 +40,11 @@ AutoForm.hooks({
     onSuccess: function(formType, result) {
       sAlert.success("User data successfully upddated.", {onRouteClose: false});
       Router.go("/users");
+    }
+  },
+  "bullseye-user-update": {
+    onSuccess: function(formType, result) {
+      sAlert.success("Current view successfully updated.");
     }
   }
 });

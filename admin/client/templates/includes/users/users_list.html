@@ -30,23 +30,29 @@
 
 
 <template name="userEditCell">
-	<a href="{{pathFor 'userEdit'}}"><i class="link circular inverted blue write icon"></i></a>
+  {{#unless isBullseyeViewer this._id}}
+    <a href="{{pathFor 'userEdit'}}"><i class="link circular inverted blue write icon"></i></a>
+  {{/unless}}
 </template>
 
 
 
 <template name="userBlockCell">
   {{#unless isAdmin this._id}}
-    <div class="user-block-button">
-      <i class="{{#if userIsBlocked this._id}} red {{else}} disabled grey {{/if}} link big ban icon"></i>
-    </div>
+    {{#unless isBullseyeViewer this._id}}
+      <div class="user-block-button">
+        <i class="{{#if userIsBlocked this._id}} red {{else}} disabled grey {{/if}} link big ban icon"></i>
+      </div>
+    {{/unless}}
   {{/unless}}
 </template>
 
 
 
 <template name="userDeleteCell">
-	<div class="user-delete-button"><i class="link circular inverted red remove user icon"></i></div>
+  {{#unless isBullseyeViewer this._id}}
+    <div class="user-delete-button"><i class="link circular inverted red remove user icon"></i></div>
+  {{/unless}}
 </template>
 
 

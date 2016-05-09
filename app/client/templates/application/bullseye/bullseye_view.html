@@ -1,0 +1,26 @@
+<template name="bullseyeView">
+  <div class="bullseye-view" style="width: {{size}}; height: {{size}};">
+    <!-- TODO render template depending on currentView data of bullseye user  -->
+    {{#if currentViewIs "splash"}}
+      {{> bullseyeSplash}}
+    {{/if}}
+
+    {{#if currentViewIs "reflect"}}
+      {{> bullseyePlayers}}
+    {{/if}}
+
+    {{#if currentViewIs "explore"}}
+      NETWORK VIEW goes here!
+    {{/if}}
+  </div>
+</template>
+
+<template name="bullseyeNotAllowed">
+  <div class="not-found container centering">
+    <svg class="centering" viewBox="0 0 200 200">
+      <use xlink:href="/svg/avatars.svg#smiley-sad" x=50 y=50 />
+    </svg>
+    <h2>403</h2>
+    <p>Sorry, you are not allowed to view this page.</p>
+  </div>
+</template>

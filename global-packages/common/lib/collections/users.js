@@ -13,6 +13,10 @@ Schemas.UserProfile = new SimpleSchema({
   currentTraining: {
     type: String,
     optional: true
+  },
+  currentView: {
+    type: String,
+    optional: true
   }
 });
 

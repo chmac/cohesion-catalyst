@@ -1,0 +1,23 @@
+.bullseye-view {
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 50%;
+  border: 3px dashed #242830;;
+}
+
+
+/*.word-label,*/
+#splash-wrapper {
+  /*animation: rotateWord 7s linear infinite;*/
+  animation: rotateWord 60s linear infinite;
+}
+
+
+@keyframes rotateWord {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

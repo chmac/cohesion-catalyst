@@ -56,6 +56,10 @@ TabularTables.Users = new Tabular.Table({
     if (data.blocked) {
       $(row).addClass("negative");
     }
+
+    if (data.profile.currentView) {
+      $(row).addClass("disabled");
+    }
   },
   autoWidth: false
 });

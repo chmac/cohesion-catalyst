@@ -6,18 +6,27 @@ Meteor.startup(function() {
     // Define the users who have admin rights and adding those users to roles
     // Borrowed from the example at https://github.com/alanning/meteor-roles
     var users = [
-      {name:"Nadja",email:"nadja.zollo@gmail.com",roles:["admin"]},
-      {name:"Hartmut",email:"hartmut@hartmut-schirmacher.de",roles:["admin"]},
-      {name:"Steffi",email:"mail@stefanie-rathje.com",roles:["admin"]}
+      {name:"Nadja", email:"nadja.zollo@gmail.com", roles:["admin"]},
+      {name:"Hartmut", email:"hartmut@hartmut-schirmacher.de", roles:["admin"]},
+      {name:"Steffi", email:"mail@stefanie-rathje.com", roles:["admin"]},
+      {name:"Diana", email:"Diana.Krieg@htw-berlin.de", roles:["admin"]},
+      {name:"BullsEye", currentView: "splash", roles: ["view-bullseye"]}
     ];
 
     _.each(users, function (user) {
       var id;
+      var profile = {
+        name: user.name
+      };
+
+      if (user.currentView) {
+        profile.currentView = user.currentView;
+      }
 
       id = Accounts.createUser({
         username: user.name,
         password: "password",
-        profile: { name: user.name }
+        profile: profile
       });
 
       if (user.roles.length > 0) {
@@ -27,7 +36,9 @@ Meteor.startup(function() {
       }
 
       // Add the email address for each admin user and mark it as verified.
-      Accounts.addEmail(id, user.email, true);
+      if (user.email) {
+        Accounts.addEmail(id, user.email, true);
+      }
 
     });
   }
@@ -35,14 +46,10 @@ Meteor.startup(function() {
 
   // Fixture training data
   if (Trainings.find().count() === 0) {
-    var someday;
-
-    // Dummy date in the future
-    someday = new Date(2016, 8, 30);
-    Trainings.insert({
+    var id = Trainings.insert({
       title: "Master Training",
       description: "Team building master class.",
-      date: someday,
+      date: new Date(),
       players: [],
       isCurrentTraining: true
     });

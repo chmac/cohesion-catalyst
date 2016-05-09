@@ -79,3 +79,31 @@ AdminSchemas.UserType = new SimpleSchema({
     label: "Type"
   }
 });
+
+AdminSchemas.BullseyeUserProfile = new SimpleSchema({
+  name: {
+    type: String,
+    optional: true
+  },
+  currentView: {
+    type: String,
+    optional: true
+  }
+});
+
+AdminSchemas.BullseyeUserData = new SimpleSchema({
+  username: {
+    type: String,
+    optional: true
+  },
+  profile: {
+    type: AdminSchemas.BullseyeUserProfile,
+    optional: true
+  },
+  role: {
+    type: String,
+    optional: true,
+    allowedValues: ["view-bullseye"],
+    label: "Role"
+  }
+});
