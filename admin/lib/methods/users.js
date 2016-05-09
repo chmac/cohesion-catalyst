@@ -291,7 +291,7 @@ Meteor.methods({
         "Must be admin to change bullseye view.");
     }
 
-    
+    // TODO remove this HACK if no longer necessary, or add separate function. 
     // var newUserId = Accounts.createUser({
     //   username: "BullsEye",
     //   profile: {
