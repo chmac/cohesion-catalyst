@@ -6,6 +6,10 @@ Template.registerHelper("isAdmin", function(userId) {
   return Roles.userIsInRole(userId, "admin");
 });
 
+Template.registerHelper("isBullseyeViewer", function(userId) {
+  return Roles.userIsInRole(userId, "view-bullseye");
+});
+
 Template.registerHelper("avatarOptions", function() {
   return [
     {label: "Wink", value: "#smiley-wink"},
@@ -42,4 +46,13 @@ Template.registerHelper("isCurrentTraining", function(id) {
 Template.registerHelper("userIsBlocked", function(id) {
   var user = Meteor.users.findOne({_id: id});
   return user && user.blocked;
+});
+
+Template.registerHelper("viewOptions", function() {
+  return [
+    {label: "Splash Screen", value: "splash"},
+    {label: "Reflect IDs", value: "reflect"},
+    {label: "Match Cohesion", value: "match"},
+    {label: "Explore Network", value: "explore"}
+  ];
 });

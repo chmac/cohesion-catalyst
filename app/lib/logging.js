@@ -14,7 +14,7 @@ if (Meteor.isClient) {
   // Based on the user status (i.e. logged-in or logged-out)
   // we start or stop monitoring their activity, respectively.
   Tracker.autorun(function(computation) {
-    if (Meteor.userId()) {
+    if (Meteor.userId() && !Roles.userIsInRole(Meteor.userId(), "view-bullseye")) {
       try {
         // 'UserStatus' is provided by 'mizzao:user-status' package.
         // We want automatic monitoring of the client's idle state
@@ -267,10 +267,10 @@ if (Meteor.isServer) {
   // 'number' when used on the client).
   var intervalHandle = null;
 
-  var statusCount = UserStatus.connections.find({userId: {$exists: true}, idle: false}).count();
+  var statusCount = countPlayerConnections();
 
   UserStatus.events.on("connectionLogout", function(fields) {
-    statusCount = UserStatus.connections.find({userId: {$exists: true}, idle: false}).count();
+    statusCount = countPlayerConnections();
     // When a user logs out, we need to check if there is
     // no other user left who is active (there may be
     // other logged-in users but they are idle, i.e. they are not active)
@@ -281,11 +281,10 @@ if (Meteor.isServer) {
   });
 
   UserStatus.events.on("connectionIdle", function(fields) {
-    statusCount = UserStatus.connections.find({userId: {$exists: true}, idle: false}).count();
+    statusCount = countPlayerConnections();
     // When a user goes idle we need to check if there is
     // no other user left who is active
     if (statusCount < 1 && intervalHandle) {
-      console.log("clearing Interval");
       Meteor.clearInterval(intervalHandle);
       intervalHandle = null;
     }
@@ -299,7 +298,7 @@ if (Meteor.isServer) {
       return;
     }
 
-    statusCount = UserStatus.connections.find({userId: {$exists: true}, idle: false}).count();
+    statusCount = countPlayerConnections();
 
     if (intervalHandle) {
       // At this point, there is at least one client active and an interval
@@ -315,3 +314,26 @@ if (Meteor.isServer) {
     }, 5 * 1000);
   });
 } // Meteor.isServer
+
+
+/**
+ * Queries the 'UserStatus.connection' collection to count
+ * the users that are not in an idle state.
+ * Used to schedule the log interval.
+ * Heads up: we need to exclude the special bullseye user.
+ */
+function countPlayerConnections() {
+  var bullseyeUser = Meteor.users.findOne({
+    roles: {
+      $in: ["view-bullseye"]
+    }
+  });
+
+  return UserStatus.connections.find({
+    userId: {
+      $exists: true,
+      $ne: bullseyeUser && bullseyeUser._id
+    },
+    idle: false
+  }).count();
+}

@@ -1,0 +1,33 @@
+<template name="bullseye">
+  <h2 class="ui header">
+    <i class="circular bullseye icon"></i>
+    <div class="content">
+      Bullseye User
+      <div class="sub header">Manage</div>
+    </div>
+  </h2>
+
+  <div class="ui basic segment">
+    <div class="ui stackable grid">
+      <div class="column">
+        <h3 class="ui dividing header">
+          Change Bullseye View
+        </h3>
+
+        {{#autoForm
+            schema="AdminSchemas.BullseyeUserData"
+            doc=bullseyeUser
+            id="bullseye-user-update"
+            type="method-update"
+            meteormethod="user.bullseye.update"
+        }}
+
+          {{> afFormGroup name="profile.currentView" options=viewOptions noselect=true}}
+
+          <button type="submit" class="ui positive submit button">Update</button>
+        {{/autoForm}}
+
+      </div> <!-- div.column -->
+    </div> <!-- div.ui.stackable.grid -->
+  </div> <!-- div..ui.basic.segment -->
+</template>

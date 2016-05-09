@@ -24,20 +24,19 @@ Router.route("/smile", {
 Router.route("/reflect", {
   name: "myIds",
   waitOn: function() {
-    if (Meteor.user()) {
+    if (Meteor.user() && !Roles.userIsInRole(Meteor.userId(),"view-bullseye")) {
       return [
         Meteor.subscribe("myIdentificationsAndLinks", Meteor.user().profile.currentTraining),
         Meteor.subscribe("globalMetaIdentifications", Meteor.user().profile.currentTraining)
       ];
     }
   }
-  // fastRender: true
 });
 
 Router.route("/match", {
   name: "idPool",
   waitOn: function() {
-    if (Meteor.user()) {
+    if (Meteor.user() && !Roles.userIsInRole(Meteor.userId(), "view-bullseye")) {
       return [
         Meteor.subscribe("globalMetaIdentifications", Meteor.user().profile.currentTraining),
         Meteor.subscribe("poolIdentifications", Meteor.user().profile.currentTraining)
@@ -49,7 +48,7 @@ Router.route("/match", {
 Router.route("/explore", {
   name: "idNetwork",
   waitOn: function() {
-    if (Meteor.user()) {
+    if (Meteor.user() && !Roles.userIsInRole(Meteor.userId(), "view-bullseye")) {
       return [
         Meteor.subscribe("globalMetaIdentifications", Meteor.user().profile.currentTraining),
         Meteor.subscribe("currentPlayers", Meteor.user().profile.currentTraining)
@@ -57,6 +56,28 @@ Router.route("/explore", {
     }
   }
 });
+
+
+Router.route("/bullseye", {
+  name: "bullseye",
+  template: "bullseyeView",
+  layoutTemplate: "bullseyeLayout",
+  onBeforeAction: function() {
+    if (!Meteor.userId()) {
+      if (Meteor.loggingIn()) {
+        this.render("loading");
+      } else {
+        this.render("bullseyeLogin");
+      }
+    } else {
+      this.next();
+    }
+  },
+  subscriptions: function() {
+    this.subscribe("currentPlayers", Session.get("bullseyeCurrentTraining"));
+  }
+});
+
 
 // This function is used in the 'onBeforeAction' hook function in order to
 // check if the user is logged in before rendering the templates for a route.
@@ -69,6 +90,9 @@ var requireLogin = function() {
       this.render("home");
     }
   } else {
+    if (Roles.userIsInRole(Meteor.userId(),"view-bullseye")) {
+      Router.go("bullseye");
+    }
     this.next();
   }
 };
@@ -77,4 +101,6 @@ var requireLogin = function() {
 // current users login status before the routing process runs. Using the 'onBeforeAction' method
 // we can add a hook action that tells the router to run this function before the route function.
 // cf. https://github.com/iron-meteor/iron-router/blob/devel/Guide.md#using-hooks [as of 2015-05-03]
-Router.onBeforeAction(requireLogin);
+Router.onBeforeAction(requireLogin, {
+  except: ["bullseye"]
+});

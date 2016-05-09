@@ -33,10 +33,19 @@ Accounts.onCreateUser(function(options, user) {
  * Meteor.Error is thrown for blocked user accounts which aborts the login.
  */
 Accounts.validateLoginAttempt(function(attemptInfo) {
+
+  if (!attemptInfo.allowed) {
+    return false;
+  }
+
   var user = attemptInfo.user;
 
   if (user && user.blocked) {
     throw new Meteor.Error("not-allowed", "Cannot login to blocked user account.");
+  }
+
+  if (user && Roles.userIsInRole(user._id, "admin")) {
+    throw new Meteor.Error("not-allowed", "You are not allowed to login.");
   }
 
   return true;

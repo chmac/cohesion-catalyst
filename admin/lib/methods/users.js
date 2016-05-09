@@ -275,6 +275,36 @@ Meteor.methods({
 
       return newUserId;
     }
+  },
+
+  "user.bullseye.update": function(modifier, id) {
+
+    // Check arguments
+    check(id, String);
+    check(modifier, Object);
+    check(modifier.$set, Object);
+    check(modifier.$set.profile, Match.Optional(AdminSchemas.BullseyeUserProfile));
+
+    // Only admins have the right to change the current bullseye view.
+    if (!Roles.userIsInRole(this.userId, "admin")) {
+      throw new Meteor.Error("user.bullseye.update.not-authorized",
+        "Must be admin to change bullseye view.");
+    }
+
+    // TODO remove this HACK if no longer necessary, or add separate function. 
+    // var newUserId = Accounts.createUser({
+    //   username: "BullsEye",
+    //   profile: {
+    //     name: "BullsEye",
+    //     currentView: "splash"
+    //   },
+    //   password: "password"
+    // });
+    //
+    // Roles.addUsersToRoles(newUserId, "view-bullseye");
+
+
+    return Meteor.users.update({_id: id}, modifier);
   }
 
 }); // methods()
