@@ -275,13 +275,17 @@ Meteor.publish("currentPlayers", function(currentTraining) {
     return this.ready();
   }
 
-  return Meteor.users.find({
+  var userData =  Meteor.users.find({
     "profile.currentTraining": currentTraining
   }, {
     fields: {
       profile: 1
     }
   });
+
+  if (userData) {
+    return userData;
+  }
 });
 
 
