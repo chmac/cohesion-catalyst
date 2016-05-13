@@ -47,7 +47,7 @@ Meteor.publish("globalMetaIdentifications", function(currentTraining) {
   }
 
   // for debugging purposes
-  var currentUserName = Meteor.users.findOne({_id: currentUserId}).profile.name;
+  // var currentUserName = Meteor.users.findOne({_id: currentUserId}).profile.name;
   // console.log("*************** Cient - " + currentUserName + " - subscribes ***************");
 
   // Validate the incoming data from the client and make sure 'currentTraining' is a string.

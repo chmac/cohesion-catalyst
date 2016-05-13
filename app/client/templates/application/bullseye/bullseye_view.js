@@ -15,13 +15,5 @@ Template.bullseyeView.onRendered(function() {
 Template.bullseyeView.helpers({
   size: function() {
     return Template.instance().bullseyeSize.get() + "px";
-  },
-  currentViewIs: function(currentView) {
-    var bullseyeUser = Meteor.users.findOne({
-      roles: {
-        $in: ["view-bullseye"]
-      }
-    });
-    return bullseyeUser && bullseyeUser.profile.currentView === currentView;
   }
 });
