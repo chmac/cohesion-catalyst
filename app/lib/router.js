@@ -74,7 +74,10 @@ Router.route("/bullseye", {
     }
   },
   subscriptions: function() {
-    this.subscribe("currentPlayers", Session.get("bullseyeCurrentTraining"));
+    return [
+      Meteor.subscribe("currentPlayers", Session.get("bullseyeCurrentTraining")),
+      Meteor.subscribe("globalMetaIdentifications", Session.get("bullseyeCurrentTraining"))
+    ];
   }
 });
 
