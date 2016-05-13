@@ -2,26 +2,9 @@
 
   var drawingSurface;
 
-  Template.bullseyePlayers.onCreated(function() {
-    var templateInstance = this;
-
-    templateInstance.autorun(function() {
-      var currentTraining = Trainings.find({
-        isCurrentTraining: true
-      }, {
-        fields: {
-          isCurrentTraining: 1
-        }
-      }).fetch()[0];
-
-      if (currentTraining) {
-        Session.set("bullseyeCurrentTraining", currentTraining._id);
-      }
-    });
-
-  }); // onCreated()
-
   Template.bullseyePlayers.onRendered(function() {
+
+    Session.set("canvasSize", document.documentElement.clientHeight);
 
     var avatarSize = 105;
 
@@ -32,11 +15,14 @@
       left: 10
     };
 
-    // We call the helper function to create the drawing area.
-    drawingSurface = makeCanvas(d3.select(".bullseye-view"), margin);
+    var containerSize = Session.get("canvasSize");
+    Session.set("playerRadius", (containerSize - avatarSize * 0.25) * 0.5 - avatarSize * 0.5);
+    Session.set("centerX", containerSize * 0.5);
+    Session.set("centerY", containerSize * 0.5);
 
-    var containerHeight = d3.select(".bullseye-view").node().clientHeight;
-    var containerWidth = d3.select(".bullseye-view").node().clientWidth;
+    drawingSurface = d3.select("#player-canvas").append("g")
+      .attr("id", "players-group")
+      .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
     var bullseyePlayers = Meteor.users.find({
       "profile.currentTraining": Session.get("bullseyeCurrentTraining")
@@ -47,9 +33,9 @@
     }).fetch();
 
     var playersConfig =  {
-      radius: (containerHeight - avatarSize * 0.25) * 0.5 - avatarSize * 0.5,
-      centerX: containerWidth * 0.5 - margin.left, // We need to adjust the translation of the drawing surface
-      centerY: containerHeight * 0.5 - margin.top,
+      radius: (containerSize - avatarSize * 0.25) * 0.5 - avatarSize * 0.5,
+      centerX: containerSize * 0.5 - margin.left, // We need to adjust the translation of the drawing surface
+      centerY: containerSize * 0.5 - margin.top,
       size: avatarSize,
       count: bullseyePlayers.length
     };
@@ -59,17 +45,29 @@
 
   }); // onRendered()
 
-  // Template.bullseyePlayers.helpers({
-  //   players: function() {
-  //     return Meteor.users.find({
-  //       "profile.currentTraining": Session.get("bullseyeCurrentTraining")
-  //     }, {
-  //       fields: {
-  //         profile: 1
-  //       }
-  //     });
-  //   }
-  // });
+  Template.bullseyePlayers.helpers({
+    // players: function() {
+    //   return Meteor.users.find({
+    //     "profile.currentTraining": Session.get("bullseyeCurrentTraining")
+    //   }, {
+    //     fields: {
+    //       profile: 1
+    //     }
+    //   });
+    // }
+    viewportSize: function() {
+      return Session.get("canvasSize");
+    },
+    radius: function() {
+      return Session.get("playerRadius");
+    },
+    cx: function() {
+      return Session.get("centerX");
+    },
+    cy: function() {
+      return Session.get("centerY");
+    }
+  });
 
 
   var createPlayersCircle = function(players, config) {
@@ -95,7 +93,7 @@
     //     cx: config.centerX,
     //     cy: config.centerY
     //   })
-    //   .style("fill", "rgba(206, 206, 206, 0.5)");
+    //   .style("fill", "rgba(55, 55, 55, 0.3)");
 
     var playerElements = drawingSurface.selectAll(".bullseye-player")
       .data(radialPlayers, function(d, i) {
