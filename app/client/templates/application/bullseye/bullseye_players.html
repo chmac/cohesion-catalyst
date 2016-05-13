@@ -1,7 +1,24 @@
 <template name="bullseyePlayers">
-  <div id="player-container">
-    <!-- {{#each player in players}}
-      <h1>{{player.profile.name}}</h1>
-      {{/each}} -->
+  <div id="player-container" style="position: relative;">
+    <svg id="player-canvas" width={{viewportSize}}  height={{viewportSize}}>
+
+    <defs>
+      <mask id="mask">
+        <rect x="0" y="0" width={{viewportSize}} height={{viewportSize}} mask="url(#myClip)" fill="#fff" fill-opacity="1" />
+        <circle cx={{cx}} cy={{cy}} r={{radius}} />
+      </mask>
+    </defs>
+
+    <rect id="bullseye-mask" x="0" y="0" width={{viewportSize}} height={{viewportSize}} mask="url(#mask)" fill="red" fill-opacity="1" />
+
+    </svg>
+    
+    {{#if currentViewIs "reflect"}}
+      {{> bullseyeReflect}}
+    {{/if}}
+
+    {{#if currentViewIs "explore"}}
+      NETWORK VIEW goes here!
+    {{/if}}
   </div>
 </template>
