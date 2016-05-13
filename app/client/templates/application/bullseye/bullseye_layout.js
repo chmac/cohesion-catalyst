@@ -10,7 +10,6 @@ Template.bullseyeLayout.onCreated(function() {
         }
       }).fetch()[0];
 
-      console.log(currentTraining);
       if (currentTraining) {
         Session.set("bullseyeCurrentTraining", currentTraining._id);
       }
