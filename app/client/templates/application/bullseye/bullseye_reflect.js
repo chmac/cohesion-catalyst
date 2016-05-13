@@ -13,10 +13,6 @@
     var currentTrainingId = Session.get("bullseyeCurrentTraining");
     size = Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
 
-    // canvas = document.querySelector("canvas");
-    // context = canvas.getContext("2d");
-    // console.log("context ", context);
-
     drawingSurface = d3.select("#player-canvas");
     // ====== DEBUGGING =======
     // drawingSurface.append("circle")
@@ -83,62 +79,37 @@
         stopTimer = true;
       });
 
-      // d3.timer(function(elapsed) {
-      //   context.clearRect(0, 0, size, size);
-      //
-      //   bubbleList.forEach(function(b) {
-      //     context.beginPath();
-      //     context.fillStyle = "#fff";
-      //     context.arc(b.x, b.y, 30, 0, 2 * Math.PI);
-      //     context.fill();
-      //     context.beginPath();
-      //     context.font = "16px Georgia";
-      //     context.fillStyle = "#000";
-      //     context.textAlign = "center";
-      //     context.fillText(b.name, b.x, b.y);
-      //     context.fill();
-      //
-      //     b.x += b.vx;
-      //     b.y += b.vy;
-      //
-      //     if(b.x > size)b.x = 0;
-      //     if(b.x < 0)b.x = size;
-      //     if(b.y > size)b.y = 0;
-      //     if(b.y < 0)b.y = size;
-      //   });
-      //   return stopTimer;
-      // });
-      d3.timer(function(elapsed) {
-        d3.select(".bubble")
-          .attr("transform", function(d) {
+    d3.timer(function(elapsed) {
+      d3.select(".bubble")
+        .attr("transform", function(d) {
 
-            // if (d.x >= size || d.x <= 0) {
-            //   d.vx *= -1;
-            // }
-            // if (d.y >= size || d.y >= 0) {
-            //   d.vy *= -1;
-            // }
+          // if (d.x >= size || d.x <= 0) {
+          //   d.vx *= -1;
+          // }
+          // if (d.y >= size || d.y >= 0) {
+          //   d.vy *= -1;
+          // }
 
-            if (d.x > size) {
-              d.x = 0;
-            } else if (d.x < 0) {
-              d.x = size;
-            }
+          if (d.x > size) {
+            d.x = 0;
+          } else if (d.x < 0) {
+            d.x = size;
+          }
 
-            if (d.y > size) {
-              d.y = 0;
-            } else if (d.y < 0) {
-              d.y = size;
-            }
+          if (d.y > size) {
+            d.y = 0;
+          } else if (d.y < 0) {
+            d.y = size;
+          }
 
-            d.x += d.vx;
-            d.y += d.vy;
+          d.x += d.vx;
+          d.y += d.vy;
 
-            return "translate(" + d.x + ", " + d.y + ")";
-          });
+          return "translate(" + d.x + ", " + d.y + ")";
+        });
 
-        return stopTimer;
-      });
+      return stopTimer;
+    });
 
   }); // onRendered()
 
