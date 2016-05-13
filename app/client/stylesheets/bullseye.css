@@ -20,13 +20,6 @@
   }
 }
 
-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform:translateZ(0);
-}
-
 p.bullseye-circle-label {
   text-align: center;
   word-wrap: break-word;
