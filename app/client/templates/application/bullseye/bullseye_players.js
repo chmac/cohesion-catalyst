@@ -46,18 +46,6 @@
   }); // onRendered()
 
   Template.bullseyePlayers.helpers({
-    // players: function() {
-    //   return Meteor.users.find({
-    //     "profile.currentTraining": Session.get("bullseyeCurrentTraining")
-    //   }, {
-    //     fields: {
-    //       profile: 1
-    //     }
-    //   });
-    // }
-    viewportSize: function() {
-      return Session.get("canvasSize");
-    },
     radius: function() {
       return Session.get("playerRadius");
     },
