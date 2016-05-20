@@ -7,7 +7,7 @@
   var bubbleGroup;
   var stopTimer;
 
-  Template.bullseyeReflect.onRendered(function() {
+  Template.bullseyeBubblebath.onRendered(function() {
     stopTimer = false;
     var templateInstance = this;
     var currentTrainingId = Session.get("bullseyeCurrentTraining");
@@ -57,14 +57,12 @@
         // We want to prevent multiple calls of 'createBubbleCloud()'
         // while the 'added()' callback delivers the initial result of the query.
         if (!initializing) {
-          // createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
-          // makeBubbleBath();
+          makeBubbleBath();
         }
       },
       removed: function(doc) {
         removeFromBubbles(doc);
-        // makeBubbleBath();
-        // createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+        makeBubbleBath();
       },
       changed: function(newDoc, oldDoc) {
         var bubble = d3.select("#gid" + newDoc._id +" circle").node();
@@ -85,48 +83,7 @@
     // createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
     makeBubbleBath();
 
-    d3.select("#stop-button")
-      .on("click", function() {
-        stopTimer = true;
-      });
-
     d3.timer(move);
-
-    // d3.timer(function(elapsed) {
-    //
-    //   d3.selectAll(".bubble")
-    //     .attr("transform", function(d) {
-    //
-    //       // if (d.x >= size || d.x <= 0) {
-    //       //   d.vx *= -1;
-    //       // }
-    //       // if (d.y >= size || d.y >= 0) {
-    //       //   d.vy *= -1;
-    //       // }
-    //
-    //       if (d.x > size) {
-    //         d.x = 0;
-    //       } else if (d.x < 0) {
-    //         d.x = size;
-    //       }
-    //
-    //       if (d.y > size) {
-    //         d.y = 0;
-    //       } else if (d.y < 0) {
-    //         d.y = size;
-    //       }
-    //
-    //       d.x += d.vx;
-    //       d.y += d.vy;
-    //
-    //       // rotation cf. http://bl.ocks.org/mbostock/1353700
-    //       return "translate(" + d.x + ", " + d.y + ") rotate(" + elapsed/d.radius * d.vAngle + ")";
-    //     });
-    //
-    //   return stopTimer;
-    // });
-
-
 
   }); // onRendered()
 
@@ -257,7 +214,7 @@
   } // move
 
 
-  Template.bullseyeReflect.onDestroyed(function() {
+  Template.bullseyeBubblebath.onDestroyed(function() {
     stopTimer = true;
     d3.selectAll(".bubble").remove();
   });
