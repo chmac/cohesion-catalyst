@@ -7,7 +7,7 @@
   var bubbleGroup;
   var stopTimer;
 
-  Template.bullseyeReflect.onRendered(function() {
+  Template.bullseyeBubblebath.onRendered(function() {
     stopTimer = false;
     var templateInstance = this;
     var currentTrainingId = Session.get("bullseyeCurrentTraining");
@@ -57,14 +57,23 @@
         // We want to prevent multiple calls of 'createBubbleCloud()'
         // while the 'added()' callback delivers the initial result of the query.
         if (!initializing) {
-          // createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
-          // makeBubbleBath();
+          makeBubbleBath();
         }
       },
       removed: function(doc) {
         removeFromBubbles(doc);
-        // makeBubbleBath();
-        // createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+        makeBubbleBath();
+      },
+      changed: function(newDoc, oldDoc) {
+        var bubble = d3.select("#gid" + newDoc._id +" circle").node();
+        if (newDoc.createdBy.length < 2) {
+          bubble.classList.remove(newDoc.color);
+          bubble.classList.add("c-white");
+        }
+        if (oldDoc.createdBy.length == 1) {
+          bubble.classList.remove("c-white");
+          bubble.classList.add(newDoc.color);
+        }
       }
     });
 
@@ -74,54 +83,21 @@
     // createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
     makeBubbleBath();
 
-    d3.select("#stop-button")
-      .on("click", function() {
-        stopTimer = true;
-      });
-
-    d3.timer(function(elapsed) {
-      d3.select(".bubble")
-        .attr("transform", function(d) {
-
-          // if (d.x >= size || d.x <= 0) {
-          //   d.vx *= -1;
-          // }
-          // if (d.y >= size || d.y >= 0) {
-          //   d.vy *= -1;
-          // }
-
-          if (d.x > size) {
-            d.x = 0;
-          } else if (d.x < 0) {
-            d.x = size;
-          }
-
-          if (d.y > size) {
-            d.y = 0;
-          } else if (d.y < 0) {
-            d.y = size;
-          }
-
-          d.x += d.vx;
-          d.y += d.vy;
-
-          return "translate(" + d.x + ", " + d.y + ")";
-        });
-
-      return stopTimer;
-    });
+    d3.timer(move);
 
   }); // onRendered()
 
 
 
   function addToBubbles(doc, size) {
+    var sign = Math.round(Math.random()) * 2 - 1;
     var newBubble = doc;
     newBubble.x = Math.round(size * Math.random());
     newBubble.y = Math.round(size * Math.random());
-    newBubble.vx = 1.5 * (Math.random() - 0.5);
-    newBubble.vy = 1.5 * (Math.random() - 0.5);
+    newBubble.vx = 30.5 * (Math.random() - 0.5);
+    newBubble.vy = 40 * (Math.random() - 0.5);
     newBubble.radius = 35;
+    newBubble.vAngle = (Math.random()*2*Math.PI + 0.15) * sign;
     bubbleList.push(newBubble);
   } // addToBubbles
 
@@ -137,7 +113,6 @@
 
 
   function makeBubbleBath() {
-
     bubbles = bubbles.data(bubbleList, function(d) {
       return d && d._id;
     });
@@ -158,8 +133,16 @@
       .attr("r", function(d) {
         return d.radius;
       })
-      .style("fill", "#fff");
+      .attr("class", function(d) {
+        return d.createdBy.length > 1 ? d.color : "c-white";
+      });
 
+
+    // bubbleGroup.append("text")
+    //   .text(function(d) {
+    //     return d.name;
+    //   })
+    //   .style("text-rendering", "optimizeSpeed");
 
     bubbleGroup.append("foreignObject")
       .attr({
@@ -201,13 +184,37 @@
   } // makeBubbleBath
 
 
-  Template.bullseyeReflect.helpers({
-    size: function() {
-      return Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
-    }
-  });
+  function move(elapsed) {
+    for (var i = 0; i < bubbleList.length; i++) {
+      var bubble = bubbleList[i];
+        if (bubble.x > size) {
+          bubble.x = 0;
+        } else if (bubble.x < 0) {
+          bubble.x = size;
+        }
 
-  Template.bullseyeReflect.onDestroyed(function() {
+        if (bubble.y > size) {
+          bubble.y = 0;
+        } else if (bubble.y < 0) {
+          bubble.y = size;
+        }
+
+        bubble.x += bubble.vx;
+        bubble.y += bubble.vy;
+      }
+
+    if (Session.equals("moveBubbles", true)) {
+      bubbles.attr("transform", function(d) {
+        // rotation cf. http://bl.ocks.org/mbostock/1353700
+        return "translate(" + d.x + ", " + d.y + ") rotate(" + elapsed/d.radius * d.vAngle + ")";
+      });
+    }
+
+    return stopTimer;
+  } // move
+
+
+  Template.bullseyeBubblebath.onDestroyed(function() {
     stopTimer = true;
     d3.selectAll(".bubble").remove();
   });
