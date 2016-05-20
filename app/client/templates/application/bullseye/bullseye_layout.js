@@ -15,4 +15,20 @@ Template.bullseyeLayout.onCreated(function() {
       }
     });
 
+  Session.setDefault("moveBubbles", true);
 }); // onCreated()
+
+Template.bullseyeLayout.events({
+  "click #rotation-toggle": function(event, template) {
+    event.preventDefault();
+    $("div.bullseye-layout").toggleClass("bullseye-animation");
+  },
+  "click #bubble-toggle": function(event, template) {
+    event.preventDefault();
+    if (Session.equals("moveBubbles", true)) {
+      Session.set("moveBubbles", false);
+    } else {
+      Session.set("moveBubbles", true);
+    }
+  }
+});

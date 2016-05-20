@@ -1,9 +1,24 @@
 <template name="bullseyeLayout">
-  <div>
-    <div style="position: absolute; top: 0; left: 0;">
-      {{> atNavButton}}
+  <div class="bullseye-layout bullseye-animation">
+    <div style="position: absolute; top: 0; left: 0;" class="navbar-dark">
+      <ul class="nav navbar-nav bullseye-menu">
+        <li class="dropdown ">
+          <a id="dDMenu" href="#" class="dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-bars fa-lg" aria-hidden="true" title="User action"></i>
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dDMenu">
+            <li><a href="#" id="rotation-toggle">Toggle Rotation</a></li>
+            <li><a href="#" id="bubble-toggle">Toggle Bubbles</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">{{> atNavButton}}</a></li>
+          </ul>
+
+        </li>
+      </ul>
     </div>
+
     {{> yield}}
+
   </div>
 </template>
 
