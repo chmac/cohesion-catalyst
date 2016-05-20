@@ -1,3 +1,10 @@
+.bullseye-menu .open > a,
+.bullseye-menu .open > a:hover,
+.bullseye-menu .open > a:focus  {
+  background-color: #fff;
+  color: #333;
+}
+
 .bullseye-view {
   margin-left: auto;
   margin-right: auto;
@@ -5,19 +12,8 @@
 
 
 /*.word-label,*/
-#splash-wrapper {
-  /*animation: rotateWord 7s linear infinite;*/
-  animation: rotateWord 60s linear infinite;
-}
-
-
-@keyframes rotateWord {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.bullseye-animation #splash-wrapper {
+  animation: rotation 60s linear infinite;
 }
 
 p.bullseye-circle-label {
@@ -30,4 +26,38 @@ p.bullseye-circle-label {
   line-height: 1.4em;
   padding: 0 3px;
   color: #000;
+}
+
+#bullseye-indicator-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.bullseye-animation #bullseye-indicator-container {
+  animation: rotation 60s linear infinite;
+}
+
+.bullseye-indicator {
+  position: relative;
+}
+
+.bullseye-indicator-label {
+  font-weight: bold;
+}
+
+.bullseye-indicator-number {
+  font-family: 'Short Stack', cursive;
+  font-size: 4em;
+}
+
+
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

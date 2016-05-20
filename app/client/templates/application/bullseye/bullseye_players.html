@@ -9,16 +9,15 @@
       </mask>
     </defs>
 
-    <rect id="bullseye-mask" x="0" y="0" width={{viewportSize}} height={{viewportSize}} mask="url(#mask)" fill="red" fill-opacity="1" />
+    <rect id="bullseye-mask" x="0" y="0" width={{viewportSize}} height={{viewportSize}} mask="url(#mask)" fill="#000" fill-opacity="1" />
 
     </svg>
-    
-    {{#if currentViewIs "reflect"}}
-      {{> bullseyeReflect}}
-    {{/if}}
 
-    {{#if currentViewIs "explore"}}
-      NETWORK VIEW goes here!
-    {{/if}}
+    {{#unless currentViewIs "explore"}}
+      {{> bullseyeBubblebath}}
+      {{> bullseyeIndicator}}
+    {{else}}
+      <h1 style="position: absolute; top:50%; left:25%; right:25%;">NETWORK VIEW goes here!</h1>
+    {{/unless}}
   </div>
 </template>

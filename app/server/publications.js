@@ -288,6 +288,20 @@ Meteor.publish("currentPlayers", function(currentTraining) {
   }
 });
 
+// We use the tmeasday:publish-counts package which gives us Counts.publish
+Meteor.publish("bullseyeIdentifications", function(currentTraining) {
+  var subscription = this;
+
+  check(currentTraining, String);
+
+  var handle = Counts.publish(subscription, "identificationsCount",
+    Identifications.find({trainingId: currentTraining}));
+
+  subscription.onStop(function() {
+    handle.stop();
+  });
+});
+
 
 Meteor.publish("links", function(currentTraining) {
   var currentUserId = this.userId;

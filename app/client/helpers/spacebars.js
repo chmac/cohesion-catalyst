@@ -6,3 +6,7 @@ Template.registerHelper("currentViewIs", function(currentView) {
   });
   return bullseyeUser && bullseyeUser.profile.currentView === currentView;
 });
+
+Template.registerHelper("viewportSize", function() {
+  return Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
+});
