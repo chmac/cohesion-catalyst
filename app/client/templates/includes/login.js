@@ -125,8 +125,7 @@ Template.createAccountForm.events({
       !isEmpty(password) &&
       isValidUsername(username) &&
       isValidPassword(password)) {
-        // The Accounts.createUser() function is provided by the 'accounts-password' package.
-        Accounts.createUser({
+        var newUser = {
           username: username + "_" + trainingId,
           password: password,
           profile: {
@@ -134,15 +133,21 @@ Template.createAccountForm.events({
             avatar: null,
             currentTraining: trainingId
           }
-        }, function(error) {
+        };
+        Meteor.call("makeNewUser", newUser, function(error, result) {
           if (error) {
-            // Let the user know that the creation of an account failed.
             return throwError("Error while creating account: " + error.reason);
           }
-
-          // Hide the modal dialog after successful sign up.
-          Modal.hide();
-          Router.go("intro");
+          Meteor.loginWithPassword(username + "_" + trainingId, password, function(error) {
+            if (error) {
+              // Let the user know that the login failed, e.g. if a user could
+              // not be found or if the user entered an incorrect password.
+              return throwError("Login Error: " + error.reason);
+            }
+            // Hide the modal dialog after successful sign up.
+            Modal.hide();
+            Router.go("intro");
+          });
         });
     }
   }
