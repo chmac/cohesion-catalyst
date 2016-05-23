@@ -70,6 +70,9 @@ Router.route("/bullseye", {
         this.render("bullseyeLogin");
       }
     } else {
+      if (!Roles.userIsInRole(Meteor.userId(),"view-bullseye")) {
+        Router.go("home");
+      }
       this.next();
     }
   },
