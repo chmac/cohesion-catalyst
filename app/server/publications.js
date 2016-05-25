@@ -296,7 +296,22 @@ Meteor.publish("bullseyeIdentifications", function(currentTraining) {
   check(currentTraining, String);
 
   var handle = Counts.publish(subscription, "identificationsCount",
-    Identifications.find({trainingId: currentTraining}));
+    Identifications.find({
+      trainingId: currentTraining,
+      level: {
+        $gt: 0
+      },
+      editCompleted: true,
+      $or: [
+        {
+          blacklisted: {
+            $exists: false
+          }
+        }, {
+          blacklisted: false
+        }
+      ]
+    }));
 
   subscription.onStop(function() {
     handle.stop();
