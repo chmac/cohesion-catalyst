@@ -93,8 +93,8 @@
     var newBubble = doc;
     newBubble.x = Math.round(size * Math.random());
     newBubble.y = Math.round(size * Math.random());
-    newBubble.vx = 30.5 * (Math.random() - 0.5);
-    newBubble.vy = 40 * (Math.random() - 0.5);
+    newBubble.vx = 5 * (Math.random() - 0.5);
+    newBubble.vy = 4 * (Math.random() - 0.5);
     newBubble.radius = 35;
     newBubble.vAngle = (Math.random()*2*Math.PI + 0.15) * sign;
     bubbleList.push(newBubble);
