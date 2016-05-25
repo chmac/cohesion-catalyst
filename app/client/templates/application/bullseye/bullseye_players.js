@@ -25,16 +25,6 @@
       .attr("id", "players-group")
       .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
-    // var bullseyePlayers = Meteor.users.find({
-    //   "profile.currentTraining": Session.get("bullseyeCurrentTraining")
-    // }, {
-    //   fields: {
-    //     profile: 1,
-    //     status: 1
-    //   }
-    // }).fetch();
-    // console.log(bullseyePlayers);
-
     var playersConfig = configPlayers(avatarSize, margin);
 
     var bullseyePlayersCursor = Meteor.users.find({
@@ -43,6 +33,15 @@
       fields: {
         profile: 1,
         status: 1
+      }
+    });
+
+    templateInstance.avatarHandle = bullseyePlayersCursor.observeChanges({
+      changed: function(id, fields) {
+        if (fields.profile) {
+          d3.select("#gid" + id + " use")
+            .attr("xlink:href", "/svg/avatars.svg" + fields.profile.avatar);
+        }
       }
     });
 
@@ -63,9 +62,6 @@
       removed: function(doc) {
         removeFromPlayers(doc);
         createPlayersCircle(playerList, playersConfig);
-      },
-      changed: function(newDoc, oldDoc) {
-        // TODO change avatar
       }
     });
 
@@ -73,14 +69,6 @@
     // So we call '()' with the initial dataset.
     initializing = false;
     createPlayersCircle(playerList, playersConfig);
-
-    // var playersConfig =  {
-    //   radius: (containerSize - avatarSize * 0.25) * 0.5 - avatarSize * 0.5,
-    //   centerX: containerSize * 0.5 - margin.left, // We need to adjust the translation of the drawing surface
-    //   centerY: containerSize * 0.5 - margin.top,
-    //   size: avatarSize,
-    //   count: bullseyePlayers.length
-    // };
 
     $(window).resize(function () {
       Session.set("canvasSize", document.documentElement.clientHeight);
@@ -98,8 +86,6 @@
       });
     });
 
-
-
   }); // onRendered()
 
 
@@ -114,34 +100,36 @@
 
   function addToPlayers(doc) {
     var newPlayer = doc;
-    switch(newPlayer.profile.name) {
-      // #1
-      case "Tester":
-        newPlayer.rotation = 30;
-        break;
-      // #2
-      case "Willy":
-        newPlayer.rotation = 90;
-        break;
-      // #3
-      case "Otto":
-        newPlayer.rotation = 150;
-        break;
-      // #4
-      case "Fred":
-        newPlayer.rotation = 210;
-        break;
-      // #5
-      case "Jenny":
-        newPlayer.rotation = 270;
-        break;
-      // #6
-      case "Kimmy":
-        newPlayer.rotation = 330;
-        break;
-      default:
-        // ignore
-        break;
+    if (newPlayer.status && newPlayer.status.lastLogin) {
+      switch(newPlayer.status.lastLogin.ipAddr) {
+        // iPad#1
+        case "192.168.1.101":
+          newPlayer.rotation = 30;
+          break;
+        // iPad#2
+        case "192.168.1.102":
+          newPlayer.rotation = 90;
+          break;
+        // iPad#3
+        case "192.168.1.103":
+          newPlayer.rotation = 150;
+          break;
+        // iPad#4
+        case "192.168.1.104":
+          newPlayer.rotation = 210;
+          break;
+        // iPad#5
+        case "192.168.1.105":
+          newPlayer.rotation = 270;
+          break;
+        // iPad#6
+        case "192.168.1.105":
+          newPlayer.rotation = 330;
+          break;
+        default:
+          // ignore
+          break;
+      }
     }
     playerList.push(newPlayer);
   } // addToPlayers
@@ -171,18 +159,13 @@
 
   var createPlayersCircle = function(players, config) {
     var spacing = 15;
-    // var theta = 2 * Math.PI / players.length;
 
-    // var radialPlayers = [];
-    // players.forEach(function(p, i, players) {
-    // // players.forEach(function(p, i, players) {
-    //   var radialPlayer, x, y, rotation;
-    //   x = config.centerX + config.radius * Math.cos(i * theta);
-    //   y = config.centerY + config.radius * Math.sin(i * theta);
-    //   // rotation = 30 + i * 60;
-    //   radialPlayer = _.extend(p, {x:i}, {y:y}, {rotation: p.rotation});
-    //   radialPlayers.push(radialPlayer);
-    // });
+    // TODO remove this when done with testing
+    players.forEach(function(p, i, players) {
+      if (!p.rotation) {
+        p.rotation = 30 + i * 60;
+      }
+    });
 
     // =======================================
     // FOR DEBUGGING: big circle in the center
@@ -196,7 +179,6 @@
     //   .style("fill", "rgba(55, 55, 55, 0.3)");
 
     var playerElements = drawingSurface.selectAll(".bullseye-player")
-      // .data(radialPlayers, function(d, i) {
       .data(players, function(d, i) {
         return d._id;
     });
@@ -252,6 +234,7 @@
   Template.bullseyePlayers.onDestroyed(function() {
     var templateInstance = this;
     templateInstance.playerHandle.stop();
+    templateInstance.avatarHandle.stop();
   }); // onDestroyed
 
 }()); // end function closure
