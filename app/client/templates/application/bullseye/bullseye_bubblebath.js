@@ -80,7 +80,6 @@
     // At this point, 'observe' has returned and the initial query results are delivered.
     // So we call 'createBubbleCloud()' with the initial dataset.
     initializing = false;
-    // createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
     makeBubbleBath();
 
     d3.timer(move);
