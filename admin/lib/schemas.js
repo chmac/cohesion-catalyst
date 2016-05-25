@@ -15,7 +15,7 @@ AdminSchemas.ChangePassword = new SimpleSchema({
 AdminSchemas.UserProfile = new SimpleSchema({
   name: {
     type: String,
-    min: 5
+    min: 3
   },
   avatar: {
     type: String,
