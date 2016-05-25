@@ -1,3 +1,17 @@
+@font-face {
+  font-family: 'Short Stack';
+  font-weight: 400;
+  font-style: normal;
+  src: url('/fonts/Short-Stack-regular/Short-Stack-regular.eot');
+  src: url('/fonts/Short-Stack-regular/Short-Stack-regular.eot?#iefix') format('embedded-opentype'),
+       local('Short Stack'),
+       local('Short-Stack-regular'),
+       url('/fonts/Short-Stack-regular/Short-Stack-regular.woff2') format('woff2'),
+       url('/fonts/Short-Stack-regular/Short-Stack-regular.woff') format('woff'),
+       url('/fonts/Short-Stack-regular/Short-Stack-regular.ttf') format('truetype'),
+       url('/fonts/Short-Stack-regular/Short-Stack-regular.svg#ShortStack') format('svg');
+}
+
 .bullseye-menu .open > a,
 .bullseye-menu .open > a:hover,
 .bullseye-menu .open > a:focus  {
@@ -51,11 +65,6 @@ p.bullseye-circle-label {
   font-size: 4em;
 }
 
-:-webkit-full-screen {
-  background-color: grey;
-}
-
-
 @keyframes rotation {
   from {
     transform: rotate(0deg);
@@ -63,8 +72,4 @@ p.bullseye-circle-label {
   to {
     transform: rotate(360deg);
   }
-}
-
-#player-canvas {
-  border: 2px solid yellow;
 }
