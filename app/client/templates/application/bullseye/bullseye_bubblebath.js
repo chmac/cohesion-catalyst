@@ -54,7 +54,7 @@
       added: function(doc) {
         addToBubbles(doc, size);
 
-        // We want to prevent multiple calls of 'createBubbleCloud()'
+        // We want to prevent multiple calls of 'makeBubbleBath()'
         // while the 'added()' callback delivers the initial result of the query.
         if (!initializing) {
           makeBubbleBath();
@@ -78,7 +78,7 @@
     });
 
     // At this point, 'observe' has returned and the initial query results are delivered.
-    // So we call 'createBubbleCloud()' with the initial dataset.
+    // So we call 'makeBubbleBath()' with the initial dataset.
     initializing = false;
     makeBubbleBath();
 
