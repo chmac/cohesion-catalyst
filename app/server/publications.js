@@ -279,7 +279,8 @@ Meteor.publish("currentPlayers", function(currentTraining) {
     "profile.currentTraining": currentTraining
   }, {
     fields: {
-      profile: 1
+      profile: 1,
+      status: 1
     }
   });
 
