@@ -51,6 +51,9 @@ p.bullseye-circle-label {
   font-size: 4em;
 }
 
+:-webkit-full-screen {
+  background-color: grey;
+}
 
 
 @keyframes rotation {
@@ -60,4 +63,8 @@ p.bullseye-circle-label {
   to {
     transform: rotate(360deg);
   }
+}
+
+#player-canvas {
+  border: 2px solid yellow;
 }
