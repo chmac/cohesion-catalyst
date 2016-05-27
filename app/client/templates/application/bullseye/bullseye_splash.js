@@ -6,11 +6,14 @@ Template.bullseyeSplash.onRendered(function() {
     strokeWidth,
     spacer,
     circleData,
-    w,h;
+    w,h,
+    label,
+    stopTimer;
 
   radius = 36;
   strokeWidth = 8;
   spacer = 20;
+  stopTimer = false;
 
 
   circleData = [
@@ -24,6 +27,13 @@ Template.bullseyeSplash.onRendered(function() {
     {label: "n", color: "#ff7f0e"}, // orange
     {label: "catalyst", color: "#fff"} // white
   ];
+
+  // Add some random values used for animating the characters.
+  circleData.forEach(function(datum) {
+    var sign = Math.round(Math.random()) * 2 - 1;
+    datum.vAngle = (Math.random()*2*Math.PI + 0.15) * sign;
+  });
+
 
   // We want the welcome circles to be arranged in a 3x3 grid.
   // To accomplish this we use the index 'i' of the element within the selection to
@@ -122,25 +132,22 @@ Template.bullseyeSplash.onRendered(function() {
   //     fill: "rgba(255,0,0,0.3)"
   //   });
 
-  animate();
+  label = d3.selectAll(".circle-label");
+  // label = d3.selectAll(".word-label");
 
-  function randomSelection() {
-    var indexList = [0, 1, 2, 3, 4, 5, 6, 7];
-    var sampleIndex = _.sample(indexList);
-    return d3.selectAll(".char-label").filter(function(d, i) {
-      return sampleIndex === i;
-    });
+  function animate(elapsed) {
+    label
+      .attr("transform", function(d, i) {
+        return "rotate(" + elapsed/radius * d.vAngle + ", 0, 0)";
+      });
+
+    return stopTimer;
   }
 
-  function animate() {
-    var selection = randomSelection();
-    selection
-      .transition()
-      .duration(2000)
-      .attrTween("transform", function(d, i) {
-        return d3.interpolateString("rotate(0)", "rotate(360)");
-      })
-      .each("end", animate);
-  }
+  d3.timer(animate);
+}); // onRendered
 
-});
+
+Template.bullseyeSplash.onDestroyed(function() {
+  stopTimer = true;
+}); // onDestroyed
