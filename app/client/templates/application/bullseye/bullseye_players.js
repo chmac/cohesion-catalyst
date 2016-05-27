@@ -1,10 +1,12 @@
 (function() {
 
   var drawingSurface;
-  var playerList = [];
+  var playerList;
 
   Template.bullseyePlayers.onRendered(function() {
     var templateInstance = this;
+    playerList = [];
+
     Session.set("canvasSize", document.documentElement.clientHeight);
 
     var avatarSize = 105;
@@ -56,19 +58,19 @@
         // We want to prevent multiple calls of '()'
         // while the 'added()' callback delivers the initial result of the query.
         if (!initializing) {
-          createPlayersCircle(playerList, configPlayers(avatarSize, margin));
+          createPlayersCircle(configPlayers(avatarSize, margin));
         }
       },
       removed: function(doc) {
         removeFromPlayers(doc);
-        createPlayersCircle(playerList, playersConfig);
+        createPlayersCircle(playersConfig);
       }
     });
 
     // At this point, 'observe' has returned and the initial query results are delivered.
     // So we call '()' with the initial dataset.
     initializing = false;
-    createPlayersCircle(playerList, playersConfig);
+    createPlayersCircle(playersConfig);
 
     $(window).resize(function () {
       Session.set("canvasSize", document.documentElement.clientHeight);
@@ -85,7 +87,6 @@
           "translate(0," + (-config.radius) + ")";
       });
     });
-
   }); // onRendered()
 
 
@@ -146,7 +147,8 @@
 
   Template.bullseyePlayers.helpers({
     radius: function() {
-      return Session.get("playerRadius");
+      var diameter = Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
+      return diameter * 0.5 - 5;
     },
     cx: function() {
       return Session.get("centerX");
@@ -157,11 +159,11 @@
   });
 
 
-  var createPlayersCircle = function(players, config) {
+  var createPlayersCircle = function(config) {
     var spacing = 15;
 
     // TODO remove this when done with testing
-    players.forEach(function(p, i, players) {
+    playerList.forEach(function(p, i, players) {
       if (!p.rotation) {
         p.rotation = 30 + i * 60;
       }
@@ -179,7 +181,7 @@
     //   .style("fill", "rgba(55, 55, 55, 0.3)");
 
     var playerElements = drawingSurface.selectAll(".bullseye-player")
-      .data(players, function(d, i) {
+      .data(playerList, function(d, i) {
         return d._id;
     });
 
@@ -217,7 +219,26 @@
       .attr("transform", "translate(" + (-config.size * 0.5) + "," + (-config.size * 0.5) + ")");
 
 
+    // We append a SVG <rect> in order to serve as a background for the SVG <text>.
+    // For now, we only apply the 'transform' attribute so the <rect> has no
+    // dimensions yet. We will apply these missing attributes right after we
+    // calculated the dimensions of each <text> so that each <rect> will
+    // perfectly match the 'width' and 'height' of the respecting <text> area.
+    playerGroup.append("rect")
+      .attr("class", "txt-background")
+      // We position the rect below or above the player avatar
+      // depending on its vertical position, i.e. above or below the vertical center.
+      .attr("transform", function(d) {
+        return "translate(0," + (-config.size * 0.5 + spacing) + ")";
+      })
+      .style({
+        fill: "#000",
+        "fill-opacity": 0.6
+      });
+
+
     playerGroup.append("text")
+      .attr("class", "player-label")
       .attr("text-anchor", "middle")
       // We position the text above the player avatar
       .attr("transform", function(d) {
@@ -227,7 +248,37 @@
       .text(function(d) {
         return d.profile.name;
       });
-    };
+
+
+    // We calculate the dimension values of the <text> element and
+    // add them to the player's data.
+    d3.selectAll("text.player-label").each(function(d,i) {
+      var dimensions = this.getBBox();
+      d.textX = dimensions.x;
+      d.textY = dimensions.y;
+      d.textWidth = dimensions.width;
+      d.textHeight = dimensions.height;
+    });
+
+    // Accessing the previously calculated values we can now
+    // apply the missing <rect> attributes.
+    d3.selectAll("rect.txt-background")
+      .attr({
+        x: function(d) {
+          return d.textX;
+        },
+        y: function(d) {
+          return d.textY;
+        },
+        width: function(d) {
+          return d.textWidth;
+        },
+        height: function(d) {
+          return d.textHeight;
+        }
+      });
+  }; // createPlayersCircle
+
 
   // We need to stop observing our live queries when this template is
   // removed from the DOM.

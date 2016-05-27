@@ -30,6 +30,18 @@
   animation: rotation 60s linear infinite;
 }
 
+.circle-label {
+  font-weight: bold;
+}
+
+.char-label {
+  font-size: 36px;
+}
+
+.word-label {
+  font-size: 20px;
+}
+
 p.bullseye-circle-label {
   text-align: center;
   word-wrap: break-word;
@@ -62,7 +74,7 @@ p.bullseye-circle-label {
 
 .bullseye-indicator-number {
   font-family: 'Short Stack', cursive;
-  font-size: 4em;
+  font-size: 3.75em;
 }
 
 @keyframes rotation {
