@@ -1,10 +1,12 @@
 (function() {
 
   var drawingSurface;
-  var playerList = [];
+  var playerList;
 
   Template.bullseyePlayers.onRendered(function() {
     var templateInstance = this;
+    playerList = [];
+
     Session.set("canvasSize", document.documentElement.clientHeight);
 
     var avatarSize = 105;
@@ -56,19 +58,19 @@
         // We want to prevent multiple calls of '()'
         // while the 'added()' callback delivers the initial result of the query.
         if (!initializing) {
-          createPlayersCircle(playerList, configPlayers(avatarSize, margin));
+          createPlayersCircle(configPlayers(avatarSize, margin));
         }
       },
       removed: function(doc) {
         removeFromPlayers(doc);
-        createPlayersCircle(playerList, playersConfig);
+        createPlayersCircle(playersConfig);
       }
     });
 
     // At this point, 'observe' has returned and the initial query results are delivered.
     // So we call '()' with the initial dataset.
     initializing = false;
-    createPlayersCircle(playerList, playersConfig);
+    createPlayersCircle(playersConfig);
 
     $(window).resize(function () {
       Session.set("canvasSize", document.documentElement.clientHeight);
@@ -157,11 +159,11 @@
   });
 
 
-  var createPlayersCircle = function(players, config) {
+  var createPlayersCircle = function(config) {
     var spacing = 15;
 
     // TODO remove this when done with testing
-    players.forEach(function(p, i, players) {
+    playerList.forEach(function(p, i, players) {
       if (!p.rotation) {
         p.rotation = 30 + i * 60;
       }
@@ -179,7 +181,7 @@
     //   .style("fill", "rgba(55, 55, 55, 0.3)");
 
     var playerElements = drawingSurface.selectAll(".bullseye-player")
-      .data(players, function(d, i) {
+      .data(playerList, function(d, i) {
         return d._id;
     });
 
