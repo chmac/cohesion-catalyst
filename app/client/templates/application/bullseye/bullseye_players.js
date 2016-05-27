@@ -148,7 +148,7 @@
   Template.bullseyePlayers.helpers({
     radius: function() {
       var diameter = Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
-      return diameter * 0.5;
+      return diameter * 0.5 - 5;
     },
     cx: function() {
       return Session.get("centerX");

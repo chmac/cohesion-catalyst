@@ -14,31 +14,35 @@
 </template>
 
 <template name="bullseyeIdIndicator">
-  <svg class="bullseye-indicator" x="{{startX}}" y="{{startY}}" width="160" height="160" viewBox="0 -4 160 160">
-    <circle cx="80" cy="80" r="75" fill="#fff"/>
-    <text y="85" text-anchor="middle">
-      <tspan x="80" class="bullseye-indicator-number">{{idsCount}}</tspan>
-      <tspan x="80" dy="30" class="bullseye-indicator-label">#IDs total</tspan>
-    </text>
+  <svg class="bullseye-indicator" x="{{startX}}" y="{{startY}}" width="160" height="160" viewBox="0 0 160 160">
+    <g transform="rotate(90, 80, 80)">
+      <circle cx="80" cy="80" r="75" fill="#fff"/>
+      <text y="85" text-anchor="middle">
+        <tspan x="80" class="bullseye-indicator-number">{{idsCount}}</tspan>
+        <tspan x="80" dy="30" class="bullseye-indicator-label">#IDs total</tspan>
+      </text>
+    </g>
   </svg>
 </template>
 
 <template name="bullseyeMatchIndicator">
-  <svg class="bullseye-indicator" x="{{startX1}}" y="{{startY1}}" width="160" height="160" viewBox="0 -4 160 160">
-    <circle cx="80" cy="80" r="75" fill="#ffcc00"/>
-    <text y="85" text-anchor="middle">
-      <tspan x="80" class="bullseye-indicator-number">{{matchCount}}</tspan>
-      <tspan x="80" dy="30" class="bullseye-indicator-label">#matches</tspan>
-    </text>
+  <svg class="bullseye-indicator" x="{{startX1}}" y="{{startY1}}" width="160" height="160" viewBox="0 0 160 160">
+    <g transform="rotate(-90, 80, 80)">
+      <circle cx="80" cy="80" r="75" fill="#ffcc00"/>
+      <text y="85" text-anchor="middle">
+        <tspan x="80" class="bullseye-indicator-number">{{matchCount}}</tspan>
+        <tspan x="80" dy="30" class="bullseye-indicator-label">#matches</tspan>
+      </text>
+    </g>
   </svg>
 
-  <svg class="bullseye-indicator" x="{{startX2}}" y="{{startY2}}" width="160" height="160" viewBox="-4 0 160 160">
+  <svg class="bullseye-indicator" x="{{startX2}}" y="{{startY2}}" width="160" height="160" viewBox="0 0 160 160">
     <g transform="rotate(90, 80, 80)">
       <circle cx="80" cy="80" r="75" fill="#fff"/>
       <text y="40" text-anchor="middle">
         <tspan x="80" class="bullseye-indicator-label">cohesion</tspan>
         <tspan x="80" dy="20" class="bullseye-indicator-label">level</tspan>
-        <tspan x="80" dy="70" class="bullseye-indicator-number">2</tspan>
+        <tspan x="80" dy="60" class="bullseye-indicator-number">2</tspan>
       </text>
     </g>
   </svg>
