@@ -30,6 +30,18 @@
   animation: rotation 60s linear infinite;
 }
 
+.circle-label {
+  font-weight: bold;
+}
+
+.char-label {
+  font-size: 36px;
+}
+
+.word-label {
+  font-size: 20px;
+}
+
 p.bullseye-circle-label {
   text-align: center;
   word-wrap: break-word;
