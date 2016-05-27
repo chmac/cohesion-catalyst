@@ -101,14 +101,7 @@ Template.bullseyeSplash.onRendered(function() {
           return "#000";
         }
         return "#fff";
-      },
-      "font-size": function(d) {
-        if (d.label.length > 1) {
-          return 20;
-        }
-        return 36;
-      },
-      "font-weight": "bold"
+      }
     })
     .text(function(d) {
       return d.label;
