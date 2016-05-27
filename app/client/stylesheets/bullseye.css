@@ -62,7 +62,7 @@ p.bullseye-circle-label {
 
 .bullseye-indicator-number {
   font-family: 'Short Stack', cursive;
-  font-size: 4em;
+  font-size: 3.75em;
 }
 
 @keyframes rotation {
