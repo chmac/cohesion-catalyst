@@ -57,7 +57,7 @@ Template.bullseyeMatchIndicator.helpers({
     });
 
     matches.forEach(function(m) {
-      sum += choose(m.createdBy.length, 2);
+      sum += calculateMatches(m.createdBy.length);
     });
     return sum;
   },
@@ -80,32 +80,17 @@ Template.bullseyeMatchIndicator.helpers({
 });
 
 
-function factorial (n) {
+/**
+ * Calculates the number of matches for one identification.
+ *
+ * @param {Number} n - The number of users with common identifications
+ */
+function calculateMatches(n) {
   if (isNaN(n)) {
     return;
   }
-  if (n === 0) {
-    return 1;
-  }
-  // recursion
-  return n * factorial(n - 1);
-}
-
-/**
- * Calculates the binomial coefficient, i.e. the number of ways picking
- * 'k' unordered outcomes from 'n' possibilities (think of lottery '6 out of 49').
- *
- * @param {Number} n - The number of users with common identifications.
- * @param {Number} k - The number of combinations (i.e. k-subsets), which in our case
- * will be 2 since we are looking for pairs (2-subsets).
- * cf. http://mathworld.wolfram.com/BinomialCoefficient.html
- */
-function choose (n, k) {
-  if (isNaN(n) || isNaN(k)) {
+  if (n <= 0) {
     return;
   }
-  if (n <= 0 || k <= 0 || k > n) {
-    return;
-  }
-  return factorial(n) / factorial(k) * factorial(n-k);
+  return n * (n - 1) / 2;
 }
