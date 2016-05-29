@@ -7,9 +7,9 @@ Template.intro.onRendered(function() {
     }
   });
 
-  if (!d3.select(".selected-avatar").empty()) {
-      scaleElement(d3.select(".selected-avatar").node(), 1.75, 0);
-  }
+  // if (!d3.select(".selected-avatar").empty()) {
+  //     scaleElement(d3.select(".selected-avatar").node(), 1.75, 0);
+  // }
 
   d3.selectAll(".avatar")
     // .on("mouseover", function() {
@@ -46,13 +46,13 @@ Template.intro.onRendered(function() {
             // On success:
             // Scale-up the selected smiley while re-scaling the deselected one.
             d3.select(self).classed("selectable", false);
-            d3.selectAll(".selectable").each(function() {
-              scaleElement(d3.select(this).node(), 1, 250);
-            });
-            scaleElement(d3.select(self).node(), 1.75, 250);
+            // d3.selectAll(".selectable").each(function() {
+            //   scaleElement(d3.select(this).node(), 1, 250);
+            // });
+            // scaleElement(d3.select(self).node(), 1.75, 250);
             // After successful smiley selection, redirect to the 'my IDs' view.
             // TODO Improve redirection and make it a smooth and nicely animated view transition
-            Router.go("myIds");
+            // Router.go("myIds");
         });
       }
       d3.event.stopPropagation();
@@ -117,11 +117,20 @@ Template.intro.helpers({
   avatars: function() {
     return Avatars.find();
   },
-  selectedAvatarClass: function() {
+  alignAvatar: function(pos) {
+    if (pos > 0 && pos < 400) {
+      return pos - 40;
+    } else if (pos > 200 ){
+      return pos - 80;
+    } else {
+      return pos;
+    }
+  },
+  selectedAvatarClass: function(avatar) {
     var avatarId,
       avatarSelected;
 
-    avatarId = matchText(this.url);
+    avatarId = matchText(avatar.url);
     avatarSelected = Meteor.user().profile.avatar === avatarId;
     if (avatarSelected) {
       return "selected-avatar";
