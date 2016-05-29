@@ -7,10 +7,6 @@ Template.intro.onRendered(function() {
     }
   });
 
-  // if (!d3.select(".selected-avatar").empty()) {
-  //     scaleElement(d3.select(".selected-avatar").node(), 1.75, 0);
-  // }
-
   d3.selectAll(".avatar")
     // .on("mouseover", function() {
     //   d3.event.stopPropagation();
@@ -46,10 +42,6 @@ Template.intro.onRendered(function() {
             // On success:
             // Scale-up the selected smiley while re-scaling the deselected one.
             d3.select(self).classed("selectable", false);
-            // d3.selectAll(".selectable").each(function() {
-            //   scaleElement(d3.select(this).node(), 1, 250);
-            // });
-            // scaleElement(d3.select(self).node(), 1.75, 250);
             // After successful smiley selection, redirect to the 'my IDs' view.
             // TODO Improve redirection and make it a smooth and nicely animated view transition
             // Router.go("myIds");
@@ -71,46 +63,7 @@ Template.intro.onRendered(function() {
       return matchText(d3.select(target).select("use").attr("href"));
     }
 
-    /**
-     * Scales an SVG element up or back to the default size, respectively.
-     * The scaling is initiated from user interaction.
-     * @param {object} target The target DOM node of the user interaction.
-     * @param {number} factor The specified factor to scale the SVG element.
-     * @param {number} time The duration of the scaling transition.
-     */
-    function scaleElement(target, factor, time) {
-      var avatar,
-        boundingBox,
-        x,
-        y,
-        transformOriginX,
-        transformOriginY;
-
-      avatar = d3.select(target).select("use");
-
-      // Retrieve the bounding box object of the SVG <use> element
-      // referencing the avatar symbol.
-      boundingBox = avatar.node().getBBox();
-
-      // Here D3's 'attr()' function returns the value of as 'string'
-      // so we need to type-convert string to number using the '+' operator.
-      x = +avatar.attr("x");
-      y = +avatar.attr("y");
-
-      // Calculate the desired transform origin.
-      transformOriginX = boundingBox.x + x + boundingBox.width / 2;
-      transformOriginY = boundingBox.y + y + boundingBox.height / 2;
-      // console.log("x: " + x + ", y: "  + y );
-      // console.log("boundingBox: ", boundingBox);
-      // console.log("transXx " + transformOriginX + ", transYy: "  + transformOriginY );
-      avatar.transition()
-        .duration(time)
-        .attr("transform",
-        "translate(" + (transformOriginX) + "," + (transformOriginY) +
-        ") scale(" + factor +
-        ") translate(" + (-transformOriginX) + "," + (-transformOriginY) + ")" );
-    }
-});
+}); // onRendered
 
 
 Template.intro.helpers({
