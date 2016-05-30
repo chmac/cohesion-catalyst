@@ -40,11 +40,8 @@ Template.intro.onRendered(function() {
               return throwError("Error: " + error.reason);
             }
             // On success:
-            // Scale-up the selected smiley while re-scaling the deselected one.
+            // Remove class to indicate newly selected avatar and trigger transition.
             d3.select(self).classed("selectable", false);
-            // After successful smiley selection, redirect to the 'my IDs' view.
-            // TODO Improve redirection and make it a smooth and nicely animated view transition
-            // Router.go("myIds");
         });
       }
       d3.event.stopPropagation();
@@ -90,6 +87,13 @@ Template.intro.helpers({
     } else {
      return "selectable";
    }
+  }
+});
+
+Template.intro.events({
+  "webkitTransitionEnd .selected-avatar, transitionend .selected-avatar": function(event, template) {
+    // After successful smiley selection, redirect to the 'my IDs' view.
+    Router.go("myIds");
   }
 });
 
