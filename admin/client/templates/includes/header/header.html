@@ -5,12 +5,12 @@
     <a href="{{pathFor 'home'}}" class="item">Cohesion Catalyst Admin</a>
 
     <div class="right menu">
-      {{# if currentUser}}
-        <a class="item" id="admin-logout">
+      {{#if currentUser}}
+        <div class="item link" id="admin-logout">
           <span style="padding-right:8px;">{{currentUser.profile.name}} </span>
-          <i class="sign out icon"></i>
-        </a>
-      {{/ if}}
+          <i class="link sign out icon"></i>
+        </div>
+      {{/if}}
 
     </div>
 
