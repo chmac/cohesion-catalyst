@@ -61,10 +61,12 @@
 
 .avatar.selectable {
   transform: scale(1);
+  -webkit-transition: transform 500ms;
   transition: transform 500ms;
 }
 
 .avatar.selected-avatar {
   transform: scale(1.75);
+  -webkit-transition: transform 500ms;
   transition: transform 500ms;
 }
