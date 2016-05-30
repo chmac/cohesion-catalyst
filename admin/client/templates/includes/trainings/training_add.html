@@ -15,11 +15,22 @@
           Add Default Training
         </h3>
         <p>
-          Press the button below to quickly create a new default training with one click.
-          This newly created training will be set as the current training. Once the new
-          training document is added to the collection you can edit the data as needed.
+          Quickly create a new default training.
+           Once the new training document is added to the collection you can edit the data as needed.
         </p>
-        <div class="ui button training-create-default" data-current-training="{{currentTraining}}">
+
+        <div class="ui blue message">
+          <div class="header">
+            Please note:
+          </div>
+          <ul class="list">
+            <li>This lets you create a new training session with one click.</li>
+            <li>The newly created training will be set as current training.</li>
+            <li>Currently logged in users will be logged out.</li>
+          </ul>
+        </div>
+
+        <div class="ui blue button training-create-default" data-current-training="{{currentTraining}}">
           Add Default Training
         </div>
 
