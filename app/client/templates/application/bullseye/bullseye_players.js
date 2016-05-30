@@ -43,6 +43,7 @@
         if (fields.profile) {
           d3.select("#gid" + id + " use")
             .attr("xlink:href", "/svg/avatars.svg" + fields.profile.avatar);
+          createPlayersCircle(configPlayers(avatarSize, margin));
         }
       }
     });
