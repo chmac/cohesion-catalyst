@@ -9,7 +9,6 @@ iron:router
 accounts-password
 twbs:bootstrap
 sacha:spin
-meteorhacks:fast-render
 alanning:roles
 underscore
 standard-minifiers
