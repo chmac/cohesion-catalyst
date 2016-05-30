@@ -26,7 +26,7 @@ Template.loginForm.helpers({
     });
   },
   trainingDate: function() {
-    return this.date.toDateString();
+    return moment(this.date).format("MMM D YYYY, HH:mm");
 
   }
 });
@@ -99,7 +99,7 @@ Template.createAccountForm.helpers({
   trainingDate: function() {
     // 'trainingDate' is used within the {{#each traingings}} block
     // so 'this' is the currently evaluated training.
-    return this.date.toDateString();
+    return moment(this.date).format("MMM D YYYY, HH:mm");
 
   }
 });

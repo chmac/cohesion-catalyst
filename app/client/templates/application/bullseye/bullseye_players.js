@@ -43,6 +43,10 @@
         if (fields.profile) {
           d3.select("#gid" + id + " use")
             .attr("xlink:href", "/svg/avatars.svg" + fields.profile.avatar);
+          // HEADS UP: We need to call 'createPlayersCircle()' here
+          // to fix error in Microsoft Edge which resulted in incorrect position
+          // and wrong smiley; simply updating 'attr()' does not work.
+          createPlayersCircle(configPlayers(avatarSize, margin));
         }
       }
     });
