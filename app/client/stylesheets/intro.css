@@ -9,15 +9,24 @@
   margin-top: 30px;
 }
 
-@media all and (min-width: 768px) {
+@media all and (min-width: 770px) {
   .avatar-container {
     margin: 5% auto 0 auto;
-    width: 75vmin; /* 75% of minimum length of current viewport - either width or height, whatever is smallest */
     height: 80vh; /* 80% of current viewport height */
+    width: 80%
   }
 
   #avatar-wrapper {
-    margin-left: 45px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+  }
+
+  .avatar-container > h4 {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1.1em;
   }
 }
 
@@ -30,11 +39,11 @@
   #avatar-wrapper {
     margin-left: 23px;
   }
-}
 
-.avatar-container > h4 {
-  padding-left: 62px;
-  font-size: 1.1em;
+  .avatar-container > h4 {
+    padding-left: 62px;
+    font-size: 1.1em;
+  }
 }
 
 
