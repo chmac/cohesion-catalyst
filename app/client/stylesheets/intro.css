@@ -4,33 +4,48 @@
  * Layout affecting the 'intro.html' template.
  */
 
-.avatar-container {
-  margin: 13% auto 0 auto;
+#avatar-wrapper {
+  position: relative;
+  margin-top: 30px;
 }
 
-@media all and (min-width: 768px) {
+@media all and (min-width: 770px) {
   .avatar-container {
-    width: 55vmin; /* 55% of minimum length of current viewport - either width or height, whatever is smallest */
-    height: 90vh;  /* 90% of current viewport height */
+    margin: 5% auto 0 auto;
+    height: 80vh; /* 80% of current viewport height */
+    width: 80%
+  }
+
+  #avatar-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+  }
+
+  .avatar-container > h4 {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1.1em;
   }
 }
 
 @media all and (max-width: 768px) {
   .avatar-container {
+    margin: 18% auto 0 auto;
     width: 70%;
+  }
+
+  #avatar-wrapper {
+    margin-left: 23px;
+  }
+
+  .avatar-container > h4 {
+    padding-left: 62px;
+    font-size: 1.1em;
   }
 }
 
-.avatar-container > h4 {
-  padding-left: 62px;
-  font-size: 1.1em;
-}
-
-#smiley-selection {
-  display: block;
-  width: 100%;
-  padding: 1em;
-}
 
 /* HEADS UP: We use the CSS 'color' property here to customize the 'fill'
 * and 'stroke' color values of the avatar icon's SVG elements which use the
@@ -38,8 +53,20 @@
 * in the file avatars.svg.
 * Normally, the CSS 'color' property is not applicable to SVG elements.
 */
-a.avatar {
+.avatar a {
   cursor: pointer; /* Needs to explicitly set for SVG <a> elements */
   outline: none;
   color: #fff; /* Property cascades to the SVG element inside <a>. */
+}
+
+.avatar.selectable {
+  transform: scale(1);
+  -webkit-transition: transform 500ms;
+  transition: transform 500ms;
+}
+
+.avatar.selected-avatar {
+  transform: scale(1.75);
+  -webkit-transition: transform 500ms;
+  transition: transform 500ms;
 }
