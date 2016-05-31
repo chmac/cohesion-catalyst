@@ -2,7 +2,7 @@
   var drawingSurface;
   var canvas, context;
   var size;
-  var bubbleList = [];
+  var bubbleList;
   var bubbles;
   var bubbleGroup;
   var stopTimer;
@@ -40,7 +40,7 @@
     //  .style("fill", "blue");
     //
     bubbles = drawingSurface.selectAll(".bubble");
-
+    bubbleList = [];
     // We use the MetaCollection to exclude multi-occuring identifications.
     var metaIdsCursor = MetaCollection.find({
       createdAtTraining: currentTrainingId
