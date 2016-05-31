@@ -52,7 +52,7 @@
 
     templateInstance.networkHandle = metaIdsCursor.observe({
       added: function(doc) {
-        addToBubbles(doc, size);
+        addToBubbles(doc);
 
         // We want to prevent multiple calls of 'makeBubbleBath()'
         // while the 'added()' callback delivers the initial result of the query.
@@ -88,7 +88,8 @@
 
 
 
-  function addToBubbles(doc, size) {
+  function addToBubbles(doc) {
+    size = Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
     var sign = Math.round(Math.random()) * 2 - 1;
     var newBubble = doc;
     newBubble.x = Math.round(size * Math.random());
@@ -184,18 +185,19 @@
 
 
   function move(elapsed) {
+    size = Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
     for (var i = 0; i < bubbleList.length; i++) {
       var bubble = bubbleList[i];
-        if (bubble.x > size) {
-          bubble.x = 0;
-        } else if (bubble.x < 0) {
-          bubble.x = size;
+        if (bubble.x > size + bubble.radius) {
+          bubble.x = 0 - bubble.radius;
+        } else if (bubble.x < 0 - bubble.radius) {
+          bubble.x = size + bubble.radius;
         }
 
-        if (bubble.y > size) {
-          bubble.y = 0;
-        } else if (bubble.y < 0) {
-          bubble.y = size;
+        if (bubble.y > size + bubble.radius) {
+          bubble.y = 0 - bubble.radius;
+        } else if (bubble.y < 0 - bubble.radius) {
+          bubble.y = size + bubble.radius;
         }
 
         bubble.x += bubble.vx;
