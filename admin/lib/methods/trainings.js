@@ -154,12 +154,37 @@ Meteor.methods({
       isCurrentTraining: true
     };
 
+    // We change the training marked as current training so that
+    // there can only be one current training, i.e. the new default training.
     Trainings.update({_id: currentTrainingId}, {
       $set: {
         isCurrentTraining: false
       }
     });
 
+    // We log out all users currently logged in to the training we changed.
+    // NOTE This is an intrusive operation! However, it is convenient for quickly
+    // starting a fresh session, particularly when working at the Cohesion Table.
+    Meteor.users.update({
+      "profile.currentTraining": currentTrainingId
+    }, {
+      $set: {
+        "services.resume.loginTokens": []
+      }
+    }, {
+      multi: true
+    });
+
+    // We switch the bullseye current view to the splash screen.
+    Meteor.users.update({
+      username: "BullsEye"
+    }, {
+      $set: {
+        "profile.currentView": "splash"
+      }
+    });
+
+    // Finally, we create the new default training
     return Trainings.insert(newDefaultTraining);
   },
 
