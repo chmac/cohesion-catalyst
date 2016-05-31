@@ -34,6 +34,7 @@ Template.bullseyeMatchIndicator.onCreated(function() {
   var templateInstance = this;
   // We set the initial value of the circle's fill color.
   templateInstance.randomColor = new ReactiveVar("c1");
+  templateInstance.fillLevel = new ReactiveVar(0);
 }); // onCreated
 
 Template.bullseyeMatchIndicator.onRendered(function() {
@@ -100,6 +101,39 @@ Template.bullseyeMatchIndicator.helpers({
   },
   randomColor: function() {
     return Template.instance().randomColor.get();
+  },
+  cohesionLevel: function() {
+    // Based on the number of players of the current training,
+    // we calculate the cohesion level by counting the documents
+    // in the MetaCollection that are matched by (i.e. created by)
+    // all current players.
+    var tally = Meteor.users.find({
+      "profile.currentTraining": Session.get("bullseyeCurrentTraining")
+    }).fetch().length;
+
+    var cohesionLevel =  MetaCollection.find({
+      createdBy: {
+        $size: tally
+      },
+      createdAtTraining: Session.get("bullseyeCurrentTraining")
+    }, {
+      fields: {
+        createdBy: 1
+      }
+    }).fetch().length;
+
+    Template.instance().fillLevel.set(cohesionLevel);
+
+    return cohesionLevel;
+  },
+  fillLevel: function() {
+    var fillLevel = Template.instance().fillLevel.get() * 12.5;
+
+    if (fillLevel > 100) {
+      fillLevel = 100;
+    }
+
+    return fillLevel;
   }
 });
 
