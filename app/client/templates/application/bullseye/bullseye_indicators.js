@@ -30,6 +30,25 @@ Template.bullseyeIdIndicator.helpers({
 // A subtemplate to be included within 'bullseyeIndicator' template
 // if value of 'currentView' of bullseye user is 'match'.
 // ------------------------------------------------------------------------ //
+Template.bullseyeMatchIndicator.onCreated(function() {
+  var templateInstance = this;
+  // We set the initial value of the circle's fill color.
+  templateInstance.randomColor = new ReactiveVar("c1");
+}); // onCreated
+
+Template.bullseyeMatchIndicator.onRendered(function() {
+  var templateInstance = this;
+  // We schedule to change the fill color randomly every 30s.
+  templateInstance.intervalHandle = Meteor.setInterval(function() {
+    templateInstance.randomColor.set(pickRandomColorClass());
+  }, 30000);
+}); // onRendered
+
+Template.bullseyeMatchIndicator.onDestroyed(function() {
+  var templateInstance = this;
+  Meteor.clearInterval(templateInstance.intervalHandle);
+}); // onDestroyed
+
 Template.bullseyeMatchIndicator.helpers({
   matchCount: function() {
     var sum = 0;
@@ -78,6 +97,9 @@ Template.bullseyeMatchIndicator.helpers({
   startY2: function() {
     var startY = Session.get("centerY");
     return startY ? startY - 100 : null;
+  },
+  randomColor: function() {
+    return Template.instance().randomColor.get();
   }
 });
 

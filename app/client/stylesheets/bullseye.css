@@ -85,3 +85,9 @@ p.bullseye-circle-label {
     transform: rotate(360deg);
   }
 }
+
+#match-indicator {
+  /*fill: #ffcc00; /* yellow as default */
+  transition: fill 3s ease;
+  -webkit-transition: fill 3s ease;
+}
