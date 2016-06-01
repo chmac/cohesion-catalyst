@@ -7,6 +7,28 @@
   var bubbleGroup;
   var stopTimer;
 
+  Template.bullseyeBubblebath.onCreated(function() {
+    Session.setDefault("bubbleVelocity", 5);
+
+    var templateInstance = this;
+
+    templateInstance.autorun(function() {
+      var bullseyeUser = Meteor.users.find({
+        roles: {
+          $in: ["view-bullseye"]
+        }
+      }, {
+        fields: {
+          "profile.bubbleSpeed": 1
+        }
+      }).fetch()[0];
+
+      if (bullseyeUser) {
+        Session.set("bubbleVelocity", bullseyeUser.profile.bubbleSpeed);
+      }
+    });
+  }); // onCreated
+
   Template.bullseyeBubblebath.onRendered(function() {
     stopTimer = false;
     var templateInstance = this;
@@ -94,8 +116,8 @@
     var newBubble = doc;
     newBubble.x = Math.round(size * Math.random());
     newBubble.y = Math.round(size * Math.random());
-    newBubble.vx = 5 * (Math.random() - 0.5);
-    newBubble.vy = 4 * (Math.random() - 0.5);
+    newBubble.vx = 1 * (Math.random() - 0.5);
+    newBubble.vy = 1 * (Math.random() - 0.5);
     newBubble.radius = 35;
     newBubble.vAngle = (Math.random()*2*Math.PI + 0.15) * sign;
     bubbleList.push(newBubble);
@@ -200,8 +222,8 @@
           bubble.y = size + bubble.radius;
         }
 
-        bubble.x += bubble.vx;
-        bubble.y += bubble.vy;
+        bubble.x += bubble.vx * (Session.get("bubbleVelocity") || 5);
+        bubble.y += bubble.vy * (Session.get("bubbleVelocity") || 5);
       }
 
     if (Session.equals("moveBubbles", true)) {
