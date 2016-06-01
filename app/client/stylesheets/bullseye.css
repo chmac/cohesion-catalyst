@@ -87,7 +87,6 @@ p.bullseye-circle-label {
 }
 
 #match-indicator {
-  /*fill: #ffcc00; /* yellow as default */
   transition: fill 3s ease;
   -webkit-transition: fill 3s ease;
 }
