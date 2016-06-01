@@ -1,10 +1,18 @@
 <template name="bullseyeView">
   <div class="bullseye-view" style="width: {{size}}; height: {{size}};">
-    {{#if currentViewIs "splash"}}
-      {{> bullseyeSplash}}
+    {{#unless isAutoMode}}
+      {{#if currentViewIs "splash"}}
+        {{> bullseyeSplash}}
+      {{else}}
+        {{> bullseyePlayers}}
+      {{/if}}
     {{else}}
-      {{> bullseyePlayers}}
-    {{/if}}
+      {{#if trigger}}
+        {{> bullseyePlayers}}
+      {{else}}
+        {{> bullseyeSplash}}
+      {{/if}}
+    {{/unless}}
   </div>
 </template>
 
