@@ -52,7 +52,7 @@ Template.registerHelper("viewOptions", function() {
   return [
     {label: "Splash Screen", value: "splash"},
     {label: "Reflect IDs", value: "reflect"},
-    {label: "Match Cohesion", value: "match"},
-    {label: "Explore Network", value: "explore"}
+    {label: "Match Cohesion", value: "match"}
+    // {label: "Explore Network", value: "explore"}
   ];
 });
