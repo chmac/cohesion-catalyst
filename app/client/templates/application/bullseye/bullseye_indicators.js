@@ -1,6 +1,8 @@
 Template.bullseyeIndicator.onCreated(function() {
   var templateInstance = this;
   var currentTraining = Session.get("bullseyeCurrentTraining");
+  Session.setDefault("countIds", 0);
+  Session.setDefault("countMatches", 0);
   templateInstance.subscribe("bullseyeIdentifications", currentTraining);
 });
 
@@ -12,6 +14,7 @@ Template.bullseyeIndicator.onCreated(function() {
 // ------------------------------------------------------------------------ //
 Template.bullseyeIdIndicator.helpers({
   idsCount: function() {
+    Session.set("countIds", Counts.get("identificationsCount"));
     return Counts.get("identificationsCount");
   },
   startX: function() {
@@ -79,6 +82,7 @@ Template.bullseyeMatchIndicator.helpers({
     matches.forEach(function(m) {
       sum += calculateMatches(m.createdBy.length);
     });
+    Session.set("countMatches", sum);
     return sum;
   },
   startX1: function() {

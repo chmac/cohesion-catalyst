@@ -2,13 +2,24 @@
 <template name="bullseyeIndicator">
   <div id="bullseye-indicator-container">
     <svg width={{viewportSize}} height={{viewportSize}}>
-      {{#if currentViewIs "reflect"}}
-        {{> bullseyeIdIndicator}}
-      {{/if}}
+      {{#unless isAutoMode}}
+        {{#if currentViewIs "reflect"}}
+          {{> bullseyeIdIndicator}}
+        {{/if}}
 
-      {{#if currentViewIs "match"}}
-        {{> bullseyeMatchIndicator}}
-      {{/if}}
+        {{#if currentViewIs "match"}}
+          {{> bullseyeMatchIndicator}}
+        {{/if}}
+      {{else}}
+        {{#if triggerIs "reflect"}}
+          {{> bullseyeIdIndicator}}
+        {{/if}}
+
+        {{#if triggerIs "match"}}
+          {{> bullseyeMatchIndicator}}
+        {{/if}}
+      {{/unless}}
+
     </svg>
   </div>
 </template>
