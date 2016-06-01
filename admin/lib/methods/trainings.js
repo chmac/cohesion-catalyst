@@ -180,7 +180,8 @@ Meteor.methods({
       username: "BullsEye"
     }, {
       $set: {
-        "profile.currentView": "splash"
+        "profile.currentView": "splash",
+        "profile.autoMode": true
       }
     });
 
