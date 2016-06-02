@@ -84,3 +84,15 @@ Template.idCreatedByBlockCell.events({
     });
   }
 });
+
+// ------------------------------------------------------------------------ //
+// idTrainingDateCell
+// A subtemplate to be included within 'idsList' template.
+// (include via 'tmpl' option in 'TabularTables.Identifications')
+// ------------------------------------------------------------------------ //
+Template.idTrainingDateCell.helpers({
+  trainingDate: function(id) {
+    var training = Trainings.findOne(id);
+    return training && moment(training.date).format("MMM D YYYY, HH:mm");
+  }
+});
