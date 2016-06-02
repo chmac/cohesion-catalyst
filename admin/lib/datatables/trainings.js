@@ -42,5 +42,6 @@ TabularTables.Trainings = new Tabular.Table({
       tmpl: Meteor.isClient && Template.trainingDeleteCell
     }
   ],
-  autoWidth: false
+  autoWidth: false,
+  "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ]
 });
