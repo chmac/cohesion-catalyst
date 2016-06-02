@@ -21,7 +21,7 @@ TabularTables.Trainings = new Tabular.Table({
       title: "Scheduled Date",
       render: function (val, type, doc) {
         if (val instanceof Date) {
-          return moment(val).calendar();
+          return moment(val).format("MMM D YYYY, HH:mm");
         } else {
           return "Not listed";
         }
