@@ -21,7 +21,7 @@ TabularTables.Trainings = new Tabular.Table({
       title: "Scheduled Date",
       render: function (val, type, doc) {
         if (val instanceof Date) {
-          return moment(val).calendar();
+          return moment(val).format("MMM D YYYY, HH:mm");
         } else {
           return "Not listed";
         }
@@ -42,5 +42,6 @@ TabularTables.Trainings = new Tabular.Table({
       tmpl: Meteor.isClient && Template.trainingDeleteCell
     }
   ],
-  autoWidth: false
+  autoWidth: false,
+  "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ]
 });

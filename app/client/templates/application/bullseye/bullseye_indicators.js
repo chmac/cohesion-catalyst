@@ -1,7 +1,6 @@
 Template.bullseyeIndicator.onCreated(function() {
   var templateInstance = this;
   var currentTraining = Session.get("bullseyeCurrentTraining");
-  templateInstance.subscribe("bullseyeIdentifications", currentTraining);
 });
 
 
@@ -30,36 +29,29 @@ Template.bullseyeIdIndicator.helpers({
 // A subtemplate to be included within 'bullseyeIndicator' template
 // if value of 'currentView' of bullseye user is 'match'.
 // ------------------------------------------------------------------------ //
+Template.bullseyeMatchIndicator.onCreated(function() {
+  var templateInstance = this;
+  // We set the initial value of the circle's fill color.
+  templateInstance.randomColor = new ReactiveVar("c1");
+  templateInstance.fillLevel = new ReactiveVar(0);
+}); // onCreated
+
+Template.bullseyeMatchIndicator.onRendered(function() {
+  var templateInstance = this;
+  // We schedule to change the fill color randomly every 30s.
+  templateInstance.intervalHandle = Meteor.setInterval(function() {
+    templateInstance.randomColor.set(pickRandomColorClass());
+  }, 30000);
+}); // onRendered
+
+Template.bullseyeMatchIndicator.onDestroyed(function() {
+  var templateInstance = this;
+  Meteor.clearInterval(templateInstance.intervalHandle);
+}); // onDestroyed
+
 Template.bullseyeMatchIndicator.helpers({
   matchCount: function() {
-    var sum = 0;
-    var matches = MetaCollection.find({
-      $nor: [
-        {
-          createdBy: {
-            $exists: false
-          }
-        }, {
-          createdBy: {
-            $size: 0
-          }
-        }, {
-          createdBy: {
-            $size: 1
-          }
-        }
-      ],
-      createdAtTraining: Session.get("bullseyeCurrentTraining")
-    }, {
-      fields: {
-        createdBy: 1
-      }
-    });
-
-    matches.forEach(function(m) {
-      sum += calculateMatches(m.createdBy.length);
-    });
-    return sum;
+    return Session.get("countMatches") && Session.get("countMatches");
   },
   startX1: function() {
     var startX = Session.get("centerX") + Session.get("playerRadius");
@@ -78,21 +70,41 @@ Template.bullseyeMatchIndicator.helpers({
   startY2: function() {
     var startY = Session.get("centerY");
     return startY ? startY - 100 : null;
+  },
+  randomColor: function() {
+    return Template.instance().randomColor.get();
+  },
+  cohesionLevel: function() {
+    // Based on the number of players of the current training,
+    // we calculate the cohesion level by counting the documents
+    // in the MetaCollection that are matched by (i.e. created by)
+    // all current players.
+    var tally = Meteor.users.find({
+      "profile.currentTraining": Session.get("bullseyeCurrentTraining")
+    }).fetch().length;
+
+    var cohesionLevel =  MetaCollection.find({
+      createdBy: {
+        $size: tally
+      },
+      createdAtTraining: Session.get("bullseyeCurrentTraining")
+    }, {
+      fields: {
+        createdBy: 1
+      }
+    }).fetch().length;
+
+    Template.instance().fillLevel.set(cohesionLevel);
+
+    return cohesionLevel;
+  },
+  fillLevel: function() {
+    var fillLevel = Template.instance().fillLevel.get() * 12.5;
+
+    if (fillLevel > 100) {
+      fillLevel = 100;
+    }
+
+    return fillLevel;
   }
 });
-
-
-/**
- * Calculates the number of matches for one identification.
- *
- * @param {Number} n - The number of users with common identifications
- */
-function calculateMatches(n) {
-  if (isNaN(n)) {
-    return;
-  }
-  if (n <= 0) {
-    return;
-  }
-  return n * (n - 1) / 2;
-}

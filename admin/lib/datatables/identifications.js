@@ -30,7 +30,7 @@ TabularTables.Identifications = new Tabular.Table({
     },
     {
       data: "createdBy",
-      title: "Created By User",
+      title: "Created By",
       tmpl: Meteor.isClient && Template.idCreatedByNameCell
     },
     {
@@ -39,6 +39,11 @@ TabularTables.Identifications = new Tabular.Table({
       className: "one column wide center aligned",
       orderable: false,
       tmpl: Meteor.isClient && Template.idCreatedByBlockCell
+    },
+    {
+      data: "trainingId",
+      title: "Created At",
+      tmpl: Meteor.isClient && Template.idTrainingDateCell
     },
     {
       data: "trainingId",
@@ -51,4 +56,5 @@ TabularTables.Identifications = new Tabular.Table({
       $(row).addClass("negative");
     }
   },
+  "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ]
 });

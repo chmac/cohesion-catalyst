@@ -88,6 +88,28 @@ AdminSchemas.BullseyeUserProfile = new SimpleSchema({
   currentView: {
     type: String,
     optional: true
+  },
+  autoMode: {
+    type: Boolean,
+    optional: true
+  },
+  reflectTrigger: {
+    type: Number,
+    min: 1,
+    label: "Number of IDs that trigger view change",
+    optional: true
+  },
+  matchTrigger: {
+    type: Number,
+    min: 1,
+    label: "Number of matches that trigger view change",
+    optional: true
+  },
+  bubbleSpeed: {
+    type: Number,
+    min: 1,
+    label: "Bubble velocity (w/o random factor)",
+    optional: true
   }
 });
 

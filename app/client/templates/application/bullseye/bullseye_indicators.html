@@ -2,13 +2,24 @@
 <template name="bullseyeIndicator">
   <div id="bullseye-indicator-container">
     <svg width={{viewportSize}} height={{viewportSize}}>
-      {{#if currentViewIs "reflect"}}
-        {{> bullseyeIdIndicator}}
-      {{/if}}
+      {{#unless isAutoMode}}
+        {{#if currentViewIs "reflect"}}
+          {{> bullseyeIdIndicator}}
+        {{/if}}
 
-      {{#if currentViewIs "match"}}
-        {{> bullseyeMatchIndicator}}
-      {{/if}}
+        {{#if currentViewIs "match"}}
+          {{> bullseyeMatchIndicator}}
+        {{/if}}
+      {{else}}
+        {{#if triggerIs "reflect"}}
+          {{> bullseyeIdIndicator}}
+        {{/if}}
+
+        {{#if triggerIs "match"}}
+          {{> bullseyeMatchIndicator}}
+        {{/if}}
+      {{/unless}}
+
     </svg>
   </div>
 </template>
@@ -28,7 +39,7 @@
 <template name="bullseyeMatchIndicator">
   <svg class="bullseye-indicator" x="{{startX1}}" y="{{startY1}}" width="160" height="160" viewBox="0 0 160 160">
     <g transform="rotate(-90, 80, 80)">
-      <circle cx="80" cy="80" r="75" fill="#ffcc00"/>
+      <circle id="match-indicator" class="{{randomColor}}" cx="80" cy="80" r="75" />
       <text y="85" text-anchor="middle">
         <tspan x="80" class="bullseye-indicator-number">{{matchCount}}</tspan>
         <tspan x="80" dy="30" class="bullseye-indicator-label">#matches</tspan>
@@ -38,11 +49,18 @@
 
   <svg class="bullseye-indicator" x="{{startX2}}" y="{{startY2}}" width="160" height="160" viewBox="0 0 160 160">
     <g transform="rotate(90, 80, 80)">
-      <circle cx="80" cy="80" r="75" fill="#fff"/>
+      <!-- HEADS UP: We use a vertical gradient because of group rotation -->
+      <linearGradient id="lg" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-opacity="1" stop-color="#66cc33"/>
+      <stop offset="{{fillLevel}}%" stop-opacity="1" stop-color="#66cc33"/>
+      <stop offset="{{fillLevel}}%" stop-opacity="1" stop-color="#fff"/>
+      <stop offset="100%" stop-opacity="1" stop-color="#fff"/>
+  </linearGradient>
+      <circle cx="80" cy="80" r="75" fill="url(#lg)"/>
       <text y="40" text-anchor="middle">
         <tspan x="80" class="bullseye-indicator-label">cohesion</tspan>
         <tspan x="80" dy="20" class="bullseye-indicator-label">level</tspan>
-        <tspan x="80" dy="60" class="bullseye-indicator-number">2</tspan>
+        <tspan x="80" dy="60" class="bullseye-indicator-number">{{cohesionLevel}}</tspan>
       </text>
     </g>
   </svg>

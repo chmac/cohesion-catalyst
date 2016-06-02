@@ -14,19 +14,80 @@
           Change Bullseye View
         </h3>
 
+
+        <div id ="bullseye-automode-toggle" class="ui toggle checkbox">
+          <input type="checkbox" checked="{{isChecked bullseyeUser._id}}">
+          <label>Auto mode</label>
+          <br>
+        </div>
+
+        {{#if isAutoMode bullseyeUser._id}}
+          <p>
+            Auto mode is ON. You can adjust the values below as needed.   
+          </p>
+          {{#autoForm
+              schema="AdminSchemas.BullseyeUserData"
+              doc=bullseyeUser
+              id="bullseye-user-update"
+              type="method-update"
+              meteormethod="user.bullseye.update"
+          }}
+
+             {{> afQuickField name="profile.reflectTrigger"}}
+             {{> afQuickField name="profile.matchTrigger"}}
+
+            <button type="submit" class="ui positive submit button">Update</button>
+          {{/autoForm}}
+
+        {{else}}
+
+          <div class="ui blue message">
+            <div class="header">
+              Auto mode is OFF
+            </div>
+            <p>Please update the current view below as needed.</p>
+          </div>
+
+          {{#autoForm
+              schema="AdminSchemas.BullseyeUserData"
+              doc=bullseyeUser
+              id="bullseye-user-update"
+              type="method-update"
+              meteormethod="user.bullseye.update"
+          }}
+
+            {{> afFormGroup name="profile.currentView" options=viewOptions noselect=true}}
+
+            <button type="submit" class="ui positive submit button">Update</button>
+          {{/autoForm}}
+
+        {{/if}}
+      </div> <!-- div.column -->
+    </div> <!-- div.ui.stackable.grid -->
+  </div> <!-- div..ui.basic.segment -->
+
+  <div class="ui basic segment">
+    <div class="ui stackable grid">
+      <div class="column">
+        <h3 class="ui dividing header">
+          Change Bubble Speed
+        </h3>
+        <p>
+          Here you can change the basic speed of the moving bubbles.<br>
+          A random factor will be applied to this value programmatically.
+        </p>
         {{#autoForm
             schema="AdminSchemas.BullseyeUserData"
             doc=bullseyeUser
-            id="bullseye-user-update"
+            id="bullseye-user-speed-update"
             type="method-update"
             meteormethod="user.bullseye.update"
         }}
 
-          {{> afFormGroup name="profile.currentView" options=viewOptions noselect=true}}
+           {{> afQuickField name="profile.bubbleSpeed"}}
 
           <button type="submit" class="ui positive submit button">Update</button>
         {{/autoForm}}
-
       </div> <!-- div.column -->
     </div> <!-- div.ui.stackable.grid -->
   </div> <!-- div..ui.basic.segment -->
