@@ -1,9 +1,6 @@
 Template.bullseyeIndicator.onCreated(function() {
   var templateInstance = this;
   var currentTraining = Session.get("bullseyeCurrentTraining");
-  Session.setDefault("countIds", 0);
-  Session.setDefault("countMatches", 0);
-  templateInstance.subscribe("bullseyeIdentifications", currentTraining);
 });
 
 
@@ -14,7 +11,6 @@ Template.bullseyeIndicator.onCreated(function() {
 // ------------------------------------------------------------------------ //
 Template.bullseyeIdIndicator.helpers({
   idsCount: function() {
-    Session.set("countIds", Counts.get("identificationsCount"));
     return Counts.get("identificationsCount");
   },
   startX: function() {
@@ -55,35 +51,7 @@ Template.bullseyeMatchIndicator.onDestroyed(function() {
 
 Template.bullseyeMatchIndicator.helpers({
   matchCount: function() {
-    var sum = 0;
-    var matches = MetaCollection.find({
-      $nor: [
-        {
-          createdBy: {
-            $exists: false
-          }
-        }, {
-          createdBy: {
-            $size: 0
-          }
-        }, {
-          createdBy: {
-            $size: 1
-          }
-        }
-      ],
-      createdAtTraining: Session.get("bullseyeCurrentTraining")
-    }, {
-      fields: {
-        createdBy: 1
-      }
-    });
-
-    matches.forEach(function(m) {
-      sum += calculateMatches(m.createdBy.length);
-    });
-    Session.set("countMatches", sum);
-    return sum;
+    return Session.get("countMatches") && Session.get("countMatches");
   },
   startX1: function() {
     var startX = Session.get("centerX") + Session.get("playerRadius");
@@ -140,19 +108,3 @@ Template.bullseyeMatchIndicator.helpers({
     return fillLevel;
   }
 });
-
-
-/**
- * Calculates the number of matches for one identification.
- *
- * @param {Number} n - The number of users with common identifications
- */
-function calculateMatches(n) {
-  if (isNaN(n)) {
-    return;
-  }
-  if (n <= 0) {
-    return;
-  }
-  return n * (n - 1) / 2;
-}
