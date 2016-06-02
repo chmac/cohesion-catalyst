@@ -239,7 +239,9 @@
 
   Template.bullseyeBubblebath.onDestroyed(function() {
     var templateInstance = this;
-    templateInstance.networkHandle.stop();
+    if (templateInstance.networkHandle) {
+      templateInstance.networkHandle.stop();
+    }
     stopTimer = true;
     d3.selectAll(".bubble").remove();
   });

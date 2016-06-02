@@ -302,8 +302,12 @@
   // removed from the DOM.
   Template.bullseyePlayers.onDestroyed(function() {
     var templateInstance = this;
-    templateInstance.playerHandle.stop();
-    templateInstance.avatarHandle.stop();
+    if (templateInstance.playerHandle) {
+      templateInstance.playerHandle.stop();
+    }
+    if (templateInstance.avatarHandle) {
+      templateInstance.avatarHandle.stop();
+    }
   }); // onDestroyed
 
 }()); // end function closure
