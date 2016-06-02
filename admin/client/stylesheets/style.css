@@ -1,6 +1,14 @@
-html {
+html.ios{
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for iOS sidebars */
+/* https://forums.meteor.com/t/meteor-semantic-ui-sidebar/12029 */
+/* http://semantic-ui.com/modules/sidebar.html#/usage */
+html.ios,
+html.ios body{
+height: 100%!important;
 }
 
 .coca-content {
@@ -9,4 +17,14 @@ html {
 
 #admin-aside {
   border-top: none;
+  z-index: 999999999;
+  transition: opacity 500ms;
+}
+
+.aside-off {
+  opacity: 0;
+}
+
+.aside-in {
+  opacity: 1;
 }
