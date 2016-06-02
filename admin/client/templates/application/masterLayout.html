@@ -5,20 +5,21 @@
   {{> sAlert}}
 
   <div class="ui bottom attached segment pushable">
+    <div id="layout-context">
 
-    {{> navigation}}
+      {{> navigation}}
 
-    <div class="pusher">
+      <div class="pusher">
 
-      <div class="ui coca-content" style="width: {{width}}">
-        {{> yield }}
+        <div class="ui coca-content" style="width: {{width}}">
+          {{> yield }}
+
+        </div>
 
       </div>
 
     </div>
-
   </div>
-
 </template>
 
 
