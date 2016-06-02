@@ -291,12 +291,16 @@ Meteor.methods({
         "Must be admin to change bullseye view.");
     }
 
-    // TODO remove this HACK if no longer necessary, or add separate function. 
+    // TODO remove this HACK if no longer necessary, or add separate function.
     // var newUserId = Accounts.createUser({
     //   username: "BullsEye",
     //   profile: {
     //     name: "BullsEye",
-    //     currentView: "splash"
+    //     currentView: "splash",
+    //     autoMode: true,
+    //     reflectTrigger: 12,
+    //     matchTrigger: 5,
+    //     bubbleSpeed: 5
     //   },
     //   password: "password"
     // });
@@ -305,6 +309,26 @@ Meteor.methods({
 
 
     return Meteor.users.update({_id: id}, modifier);
+  },
+
+  "user.bullseye.update.automode": function(id, value) {
+
+    // Check arguments
+    check(id, String);
+    check(value, Boolean);
+
+
+    // Only admins have the right to change the current bullseye view.
+    if (!Roles.userIsInRole(this.userId, "admin")) {
+      throw new Meteor.Error("user.bullseye.update.automode.not-authorized",
+        "Must be admin to change bullseye automode.");
+    }
+
+    return Meteor.users.update({_id: id}, {
+      $set: {
+        "profile.autoMode": value
+      }
+    });
   }
 
 }); // methods()

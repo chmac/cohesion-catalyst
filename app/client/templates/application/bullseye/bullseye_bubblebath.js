@@ -2,10 +2,32 @@
   var drawingSurface;
   var canvas, context;
   var size;
-  var bubbleList = [];
+  var bubbleList;
   var bubbles;
   var bubbleGroup;
   var stopTimer;
+
+  Template.bullseyeBubblebath.onCreated(function() {
+    Session.setDefault("bubbleVelocity", 5);
+
+    var templateInstance = this;
+
+    templateInstance.autorun(function() {
+      var bullseyeUser = Meteor.users.find({
+        roles: {
+          $in: ["view-bullseye"]
+        }
+      }, {
+        fields: {
+          "profile.bubbleSpeed": 1
+        }
+      }).fetch()[0];
+
+      if (bullseyeUser) {
+        Session.set("bubbleVelocity", bullseyeUser.profile.bubbleSpeed);
+      }
+    });
+  }); // onCreated
 
   Template.bullseyeBubblebath.onRendered(function() {
     stopTimer = false;
@@ -40,7 +62,7 @@
     //  .style("fill", "blue");
     //
     bubbles = drawingSurface.selectAll(".bubble");
-
+    bubbleList = [];
     // We use the MetaCollection to exclude multi-occuring identifications.
     var metaIdsCursor = MetaCollection.find({
       createdAtTraining: currentTrainingId
@@ -52,7 +74,7 @@
 
     templateInstance.networkHandle = metaIdsCursor.observe({
       added: function(doc) {
-        addToBubbles(doc, size);
+        addToBubbles(doc);
 
         // We want to prevent multiple calls of 'makeBubbleBath()'
         // while the 'added()' callback delivers the initial result of the query.
@@ -88,13 +110,14 @@
 
 
 
-  function addToBubbles(doc, size) {
+  function addToBubbles(doc) {
+    size = Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
     var sign = Math.round(Math.random()) * 2 - 1;
     var newBubble = doc;
     newBubble.x = Math.round(size * Math.random());
     newBubble.y = Math.round(size * Math.random());
-    newBubble.vx = 5 * (Math.random() - 0.5);
-    newBubble.vy = 4 * (Math.random() - 0.5);
+    newBubble.vx = 1 * (Math.random() - 0.5);
+    newBubble.vy = 1 * (Math.random() - 0.5);
     newBubble.radius = 35;
     newBubble.vAngle = (Math.random()*2*Math.PI + 0.15) * sign;
     bubbleList.push(newBubble);
@@ -184,22 +207,23 @@
 
 
   function move(elapsed) {
+    size = Session.get("canvasSize") ? Session.get("canvasSize") : document.documentElement.clientHeight;
     for (var i = 0; i < bubbleList.length; i++) {
       var bubble = bubbleList[i];
-        if (bubble.x > size) {
-          bubble.x = 0;
-        } else if (bubble.x < 0) {
-          bubble.x = size;
+        if (bubble.x > size + bubble.radius) {
+          bubble.x = 0 - bubble.radius;
+        } else if (bubble.x < 0 - bubble.radius) {
+          bubble.x = size + bubble.radius;
         }
 
-        if (bubble.y > size) {
-          bubble.y = 0;
-        } else if (bubble.y < 0) {
-          bubble.y = size;
+        if (bubble.y > size + bubble.radius) {
+          bubble.y = 0 - bubble.radius;
+        } else if (bubble.y < 0 - bubble.radius) {
+          bubble.y = size + bubble.radius;
         }
 
-        bubble.x += bubble.vx;
-        bubble.y += bubble.vy;
+        bubble.x += bubble.vx * (Session.get("bubbleVelocity") || 5);
+        bubble.y += bubble.vy * (Session.get("bubbleVelocity") || 5);
       }
 
     if (Session.equals("moveBubbles", true)) {
@@ -215,7 +239,9 @@
 
   Template.bullseyeBubblebath.onDestroyed(function() {
     var templateInstance = this;
-    templateInstance.networkHandle.stop();
+    if (templateInstance.networkHandle) {
+      templateInstance.networkHandle.stop();
+    }
     stopTimer = true;
     d3.selectAll(".bubble").remove();
   });

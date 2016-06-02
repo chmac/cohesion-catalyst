@@ -109,26 +109,32 @@
       switch(newPlayer.status.lastLogin.ipAddr) {
         // iPad#1
         case "192.168.1.101":
+        case "192.168.1.201":
           newPlayer.rotation = 30;
           break;
         // iPad#2
         case "192.168.1.102":
+        case "192.168.1.202":
           newPlayer.rotation = 90;
           break;
         // iPad#3
         case "192.168.1.103":
+        case "192.168.1.203":
           newPlayer.rotation = 150;
           break;
         // iPad#4
         case "192.168.1.104":
+        case "192.168.1.204":
           newPlayer.rotation = 210;
           break;
         // iPad#5
         case "192.168.1.105":
+        case "192.168.1.205":
           newPlayer.rotation = 270;
           break;
         // iPad#6
-        case "192.168.1.105":
+        case "192.168.1.106":
+        case "192.168.1.206":
           newPlayer.rotation = 330;
           break;
         default:
@@ -136,7 +142,12 @@
           break;
       }
     }
-    playerList.push(newPlayer);
+
+    // NOTE We only want to add players that are logged in using one
+    // of our registered iPads.
+    if (newPlayer.rotation) {
+      playerList.push(newPlayer);
+    }
   } // addToPlayers
 
 
@@ -166,12 +177,15 @@
   var createPlayersCircle = function(config) {
     var spacing = 15;
 
-    // TODO remove this when done with testing
-    playerList.forEach(function(p, i, players) {
-      if (!p.rotation) {
-        p.rotation = 30 + i * 60;
-      }
-    });
+    // ==========================================================
+    // FOR DEBUGGING: For this to work requires changing/removing
+    // the condition in 'addToPlayers' function
+    // ==========================================================
+    // playerList.forEach(function(p, i, players) {
+    //   if (!p.rotation) {
+    //     p.rotation = 30 + i * 60;
+    //   }
+    // });
 
     // =======================================
     // FOR DEBUGGING: big circle in the center
@@ -288,8 +302,12 @@
   // removed from the DOM.
   Template.bullseyePlayers.onDestroyed(function() {
     var templateInstance = this;
-    templateInstance.playerHandle.stop();
-    templateInstance.avatarHandle.stop();
+    if (templateInstance.playerHandle) {
+      templateInstance.playerHandle.stop();
+    }
+    if (templateInstance.avatarHandle) {
+      templateInstance.avatarHandle.stop();
+    }
   }); // onDestroyed
 
 }()); // end function closure

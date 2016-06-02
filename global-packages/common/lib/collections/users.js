@@ -17,6 +17,22 @@ Schemas.UserProfile = new SimpleSchema({
   currentView: {
     type: String,
     optional: true
+  },
+  autoMode: {
+    type: Boolean,
+    optional: true
+  },
+  reflectTrigger: {
+    type: Number,
+    optional: true
+  },
+  matchTrigger: {
+    type: Number,
+    optional: true
+  },
+  bubbleSpeed: {
+    type: Number,
+    optional: true
   }
 });
 

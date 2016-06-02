@@ -3,7 +3,8 @@ Router.route("/identifications", {
   waitOn: function() {
     return [
       Meteor.subscribe("listOfIdentifications"),
-      Meteor.subscribe("listOfUsers")
+      Meteor.subscribe("listOfUsers"),
+      Meteor.subscribe("listOfTrainings")
     ];
   }
 });
