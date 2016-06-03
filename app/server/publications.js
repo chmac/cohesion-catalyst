@@ -198,7 +198,8 @@ Meteor.publish("poolIdentifications", function(currentTraining) {
         trainingId: 1,
         level: 1,
         x: 1,
-        y: 1
+        y: 1,
+        name: 1
       }
     });
 });
