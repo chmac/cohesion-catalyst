@@ -23,14 +23,18 @@
 
 /* purple */
 .c2 {
-  fill: #663399;
-  color: #663399;
+  /*fill: #663399;
+  color: #663399;*/
+  fill: #8040bf;
+  color: #8040bf;
 }
 
 /* green */
 .c3 {
-  fill: #006633;
-  color: #006633;
+  /*fill: #006633;
+  color: #006633;*/
+  fill: #008040;
+  color: #008040;
 }
 
 /* rose */
