@@ -150,7 +150,7 @@ var pool = function() {
     for(var i=0; i<ids.length; i++) {
       if(ids[i] && ids[i].text == doc.name) {
         // already in, so just ignore this addMetaID call
-        return console.log("already in array");
+        return; // console.log("already in array");
       }
     }
     // ID with such name not yet in array, so create new ID
@@ -160,6 +160,7 @@ var pool = function() {
     id.standardizedText = doc.standardizedName;
     id.color = doc.color;
     id.index = ids.length;
+    id.radius = 65;
 
     // insert it at the first free slot
     for(var k=0; k<ids.length; k++) {
@@ -178,15 +179,15 @@ var pool = function() {
     */
   var deleteMetaID = function(doc) {
     var durationTime = 400;
-    var delayTime = 250;
+    var delayTime = 200;
 
     for(var i=0; i<ids.length; i++) {
       if(ids[i] && ids[i].text == doc.name) {
         if (i == ids.length - 1) {
-          animate("OUT", delayTime, durationTime, draw, ids[i]);
+          animate("OUT", delayTime, durationTime, ids[i]);
           ids.pop();
         } else {
-          animate("OUT-IN", delayTime, durationTime, draw, ids[i], ids[ids.length - 1]);
+          animate("OUT-IN", delayTime, durationTime, ids[i], ids[ids.length - 1]);
           ids[i] = ids[ids.length - 1];
           ids[i].index = i;
           ids.pop();
@@ -259,34 +260,43 @@ var pool = function() {
       return;
     }
 
-    // remove all scene objects from last rendered frame
-    drawingSurface.selectAll(".scene-obj").remove();
-
     // For each element in the array, we want to create a <g> element.
     // We follow the D3 pattern 'selectAll() - data() - enter() - append()'.
     // Therefore we create a D3 selection of elements with a class 'scene-obj' and bind
     // the 'ids' array to this selection using the 'data()' method.
     // With 'enter()' we store placeholder DOM nodes for the <g> elements to be created.
     // Using 'append()' we instantiate the desired <g> elements.
-    // Finally, at the end of the chain, we use 'selection.call()' to call a function that is
+    // At the end of the chain, we use 'selection.call()' to call a function that is
     // responsible for the creation of the contents of each <g>.
-    // That is, we draw a bubble (circle with text).
-    drawingSurface.selectAll(".scene-obj").data(ids, function(d) {
-      return d && d.text;
-    })
-    .enter()
+    // Finally, we render a bubble (circle with text) and update its specified position
+    // and size.
+
+    // update selection (binding data)
+    var sceneObjs = drawingSurface.selectAll(".scene-obj").data(ids, function(d) {
+      return d && d._id;
+    });
+
+    // enter selection
+    sceneObjs.enter()
     .append("g")
     .attr("id", function(d) {
       return "gid" + d._id;
     })
     .classed("scene-obj", true)
     .call(createBubble);
+
+    // update selection (now contains enter selection)
+    sceneObjs.call(updatePositionAndSize);
   }; // draw()
 
+
   /**
-    * draw a single ID bubble centered around specified position
-    * with specified radius and scale factor.
-    * selection: the current D3 selection.
+    * We create a single ID bubble and apply attributes
+    * such as radius and color of the <circle> element and
+    * width of the <foreignObject> and <p> element.
+    * NOTE Correct positioning and scaling of the elements
+    * are handled in the 'draw()' function.
+    * @param {array} selection - The current D3 selection.
     **/
   var createBubble = function(selection) {
     // 'selection.each' invokes its own argument function, passing the bound data item to the
@@ -298,63 +308,29 @@ var pool = function() {
         return;
 
       var group = d3.select(this);
-      var res = layout.getPositionAndSize(d.index);
-      var radius = 65;
-
-      if(!res)
-        return group;
-
-      // console.log("draw bubble " + d.text + " at " + res.x + " / " + res.y + " scale " + res.scale);
-
-      // Move each <g> to its calculated position.
-      group.attr("transform", "translate(" + (res.x) + "," + (res.y) + ")");
 
       // Append a <circle> to the <g>.
-      // NOTE: These are circles "entering" without transition!
       group.append("circle")
-        .attr("r", radius)
-        .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
+        .attr("r", d.radius)
         .attr("class", d.color);
-
-      // // TODO See if other solution is possible for "entering" circles
-      // // This is a workaround experiment:
-      // // Only apply a transition if we are not dragging (We call draw() while dragging and we
-      // // remove all elements in draw() which makes all elements to entering elements again)
-      // // Also, only apply it to the circle in the last spot - but this will cause that circle
-      // // to be animated multiple times which is an unpleasant effect!!
-      // if (touchMouseEvents.currentMode() !== "DRAG" && ids.length-1 == d.index) {
-      //   group.append("circle")
-      //     .attr("r", 0)
-      //     .transition()
-      //     .duration(500)
-      //     .attr("r", radius)
-      //     .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
-      //     .attr("class", d.color);
-      // } else {
-      //   group.append("circle")
-      //     .attr("r", radius)
-      //     .attr("transform", "scale(" + res.scale + " " + res.scale + ")")
-      //     .attr("class", d.color);
-      // }
 
       // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
       group.append("foreignObject")
         .attr({
           "class": "foreign-object",
-          "width": radius * 2,
-          "height": radius * 2,
-          "transform": "scale(" + res.scale + " " + res.scale + ") translate(" + (-radius) + ", " + (-
-            radius) + ")"
+          "width": d.radius * 2,
+          "height": d.radius * 2
           })
         .append("xhtml:p")
         .classed("txt-inside-circle", true)
         .style({
-            "width": radius *  2 + "px",
-            "height": radius *  2 + "px",
-            "max-width": radius *  2 + "px",
-            "max-height": radius *  2  + "px"
+            "width": d.radius *  2 + "px",
+            "height": d.radius *  2 + "px",
+            "max-width": d.radius *  2 + "px",
+            "max-height": d.radius *  2  + "px"
             })
         .text(d.text);
+
 
         // Call the function to handle touch and mouse events, respectively.
         touchMouseEvents(group, drawingSurface.node(), {
@@ -381,17 +357,15 @@ var pool = function() {
 
 /**
  * Makes an ID bubble appear/disappear from screen if the user clicks/tabs on it.
- * Instead of making the bubble instantly visible/invisible, a transition is applied which gives the
- * user a visual feedback.
+ * Instead of making the bubble instantly visible/invisible,
+ * a transition is applied which gives the user a visual feedback.
  * @param {string} io The type of animation: "IN" or "OUT" or "OUT_IN".
  * @param {number} delay The time (in milliseconds)  specifying the begin of the transition animation.
  * @param {number} duration The time (in milliseconds) specyfiying how long the transition takes place.
- * @param {Object} endOfTransFunc A function to be executed at the end of a transition. The function
-    may be an empty function, in which case nothing should happen.
  * @param {Object} idA The ID information.
  * @param {Object} idB Optional information of a second ID.
  */
-var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
+var animate = function(io, delay, duration, idA, idB) {
   var group,
     groupB,
     bubble,
@@ -410,6 +384,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
   p = fo.select("p.txt-inside-circle");
   currentRadius = bubble.attr("r");
   currentScale = d3.transform(bubble.attr("transform")).scale[0];
+  currentPos = d3.transform(group.attr("transform")).translate;
   currentFontSize = p.style("font-size");
 
   if (idB) {
@@ -426,33 +401,15 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       .duration(duration)
       .attr("r", 0)
       .each("end", function() {
-        d3.select(this)
-          // at the end of transition #1, apply immediate change
-          .attr("class", idB.color)
-          // then apply second transition ("IN")
-          .transition()
-          .delay(0)
-          .duration(duration)
-          .attr("r", currentRadius)
-          .each("end", endOfTransFunc);
+        // at the end of this transition, remove from DOM
+        group.remove();
       });
 
     fo
       .transition() // apply first transition ("OUT")
       .delay(0)
       .duration(duration)
-      .attr("transform", "scale(0)")
-      .each("end", function() {
-        d3.select(this)
-          // at the end of transition #1, apply immediate change
-          .attr("transform", "scale(" + currentScale + ") translate(0,0)")
-          // then apply second transition ("IN")
-          .transition()
-          .delay(0)
-          .duration(duration)
-          .attr("transform", "scale(" + currentScale + ") translate(" + (-currentRadius) + ", " +
-            (-currentRadius) + ")");
-      });
+      .attr("transform", "scale(0)");
 
     p
       .transition() // apply first transition ("OUT")
@@ -460,19 +417,7 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       .duration(duration)
       .style("width", 0)
       .style("height", 0)
-      .style("font-size", 0)
-      .each("end", function() {
-        d3.select(this)
-          // at the end of transition #1, apply immediate change
-          .text(idB.text)
-          // then apply second transition ("IN")
-          .transition()
-          .delay(0)
-          .duration(duration)
-          .style("width", currentRadius * 2 + "px")
-          .style("height", currentRadius * 2 + "px")
-          .style("font-size", currentFontSize);
-      });
+      .style("font-size", 0);
 
     // We only apply "OUT" transitions for the bubble which will
     // switch positions from the last spot to the newly empty spot.
@@ -482,35 +427,75 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
     // So we need to check for an empty selection.
     if (!bubbleB.empty()) {
       bubbleB
-        .transition()
+        .transition() // apply first transition ("OUT")
         .delay(delay)
         .duration(duration)
-        .attr("r", 0);
+        .attr("r", 0)
+        .each("end", function() {
+          // at the end of transition #1, apply immediate change
+          // here, we transform the <g> element to the position
+          // of the newly empty spot.
+          groupB.attr("transform", "translate(" + currentPos + ")");
+          // then apply second transition ("IN") on the <circle> element
+          d3.select(this)
+            .transition()
+            .delay(0)
+            .duration(duration)
+            .attr("r", currentRadius)
+            .attr("transform", function(d) {
+              var posSize = layout.getPositionAndSize(d.index);
+              return  "scale(" + posSize.scale + " " + posSize.scale + ")";
+          });
+        });
 
       foB
-        .transition()
+        .transition() // apply first transition ("OUT")
         .delay(delay)
         .duration(duration)
-        .attr("transform", "scale(0)");
+        .attr("transform", "scale(0)")
+        .each("end", function() {
+          // at the end of transition #1, start with second transition ("IN")
+          d3.select(this)
+            .transition()
+            .delay(0)
+            .duration(duration)
+            .attr("transform", function(d) {
+              var posSize = layout.getPositionAndSize(d.index);
+              return "scale(" + posSize.scale + ") translate(" +
+                (-currentRadius) + ", " + (-currentRadius) + ")";
+            });
+        });
 
       pB
-        .transition()
+        .transition() // apply first transition ("OUT")
         .delay(delay)
         .duration(duration)
-        .style("font-size", 0);
+        .style("font-size", 0)
+        .each("end", function() {
+          // // at the end of transition #1, start with second transition ("IN")
+          d3.select(this)
+            .transition()
+            .delay(0)
+            .duration(duration)
+            .style("width", currentRadius * 2 + "px")
+            .style("height", currentRadius * 2 + "px")
+            .style("font-size", currentFontSize);
+        });
     }
 
   } // "OUT-IN"
 
   // This transition only affects one bubble, namely the one in the last spot,
-  // which will be transitioned "OUT".
+  // which will be transitioned "OUT" and removed from DOM.
   if (io == "OUT") {
     bubble
       .transition()
       .delay(0)
       .duration(duration)
       .attr("r", 0)
-      .each("end", endOfTransFunc);
+      .each("end", function() {
+        group.remove();
+      });
 
     fo
       .transition()
@@ -610,5 +595,39 @@ var animate = function(io, delay, duration, endOfTransFunc, idA, idB) {
       });
     });
   }; //end addToMyIds()
+
+  /**
+   * Determines the position and size for the bubble elements according
+   * to the layout calculation, i.e. based on its index in the ids array
+   * each bubble is given a specific position and scale value.
+   * @param {array} selection - A D3 selection of <g> elements.
+   */
+  function updatePositionAndSize(selection) {
+    selection.each(function(d) {
+      var group = d3.select(this);
+      var positionSize = layout.getPositionAndSize(d.index);
+
+      if(!positionSize) {
+        // Move off the screen when there is no result.
+        d.posX = -100;
+        d.posY = -100;
+        d.scale = 1;
+      } else {
+        d.posX = positionSize.x;
+        d.posY = positionSize.y;
+        d.scale = positionSize.scale;
+      }
+
+      // Move each <g> to its calculated position.
+      group.attr("transform", "translate(" + (d.posX) + "," + (d.posY) + ")");
+
+      group.select("circle")
+        .attr("transform", "scale(" + d.scale + " " + d.scale + ")");
+
+      group.select(".foreign-object")
+        .attr("transform", "scale(" + d.scale + " " + d.scale + ") translate(" +
+          (-d.radius) + ", " + (-d.radius) + ")");
+    });
+  }
 
 }(); // module
