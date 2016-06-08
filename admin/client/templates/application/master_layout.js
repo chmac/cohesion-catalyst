@@ -17,6 +17,7 @@ Template.masterLayout.onRendered(function() {
 
   $("#layout-context .ui.sidebar").sidebar({
     context:$("#layout-context"),
+    closable: false,
     dimPage: false,
     onHide: function() {
       var newWidth = templateInstance.availWidth.get() + $("#admin-aside").width();
