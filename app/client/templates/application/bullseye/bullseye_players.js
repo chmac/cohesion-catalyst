@@ -19,7 +19,7 @@
     };
 
     var containerSize = Session.get("canvasSize");
-    Session.set("playerRadius", (containerSize - avatarSize * 0.25) * 0.5 - avatarSize * 0.5);
+    Session.set("playerRadius", (containerSize  * 0.5) - (avatarSize * 0.8));
     Session.set("centerX", containerSize * 0.5);
     Session.set("centerY", containerSize * 0.5);
 
@@ -78,7 +78,7 @@
 
     $(window).resize(function () {
       Session.set("canvasSize", document.documentElement.clientHeight);
-      Session.set("playerRadius", (Session.get("canvasSize") - avatarSize * 0.25) * 0.5 - avatarSize * 0.5);
+      Session.set("playerRadius", (Session.get("canvasSize") * 0.5) - (avatarSize * 0.8));
       Session.set("centerX", Session.get("canvasSize") * 0.5);
       Session.set("centerY", Session.get("canvasSize") * 0.5);
       var config = configPlayers(avatarSize, margin);
