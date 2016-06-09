@@ -55,10 +55,10 @@
   color: #ff9900;
 }
 
-/* red */
+/* light green */
 .c7 {
-  fill: #990000;
-  color: #990000;
+  fill: #66cc33;
+  color: #66cc33;
 }
 
 /* blue */
@@ -67,10 +67,10 @@
   color: #3366cc;
 }
 
-/* light green */
+/* red */
 .c9 {
-  fill: #66cc33;
-  color: #66cc33;
+  fill: #990000;
+  color: #990000;
 }
 
 /* light red */
