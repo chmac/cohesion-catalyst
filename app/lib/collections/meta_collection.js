@@ -24,7 +24,8 @@ Meteor.methods({
 
     // We find the MetaID of the associated 'Identification' doc.
     var metaDoc = MetaCollection.findOne({
-      standardizedName: doc.standardizedName
+      standardizedName: doc.standardizedName,
+      createdAtTraining: doc.trainingId
     });
 
     // Is ID with such name already in collection?
