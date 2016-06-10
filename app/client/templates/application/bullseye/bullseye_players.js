@@ -237,24 +237,6 @@
       .attr("transform", "translate(" + (-config.size * 0.5) + "," + (-config.size * 0.5) + ")");
 
 
-    // We append a SVG <rect> in order to serve as a background for the SVG <text>.
-    // For now, we only apply the 'transform' attribute so the <rect> has no
-    // dimensions yet. We will apply these missing attributes right after we
-    // calculated the dimensions of each <text> so that each <rect> will
-    // perfectly match the 'width' and 'height' of the respecting <text> area.
-    playerGroup.append("rect")
-      .attr("class", "txt-background")
-      // We position the rect below or above the player avatar
-      // depending on its vertical position, i.e. above or below the vertical center.
-      .attr("transform", function(d) {
-        return "translate(0," + (-config.size * 0.5 + spacing) + ")";
-      })
-      .style({
-        fill: "#000",
-        "fill-opacity": 0.6
-      });
-
-
     playerGroup.append("text")
       .attr("class", "player-label")
       .attr("text-anchor", "middle")
@@ -267,34 +249,6 @@
         return d.profile.name;
       });
 
-
-    // We calculate the dimension values of the <text> element and
-    // add them to the player's data.
-    d3.selectAll("text.player-label").each(function(d,i) {
-      var dimensions = this.getBBox();
-      d.textX = dimensions.x;
-      d.textY = dimensions.y;
-      d.textWidth = dimensions.width;
-      d.textHeight = dimensions.height;
-    });
-
-    // Accessing the previously calculated values we can now
-    // apply the missing <rect> attributes.
-    d3.selectAll("rect.txt-background")
-      .attr({
-        x: function(d) {
-          return d.textX;
-        },
-        y: function(d) {
-          return d.textY;
-        },
-        width: function(d) {
-          return d.textWidth;
-        },
-        height: function(d) {
-          return d.textHeight;
-        }
-      });
   }; // createPlayersCircle
 
 
