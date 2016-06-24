@@ -94,7 +94,7 @@ Router.route("/bullseye", {
 var requireLogin = function() {
   if (!Meteor.userId()) {
     if (Meteor.loggingIn()) {
-      this.render(this.loadingTemplate);
+      this.render("loading");
     } else {
       this.render("home");
     }
