@@ -134,11 +134,14 @@ Template.createAccountForm.events({
             currentTraining: trainingId
           }
         };
+        // Call method to create user on the server
+        // cf. https://gist.github.com/themeteorchef/b8b30db0f08c5b818448
         Meteor.call("makeNewUser", newUser, function(error, result) {
           if (error) {
             return throwError("Error while creating account: " + error.reason);
           }
-          Meteor.loginWithPassword(username + "_" + trainingId, password, function(error) {
+          // On success, log the user in with their credentials.
+          Meteor.loginWithPassword(newUser.username, newUser.password, function(error) {
             if (error) {
               // Let the user know that the login failed, e.g. if a user could
               // not be found or if the user entered an incorrect password.
