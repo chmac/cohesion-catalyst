@@ -37,7 +37,7 @@ Template.myIds.onCreated(function() {
  * (cf. <a href="http://docs.meteor.com/#/full/template_onRendered">Meteor onRendered()</a>)
  */
 Template.myIds.onRendered(function() {
-
+  Session.set("selectedElement", null);
   var margin,
     width,
     height,
