@@ -6,11 +6,17 @@ Meteor.startup(function() {
     // Define the users who have admin rights and adding those users to roles
     // Borrowed from the example at https://github.com/alanning/meteor-roles
     var users = [
-      {name:"Nadja", email:"nadja.zollo@gmail.com", roles:["admin"]},
-      {name:"Hartmut", email:"hartmut@hartmut-schirmacher.de", roles:["admin"]},
-      {name:"Steffi", email:"mail@stefanie-rathje.com", roles:["admin"]},
-      {name:"Diana", email:"Diana.Krieg@htw-berlin.de", roles:["admin"]},
-      {name:"BullsEye", currentView: "splash", roles: ["view-bullseye"]}
+      {name:"admin", email:"admin@example.com", roles:["admin"]},
+      {name:"bullseye",
+        bullseyeDefaults: {
+          currentView: "splash",
+          autoMode: true,
+          reflectTrigger: 12,
+          matchTrigger: 6,
+          bubbleSpeed: 5
+        },
+        roles: ["view-bullseye"]
+      }
     ];
 
     _.each(users, function (user) {
@@ -19,8 +25,12 @@ Meteor.startup(function() {
         name: user.name
       };
 
-      if (user.currentView) {
-        profile.currentView = user.currentView;
+      if (user.bullseyeDefaults) {
+        profile.currentView = user.bullseyeDefaults.currentView;
+        profile.autoMode = user.bullseyeDefaults.autoMode;
+        profile.reflectTrigger = user.bullseyeDefaults.reflectTrigger;
+        profile.matchTrigger = user.bullseyeDefaults.matchTrigger;
+        profile.bubbleSpeed = user.bullseyeDefaults.bubbleSpeed;
       }
 
       id = Accounts.createUser({
