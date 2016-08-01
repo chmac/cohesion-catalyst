@@ -1,7 +1,10 @@
 Router.route("/users", {
   name: "usersList",
   waitOn: function() {
-    return Meteor.subscribe("listOfUsers");
+    return [
+      Meteor.subscribe("listOfUsers"),
+      Meteor.subscribe("listOfTrainings")
+    ];
   }
 });
 
