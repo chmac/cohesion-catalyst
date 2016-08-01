@@ -12,7 +12,8 @@ Template.trainingEdit.events({
             sAlert.error("An error occured: ", error.reason);
           }
         } else {
-          sAlert.success("Training successfully changed.");
+          sAlert.success("Training successfully changed.", {onRouteClose: false});
+          Router.go("/trainings");
         }
     });
   }
