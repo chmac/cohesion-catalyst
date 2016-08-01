@@ -6,6 +6,10 @@
       <div class="sub header">Overview</div>
     </div>
   </h2>
+  <div class="ui compact green message">
+    Current active training ID: <b>{{currentTraining}}</b>
+  </div>
+
   {{> tabular table=TabularTables.Trainings class="ui compact celled striped table"}}
   {{> trainingDeleteApproveModal}}
 </template>
