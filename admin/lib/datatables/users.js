@@ -18,6 +18,9 @@ TabularTables.Users = new Tabular.Table({
       data: "_id",
       title: "Admin",
       className: "one column wide center aligned",
+      // Since the underlying data is '_id', there is
+      // no point to make this column oderable.
+      orderable: false,
       tmpl: Meteor.isClient && Template.userIsAdminCell
     },
     {
