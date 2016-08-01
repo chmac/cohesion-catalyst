@@ -1,11 +1,16 @@
 TabularTables.Trainings = new Tabular.Table({
   name: "Trainings",
   collection: Trainings,
+  //Initial order based on latest date of 'Scheduled Date' column (i.e. index 3)
+  order: [[3, "desc"]],
   columns: [
     {
       data: "_id",
       title: "Active",
       className: "one column wide center aligned",
+      // Since the underlying data is '_id', there is
+      // no point to make this column oderable.
+      orderable: false,
       tmpl: Meteor.isClient && Template.trainingIsCurrentCell
     },
     {
