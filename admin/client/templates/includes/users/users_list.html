@@ -6,9 +6,12 @@
       <div class="sub header">Overview</div>
     </div>
   </h2>
-    {{> tabular table=TabularTables.Users class="ui compact celled striped table"}}
+  <div class="ui compact green message">
+    Current active training ID: <b>{{currentTraining}}</b>
+  </div>
 
-    {{> userDeleteApproveModal}}
+  {{> tabular table=TabularTables.Users class="ui compact celled striped table"}}
+  {{> userDeleteApproveModal}}
 </template>
 
 
