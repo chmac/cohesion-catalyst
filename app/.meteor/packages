@@ -6,6 +6,7 @@
 
 d3js:d3
 iron:router
+useraccounts:bootstrap
 accounts-password
 twbs:bootstrap
 sacha:spin
@@ -40,5 +41,4 @@ mizzao:timesync
 peppelg:bootstrap-3-modal
 coca:common
 mizzao:user-status
-useraccounts:bootstrap
 tmeasday:publish-counts
