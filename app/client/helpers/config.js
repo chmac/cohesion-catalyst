@@ -26,14 +26,3 @@ AccountsTemplates.addFields([
   },
   pwd
 ]);
-
-AccountsTemplates.configure({
-  homeRoutePath: '/bullseye',
-  //Appearance
-  hideSignUpLink: true,
-  texts: {
-    title: {
-      signIn: "Hello! Please sign in."
-    }
-  }
-});
