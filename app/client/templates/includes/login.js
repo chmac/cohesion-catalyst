@@ -134,12 +134,30 @@ Template.createAccountForm.events({
             currentTraining: trainingId
           }
         };
+
+        // Debug helper
+        var m1 = {};
+        m1.date = new Date();
+        m1.locus = "CLIENT: submitting create account form.";
+        m1.info = "Calling makeNewUser: " + newUser.username;
+        var t1 = performance.now();
+        DebugMessages.insert(m1);
+
         // Call method to create user on the server
         // cf. https://gist.github.com/themeteorchef/b8b30db0f08c5b818448
         Meteor.call("makeNewUser", newUser, function(error, result) {
           if (error) {
             return throwError("Error while creating account: " + error.reason);
           }
+
+          // Debug helper
+          var t2 = performance.now();
+          var m2 = {};
+          m2.date = new Date();
+          m2.locus = "CLIENT: submitting create account form.";
+          m2.info = "Meteor.loginWithPassword: " + newUser.username + " after ms " + (t2-t1);
+          DebugMessages.insert(m2);
+
           // On success, log the user in with their credentials.
           Meteor.loginWithPassword(newUser.username, newUser.password, function(error) {
             if (error) {
@@ -147,6 +165,15 @@ Template.createAccountForm.events({
               // not be found or if the user entered an incorrect password.
               return throwError("Login Error: " + error.reason);
             }
+
+            // Debug helper
+            var t3 = performance.now();
+            var m3 = {};
+            m3.date = new Date();
+            m3.locus = "CLIENT: submitting create account form.";
+            m3.info = "Login done: " + newUser.username + " after ms " + (t3-t2);
+            DebugMessages.insert(m3);
+
             // Hide the modal dialog after successful sign up.
             Modal.hide();
             Router.go("intro");
