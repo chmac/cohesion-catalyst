@@ -1,7 +1,7 @@
 Template.home.onRendered(function() {
 
   // We prevent the screen scrolling on touch devices
-  d3.select("#main").on("touchmove", function() {
+  d3.select("#welcome-wrapper").on("touchmove", function() {
     if (d3.event) {
       d3.event.preventDefault();
     }
@@ -131,5 +131,9 @@ Template.home.events({
   "click #go-to-login": function(event, template) {
     event.preventDefault();
     Modal.show("loginForm");
+  },
+  "click div.welcome-text": function(event, template) {
+    event.preventDefault();
+    Session.set("debugHelperVisible", true);
   }
 });
