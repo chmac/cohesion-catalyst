@@ -1,3 +1,7 @@
+Template.registerHelper("showDebugHelper", function() {
+    return Session.get("debugHelperVisible");
+});
+
 Template.registerHelper("currentViewIs", function(currentView) {
   var bullseyeUser = Meteor.users.findOne({
     roles: {
