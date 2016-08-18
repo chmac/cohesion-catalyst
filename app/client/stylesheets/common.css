@@ -78,3 +78,15 @@ p.txt-inside-circle {
   cursor: default;
   color: #000;
 }
+
+.debug-container {
+  background-color: #fff;
+  color: #000;
+  border: 2px solid red;
+  padding: 5px 5px 5px 10px;
+  height: 250px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
