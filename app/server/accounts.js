@@ -10,8 +10,11 @@ Accounts.onCreateUser(function(options, user) {
       $push: {players: user._id}
     }, function(error, result) {
       if (error) {
-        // TODO Improve error handling.
-        console.log("Error while updating document. Reason: ", error.reason);
+        var message = {};
+        message.date = new Date();
+        message.locus = "SERVER: Accounts.onCreateUser";
+        message.info = "Error while updating training document. Reason: " + error.reason;
+        DebugMessages.insert(message);
       }
     });
   }
@@ -33,6 +36,11 @@ Accounts.onCreateUser(function(options, user) {
  * Meteor.Error is thrown for blocked user accounts which aborts the login.
  */
 Accounts.validateLoginAttempt(function(attemptInfo) {
+  var message = {};
+  message.date = new Date();
+  message.locus = "SERVER: Accounts.validateLoginAttempt";
+  message.details = attemptInfo;
+  DebugMessages.insert(message);
 
   if (!attemptInfo.allowed) {
     return false;
@@ -49,4 +57,22 @@ Accounts.validateLoginAttempt(function(attemptInfo) {
   }
 
   return true;
+});
+
+
+/**
+ * Called after a login attempt is denied.
+ * This method is provided by Meteor's account system.
+ * cf. http://docs.meteor.com/api/accounts-multi.html#AccountsCommon-onLoginFailure
+ *
+ * Here, we create a debug message to inform about possible issues.
+ * @param {Object} attemptInfo - An object containing information about the
+ * login attempt.
+ */
+Accounts.onLoginFailure(function(attemptInfo) {
+  var message = {};
+  message.date = new Date();
+  message.locus = "SERVER: Accounts.onLoginFailure";
+  message.details = attemptInfo;
+  DebugMessages.insert(message);
 });
