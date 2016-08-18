@@ -1,0 +1,34 @@
+<template name="debugHelper">
+  <div class="debug-container">
+    <div style="position:relative; margin-bottom: 5px; border-bottom: 1px solid #eee;">
+      <button id="debug-helper-clear-btn" type="button" class="btn btn-default" style="margin-bottom: 5px;">Clear</button>
+      <a href="#" id="debug-helper-close-btn" role="button" style="position: absolute; right: 5px">
+        <i class="fa fa-times fa-lg" aria-hidden="true"></i>
+      </a>
+    </div>
+
+    <div style="overflow: scroll; height: 100%; width=90%; padding-right: 30px;">
+      {{#each message in messages}}
+        <p>
+          {{formattedDate message.date}} - {{message.locus}}
+        </p>
+        <ul>
+          {{#if message.details}}
+            <li>Login type: {{message.details.type}}</li>
+            <li>Username: {{#if message.details.allowed}} {{message.details.user.username}} {{else}} {{getUsername message.details.methodArguments}} {{/if}}</li>
+            <li>Login allowed: {{#if message.details.allowed}} true {{else}} false {{/if}}</li>
+            <li>Login method: {{message.details.methodName}}</li>
+            <li>{{#if message.details.error}} Failure: {{message.details.error.reason}} {{else}}  OK: Successful login! {{/if}}</li>
+          {{/if}}
+
+          {{#if message.info}}
+            <li>{{message.info}}</li>
+          {{/if}}
+        </ul>
+        <p>---------------------------------</p>
+      {{else}}
+        No debug messages yet.
+      {{/each}}
+    </div>
+  </div>
+</template>
