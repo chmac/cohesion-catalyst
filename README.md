@@ -72,7 +72,7 @@ Required environment variables for the admin app:
 * `PACKAGE_DIRS`
 * `MONGO_URL`
 
-### CCAT Deployment Process 
+### CCAT Deployment Process
 * Log into the server of choice (218, 219, server laptop) as **ccat**
 * Change to the project repository
   * `cd devel/coca-project`
@@ -85,7 +85,7 @@ Required environment variables for the admin app:
 * Switch to whatever version you like (for demos, tests, and workshops, always check out a tagged version)
   * `git checkout <name-of-tag>`
 * Deploy main app
-  * `cd deployment/app-deploy
+  * `cd deployment/app-deploy`
   * `mupx stop`
   * `mupx deploy`
 * Deploy admin app
@@ -93,8 +93,8 @@ Required environment variables for the admin app:
   * `mupx stop`
   * `mupx deploy`
 * Troubleshooting
-  * if deploy fails, try `mupx setup` followed by `mupx deploy`
-  
+  * If deploy fails, try `mupx setup` followed by `mupx deploy`
+
 
 #### Note:
 
@@ -116,7 +116,7 @@ The script `/opt/ccat_admin/config/start.sh` (provided by MUP X) is missing the 
 --env=MONGO_URL=mongodb://mongodb:27017/ccat_app \
 ```
 
-Mupx generates start.sh from a template file installed in (on Ubuntu) /usr/local/lib/node_modules/mupx/templates/linux. 
+Mupx generates start.sh from a template file installed in (on Ubuntu) /usr/local/lib/node_modules/mupx/templates/linux.
 Simply replace it by the one in coca-project/deployment/mupx-templates.
 
 
