@@ -73,20 +73,27 @@ Required environment variables for the admin app:
 * `MONGO_URL`
 
 ### CCAT Deployment Process 
-* log into the server of choice (218, 219, server laptop) as ccat 
-* cd devel/coca-project
-* check out whatever version you like
-  * for demos, tests, and workshops, always check out a tagged version
-* deploy main app
-  * cd deployment/ccat-deploy
-  * mupx stop
-  * mupx deploy
-* deploy admin app
-  * cd ../admin-deoloy
-  * mupx stop
-  * mupx deploy
+* Log into the server of choice (218, 219, server laptop) as **ccat**
+* Change to the project repository
+  * `cd devel/coca-project`
+* Switch to develop branch if needed
+  * `git checkout develop`
+* Incorporate changes from the remote repository if any
+  * `git pull`
+* View the available tags in order to find the desired version
+  * `git tag`
+* Switch to whatever version you like (for demos, tests, and workshops, always check out a tagged version)
+  * `git checkout <name-of-tag>`
+* Deploy main app
+  * `cd deployment/app-deploy
+  * `mupx stop`
+  * `mupx deploy`
+* Deploy admin app
+  * `cd ../admin-deploy`
+  * `mupx stop`
+  * `mupx deploy`
 * Troubleshooting
-  * if deploy fails, try "mupx setup" followed by "mupx deploy"
+  * if deploy fails, try `mupx setup` followed by `mupx deploy`
   
 
 #### Note:
