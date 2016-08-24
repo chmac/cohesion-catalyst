@@ -81,7 +81,7 @@ Template.intro.helpers({
       avatarSelected;
 
     avatarId = matchText(avatar.url);
-    avatarSelected = Meteor.user().profile.avatar === avatarId;
+    avatarSelected = Meteor.user() && Meteor.user().profile.avatar === avatarId;
     if (avatarSelected) {
       return "selected-avatar";
     } else {
