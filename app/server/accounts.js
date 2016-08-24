@@ -1,4 +1,9 @@
 Accounts.onCreateUser(function(options, user) {
+  var message = {};
+  message.date = new Date();
+  message.locus = "SERVER: Accounts.onCreateUser.";
+  message.info = "Creating user: " + user.username;
+  DebugMessages.insert(message);
 
   if (options.profile) {
     user.profile = options.profile;
