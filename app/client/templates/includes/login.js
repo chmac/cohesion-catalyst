@@ -147,6 +147,14 @@ Template.createAccountForm.events({
         // cf. https://gist.github.com/themeteorchef/b8b30db0f08c5b818448
         Meteor.call("makeNewUser", newUser, function(error, result) {
           if (error) {
+
+            // Debug helper
+            var m = {};
+            m.date = new Date();
+            m.locus = "CLIENT: submitting create account form.";
+            m.info = "Error " + error.reason + "while creating account for " + newUser.username;
+            DebugMessages.insert(m);
+
             return throwError("Error while creating account: " + error.reason);
           }
 
@@ -155,7 +163,7 @@ Template.createAccountForm.events({
           var m2 = {};
           m2.date = new Date();
           m2.locus = "CLIENT: submitting create account form.";
-          m2.info = "Meteor.loginWithPassword: " + newUser.username + " after ms " + (t2-t1);
+          m2.info = "Calling Meteor.loginWithPassword: " + newUser.username + " after ms " + (t2-t1);
           DebugMessages.insert(m2);
 
           // On success, log the user in with their credentials.
