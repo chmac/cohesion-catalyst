@@ -2,6 +2,12 @@
   <div class="debug-container">
     <div style="position:relative; margin-bottom: 5px; border-bottom: 1px solid #eee;">
       <button id="debug-helper-clear-btn" type="button" class="btn btn-default" style="margin-bottom: 5px;">Clear</button>
+      <span class="label {{labelClass}}">
+        {{status.status}}
+        {{#if failedToConnect}}
+           - {{status.reason}}
+        {{/if}}
+      </span>
       <a href="#" id="debug-helper-close-btn" role="button" style="position: absolute; right: 5px">
         <i class="fa fa-times fa-lg" aria-hidden="true"></i>
       </a>
