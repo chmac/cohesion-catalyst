@@ -130,7 +130,7 @@ Template.createAccountForm.events({
           password: password,
           profile: {
             name: username,
-            avatar: null,
+            avatar: "#smiley-smile", // default avatar
             currentTraining: trainingId
           }
         };
