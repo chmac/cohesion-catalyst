@@ -252,7 +252,7 @@ Meteor.methods({
           password: "password",
           profile: {
             name: doc.profile.name,
-            avatar: doc.profile.avatar || null,
+            avatar: doc.profile.avatar || "#smiley-smile",
             currentTraining: doc.profile.currentTraining
           }
         });
