@@ -195,17 +195,17 @@ Template.createAccountForm.events({
           if(DBG_wasCalled) {
             m = {};
             m.date = new Date();
-            m.locus = "CLIENT: DBG_checkCall";
+            m.locus = "CLIENT: DBG_checkCall for " + newUser.username;
             m.info = "callback was called, no bug here :-)";
             DebugMessages.insert(m);
           } else {
             m = {};
             m.date = new Date();
-            m.locus = "CLIENT: DBG_checkCall";
-            m.info = " callback handleUserWasCreated not called atfer 1s.";
+            m.locus = "CLIENT: DBG_checkCall for " + newUser.username;
+            m.info = " callback handleUserWasCreated not called atfer 2s.";
             DebugMessages.insert(m);
             // try to call callback manually
-            chkUser = Meteor.users.findOne({username: newUser.username});
+            var chkUser = Meteor.users.findOne({username: newUser.username});
             if(chkUser) {
               m = {};
               m.date = new Date();
@@ -218,7 +218,7 @@ Template.createAccountForm.events({
               m = {};
               m.date = new Date();
               m.locus = "CLIENT: DBG_checkCall";
-              m.info = " user " + chkUser.username + " was not created - giving up?";
+              m.info = " user " + newUser.username + " was not created - giving up?";
               DebugMessages.insert(m);
             }
           }
