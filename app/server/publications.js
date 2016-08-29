@@ -63,7 +63,7 @@ Meteor.publish("globalMetaIdentifications", function(currentTraining) {
   // we filter for documents where the 'level' field is 'greater than '0' thus excluding the
   // avatar/smiley entries. We also only want to use documents belonging to the current training and
   // where the 'editCompleted' field  is 'true'.
-  var queryHandle = Identifications.find({
+  var idsCursor = Identifications.find({
     trainingId: currentTraining,
     level: {
       $gt: 0
@@ -78,17 +78,26 @@ Meteor.publish("globalMetaIdentifications", function(currentTraining) {
         blacklisted: false
       }
     ]
-  }).observe({
+  });
+
+  // We keep track of the state of the initial query.
+  var initializing = false;
+
+  var queryHandle = idsCursor.observe({
     added: function(doc) {
+      if (!initializing) return;
+      // We only want the ID-creating client to invoke the method,
+      // to prevent multiple method calls from all subscribing
+      // clients, which could cause concurrency issues.
+      if (currentUserId !== doc.createdBy) return;
       Meteor.call("addMetaDoc", doc, errorFunc);
     },
     removed: function(doc) {
       Meteor.call("deleteMetaDoc", doc, errorFunc);
-    },
-    changed: function(newDoc, oldDoc){
-      // console.log("SERVER -- Observe changed: from ", oldDoc, " to ", newDoc);
     }
   });
+
+  initializing = true;
 
   // We stop observing when a client stopps/closes the subscription.
   // Therefore we call the 'stop()' method of the query handle object.
