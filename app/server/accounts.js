@@ -7,21 +7,21 @@ Accounts.onCreateUser(function(options, user) {
 
   if (options.profile) {
     user.profile = options.profile;
-  }
 
-  // Add the new user to the 'players' field (an array) of the current training document.
-  if (options.profile.currentTraining) {
-    Trainings.update(options.profile.currentTraining, {
-      $push: {players: user._id}
-    }, function(error, result) {
-      if (error) {
-        var message = {};
-        message.date = new Date();
-        message.locus = "SERVER: Accounts.onCreateUser";
-        message.info = "Error while updating training document. Reason: " + error.reason;
-        DebugMessages.insert(message);
-      }
-    });
+    // Add the new user to the 'players' field (an array) of the current training document.
+    if (options.profile.currentTraining) {
+      Trainings.update(options.profile.currentTraining, {
+        $push: {players: user._id}
+      }, function(error, result) {
+        if (error) {
+          var message = {};
+          message.date = new Date();
+          message.locus = "SERVER: Accounts.onCreateUser";
+          message.info = "Error while updating training document. Reason: " + error.reason;
+          DebugMessages.insert(message);
+        }
+      });
+    }
   }
 
   return user;
