@@ -143,9 +143,9 @@ Template.createAccountForm.events({
         var t1 = performance.now();
         DebugMessages.insert(m1);
 
-        // Call method to create user on the server
-        // cf. https://gist.github.com/themeteorchef/b8b30db0f08c5b818448
-        Meteor.call("makeNewUser", newUser, function(error, result) {
+        var handleUserWasCreated = function(error, result) {
+          DBG_wasCalled = true;
+
           if (error) {
 
             // Debug helper
@@ -157,6 +157,7 @@ Template.createAccountForm.events({
 
             return throwError("Error while creating account: " + error.reason);
           }
+
 
           // Debug helper
           var t2 = performance.now();
@@ -186,7 +187,50 @@ Template.createAccountForm.events({
             Modal.hide();
             Router.go("intro");
           });
-        });
+        };
+
+        var DBG_wasCalled = false;
+        var DBG_checkCall = function() {
+          var m = {};
+          if(DBG_wasCalled) {
+            m = {};
+            m.date = new Date();
+            m.locus = "CLIENT: DBG_checkCall";
+            m.info = "callback was called, no bug here :-)";
+            DebugMessages.insert(m);
+          } else {
+            m = {};
+            m.date = new Date();
+            m.locus = "CLIENT: DBG_checkCall";
+            m.info = " callback handleUserWasCreated not called atfer 1s.";
+            DebugMessages.insert(m);
+            // try to call callback manually
+            chkUser = Meteor.users.findOne({username: newUser.username});
+            if(chkUser) {
+              m = {};
+              m.date = new Date();
+              m.locus = "CLIENT: DBG_checkCall";
+              m.info = " user " + chkUser.username + " was created, calling handleUserWasCreated manually";
+              DebugMessages.insert(m);
+              // try manually
+              handleUserWasCreated(null,null);
+            } else {
+              m = {};
+              m.date = new Date();
+              m.locus = "CLIENT: DBG_checkCall";
+              m.info = " user " + chkUser.username + " was not created - giving up?";
+              DebugMessages.insert(m);
+            }
+          }
+        };
+
+        // chasing the mythical "func not always called" problem
+        Meteor.setTimeout(DBG_checkCall, 2000);
+
+        // Call method to create user on the server
+        // cf. https://gist.github.com/themeteorchef/b8b30db0f08c5b818448
+        Meteor.call("makeNewUser", newUser, handleUserWasCreated);
+
     }
   }
 });
