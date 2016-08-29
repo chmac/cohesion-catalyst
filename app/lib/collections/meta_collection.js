@@ -29,7 +29,7 @@ Meteor.methods({
     });
 
     // Is ID with such name already in collection?
-    if (metaDoc && metaDoc !== undefined) {
+    if (metaDoc) {
       // then add its creator to this ID
       MetaCollection.update(metaDoc._id, {
         $addToSet: {
@@ -65,6 +65,7 @@ Meteor.methods({
       id.createdAtTraining = doc.trainingId;
 
       var newDocId = MetaCollection.insert(id, errorFunc);
+      return newDocId;
     }
   },
 
@@ -80,7 +81,8 @@ Meteor.methods({
 
     // We find the MetaID of the associated 'Identification' doc.
     var metaDoc = MetaCollection.findOne({
-      standardizedName: doc.standardizedName
+      standardizedName: doc.standardizedName,
+      createdAtTraining: doc.trainingId
     });
 
     if(!metaDoc) {
