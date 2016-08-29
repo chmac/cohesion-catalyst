@@ -34,6 +34,11 @@ Meteor.methods({
       check(userObj, Object);
       var newUserId;
       newUserId = Accounts.createUser(userObj);
+      m = {};
+      m.date = new Date();
+      m.locus = "SERVER: makeNewUser";
+      m.info = " user " + userObj.username + " after Accounts.createUser";
+      DebugMessages.insert(m);
       return newUserId;
     }
   }

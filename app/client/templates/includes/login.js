@@ -218,8 +218,10 @@ Template.createAccountForm.events({
               m = {};
               m.date = new Date();
               m.locus = "CLIENT: DBG_checkCall";
-              m.info = " user " + newUser.username + " was not created - giving up?";
+              m.info = " user " + newUser.username + " not found - calling handleUserWasCreated ANYWAY!!!";
               DebugMessages.insert(m);
+              alert("It happened. Continuing when you click OK.");
+              handleUserWasCreated(null,null);
             }
           }
         };
