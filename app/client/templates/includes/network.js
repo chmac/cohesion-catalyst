@@ -666,7 +666,7 @@ var network = function() {
       // '0' to its specific calculated value.
       bubbleGroup.selectAll("circle")
         .transition()
-        .duration(1000)
+        .duration(500)
         .attr("r", function(d) {
           return d.bubbleR;
         });
@@ -676,7 +676,7 @@ var network = function() {
     // with a slight delay.
     bubbleGroup.selectAll(".foreign-object")
       .transition()
-      .delay(500)
+      .delay(250)
       .duration(500)
       .style("opacity", "1");
 
@@ -874,7 +874,11 @@ var network = function() {
       });
 
     drawingSurface.selectAll(".foreign-object")
-      .transition()
+      // We give this transition a name to prevent
+      // interrupting any current active transitions
+      // on <foreignObject> elements (e.g. transitions on
+      // the opacity style property of incoming bubbles).  
+      .transition("resetSize")
       .attr("transform", function(d) {
           return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
       });
