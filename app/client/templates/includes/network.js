@@ -156,13 +156,12 @@ var network = function() {
         }
       },
       removed: function(doc) {
-        // We look for the common players of this network ID and if they are
+        // We look for this network ID that is to be removed and if it is
         // currently highlighted, we need to reset the applied style.
-        // Otherwise, the ID is removed from the canvas but the players remain highlighted.
-        var commonPlayers = drawingSurface.selectAll(".player").filter(function(player) {
-          return _.contains(doc.createdBy, player._id);
-        });
-        if (commonPlayers && commonPlayers.classed("highlighted")) {
+        // Otherwise, this ID is removed from the canvas and any current
+        // highlighting of players and bubbles remains applied.
+        var bubbleToRemove = drawingSurface.select("#gid" + doc._id);
+        if (bubbleToRemove && bubbleToRemove.classed("highlighted")) {
           makeReset();
         }
         removeFromNetworkIds(doc);
@@ -607,7 +606,14 @@ var network = function() {
     bubbleGroup.append("circle")
       .attr("r", 0)
       .attr("class", function(d) {
-        return d.color;
+        // Is currently no bubble or player highlighted?
+        // Then we give the incomming bubble its data-bound color class.
+        // Otherwise, we assign the class to color the incomming bubble white.
+        if (d3.selectAll("g.highlighted").empty()) {
+          return d.color;
+        } else {
+          return "c-white";
+        }
       });
 
     // Append a <foreignObject> to the <g>. The <foreignObject> contains a <p>.
