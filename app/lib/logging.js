@@ -167,6 +167,11 @@ if (Meteor.isServer) {
      */
     autoLog: function(timestamp, id) {
       var activeUser = Meteor.users.findOne({_id:id});
+      // Is there no user with the given id in our user collection?
+      // Then we exit this function.
+      if (!activeUser) {
+        return;
+      }
       var currentTrainingId = activeUser.profile.currentTraining;
 
       var networkCursor = MetaCollection.find({
