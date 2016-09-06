@@ -85,6 +85,10 @@ AdminSchemas.BullseyeUserProfile = new SimpleSchema({
     type: String,
     optional: true
   },
+  presentationMode: {
+    type: String,
+    optional: true
+  },
   currentView: {
     type: String,
     optional: true
