@@ -448,25 +448,6 @@ var network = function() {
       .attr("height", config.size)
       .attr("transform", "translate(" + (-config.size / 2) + "," + (-config.size / 2) + ")");
 
-    // We append a SVG <rect> in order to serve as a background for the SVG <text>.
-    // For now, we only apply the 'transform' attribute so the <rect> has no
-    // dimensions yet. We will apply these missing attributes right after we
-    // calculated the dimensions of each <text> so that each <rect> will
-    // perfectly match the 'width' and 'height' of the respecting <text> area.
-    playerGroup.append("rect")
-      .attr("class", "txt-background")
-      // We position the rect below or above the player avatar
-      // depending on its vertical position, i.e. above or below the vertical center.
-      .attr("transform", function(d) {
-        if (d.y < config.centerY) {
-          return "translate(0," + (-config.size / 2 + spacing) + ")";
-        }
-        return "translate(0," + (config.size / 2 + spacing) + ")";
-      })
-      .style({
-        fill: "#000",
-        "fill-opacity": 0.6
-      });
 
     playerGroup.append("text")
       .attr("text-anchor", "middle")
@@ -483,33 +464,6 @@ var network = function() {
         return d.profile.name;
       });
 
-    // We calculate the dimension values of the <text> element and
-    // add them to the player's data.
-    drawingSurface.selectAll("text").each(function(d,i) {
-      var dimensions = this.getBBox();
-      d.textX = dimensions.x;
-      d.textY = dimensions.y;
-      d.textWidth = dimensions.width;
-      d.textHeight = dimensions.height;
-    });
-
-    // Accessing the previously calculated values we can now
-    // apply the missing <rect> attributes.
-    drawingSurface.selectAll("rect.txt-background")
-      .attr({
-        x: function(d) {
-          return d.textX;
-        },
-        y: function(d) {
-          return d.textY;
-        },
-        width: function(d) {
-          return d.textWidth;
-        },
-        height: function(d) {
-          return d.textHeight;
-        }
-      });
 
     // Call the function to handle touch and mouse events, respectively.
     touchMouseEvents(playerGroup, drawingSurface.node(), {
@@ -877,7 +831,7 @@ var network = function() {
       // We give this transition a name to prevent
       // interrupting any current active transitions
       // on <foreignObject> elements (e.g. transitions on
-      // the opacity style property of incoming bubbles).  
+      // the opacity style property of incoming bubbles).
       .transition("resetSize")
       .attr("transform", function(d) {
           return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
