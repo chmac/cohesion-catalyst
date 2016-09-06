@@ -11,9 +11,33 @@
     <div class="ui stackable grid">
       <div class="column">
         <h3 class="ui dividing header">
+          Change Bullseye Presentation Mode
+        </h3>
+        <p>Here you can select how you want to present the bullseye view. This setting affects the positioning of the users. In "Cohesion Table" mode, the user's position on the screen corresponds with the location of the tablet device on the table.</p>
+
+        {{#autoForm
+            schema="AdminSchemas.BullseyeUserData"
+            doc=bullseyeUser
+            id="bullseye-user-presentation-update"
+            type="method-update"
+            meteormethod="user.bullseye.update"
+        }}
+
+          {{> afFormGroup name="profile.presentationMode" options=presentationOptions noselect=true}}
+
+          <button type="submit" class="ui positive submit button">Update</button>
+        {{/autoForm}}
+      </div> <!-- div.column -->
+    </div> <!-- div.ui.stackable.grid -->
+  </div> <!-- div..ui.basic.segment -->
+
+
+  <div class="ui basic segment">
+    <div class="ui stackable grid">
+      <div class="column">
+        <h3 class="ui dividing header">
           Change Bullseye View
         </h3>
-
 
         <div id ="bullseye-automode-toggle" class="ui toggle checkbox">
           <input type="checkbox" checked="{{isChecked bullseyeUser._id}}">
@@ -23,12 +47,12 @@
 
         {{#if isAutoMode bullseyeUser._id}}
           <p>
-            Auto mode is ON. You can adjust the values below as needed.   
+            Auto mode is ON. You can adjust the values below as needed.
           </p>
           {{#autoForm
               schema="AdminSchemas.BullseyeUserData"
               doc=bullseyeUser
-              id="bullseye-user-update"
+              id="bullseye-user-view-update"
               type="method-update"
               meteormethod="user.bullseye.update"
           }}
@@ -51,7 +75,7 @@
           {{#autoForm
               schema="AdminSchemas.BullseyeUserData"
               doc=bullseyeUser
-              id="bullseye-user-update"
+              id="bullseye-user-view-update"
               type="method-update"
               meteormethod="user.bullseye.update"
           }}
@@ -65,6 +89,7 @@
       </div> <!-- div.column -->
     </div> <!-- div.ui.stackable.grid -->
   </div> <!-- div..ui.basic.segment -->
+
 
   <div class="ui basic segment">
     <div class="ui stackable grid">
