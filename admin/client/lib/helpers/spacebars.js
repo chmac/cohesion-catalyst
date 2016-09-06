@@ -56,3 +56,10 @@ Template.registerHelper("viewOptions", function() {
     // {label: "Explore Network", value: "explore"}
   ];
 });
+
+Template.registerHelper("presentationOptions", function() {
+  return [
+    {label: "Cohesion Table", value: "table"},
+    {label: "Projector", value: "projector"}
+  ];
+});
