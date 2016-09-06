@@ -3,6 +3,10 @@
   var drawingSurface;
   var playerList;
 
+  Template.bullseyePlayers.onCreated(function() {
+    Session.setDefault("presentationMode", "projector");
+  });
+
   Template.bullseyePlayers.onRendered(function() {
     var templateInstance = this;
     playerList = [];
@@ -90,6 +94,25 @@
           "rotate(" + d.rotation + ")" +
           "translate(0," + (-config.radius) + ")";
       });
+    }); // resize()
+
+    // We need to re-run `createPlayersCircle` if the `presentationMode`
+    // field of the bullseye user is changed.
+    templateInstance.autorun(function() {
+      var bullseyeUser = Meteor.users.find({
+        roles: {
+          $in: ["view-bullseye"]
+        }
+      }, {
+        fields: {
+          "profile.presentationMode": 1
+        }
+      }).fetch()[0];
+
+      if (bullseyeUser && bullseyeUser.profile) {
+        Session.set("presentationMode", bullseyeUser.profile.presentationMode);
+        createPlayersCircle(playersConfig);
+      }
     });
   }); // onRendered()
 
@@ -110,32 +133,32 @@
         // iPad#1
         case "192.168.1.101":
         case "192.168.1.201":
-          newPlayer.rotation = 30;
+          newPlayer.fixedRotation = 30;
           break;
         // iPad#2
         case "192.168.1.102":
         case "192.168.1.202":
-          newPlayer.rotation = 90;
+          newPlayer.fixedRotation = 90;
           break;
         // iPad#3
         case "192.168.1.103":
         case "192.168.1.203":
-          newPlayer.rotation = 150;
+          newPlayer.fixedRotation = 150;
           break;
         // iPad#4
         case "192.168.1.104":
         case "192.168.1.204":
-          newPlayer.rotation = 210;
+          newPlayer.fixedRotation = 210;
           break;
         // iPad#5
         case "192.168.1.105":
         case "192.168.1.205":
-          newPlayer.rotation = 270;
+          newPlayer.fixedRotation = 270;
           break;
         // iPad#6
         case "192.168.1.106":
         case "192.168.1.206":
-          newPlayer.rotation = 330;
+          newPlayer.fixedRotation = 330;
           break;
         default:
           // ignore
@@ -143,11 +166,7 @@
       }
     }
 
-    // NOTE We only want to add players that are logged in using one
-    // of our registered iPads.
-    if (newPlayer.rotation) {
-      playerList.push(newPlayer);
-    }
+    playerList.push(newPlayer);
   } // addToPlayers
 
 
@@ -174,18 +193,16 @@
   });
 
 
-  var createPlayersCircle = function(config) {
+  function createPlayersCircle(config) {
     var spacing = 15;
 
-    // ==========================================================
-    // FOR DEBUGGING: For this to work requires changing/removing
-    // the condition in 'addToPlayers' function
-    // ==========================================================
-    // playerList.forEach(function(p, i, players) {
-    //   if (!p.rotation) {
-    //     p.rotation = 30 + i * 60;
-    //   }
-    // });
+    // Depending on the number of players, we calculate a rotation
+    // angle to allow for correct radial positioning of each player.
+    var theta = 360 / playerList.length;
+
+    playerList.forEach(function(p, i, players) {
+      p.rotation = i * theta;
+    });
 
     // =======================================
     // FOR DEBUGGING: big circle in the center
@@ -214,15 +231,7 @@
         // So we use the prefix 'gid' ('gid' as in 'group identifier').
         return "gid" + d._id;
       })
-      .attr("class", "bullseye-player")
-      .attr("transform", function(d, i) {
-        // We translate each player to the center, then rotate each by
-        // its specific rotation angle, then translate by the radius it along the y-axis.
-        return "translate(" + (config.centerX ) + "," + (config.centerY) + ")" +
-          "rotate(" + d.rotation + ")" +
-          "translate(0," + (-config.radius) + ")";
-
-      });
+      .attr("class", "bullseye-player");
 
     playerGroup.append("use")
       .attr("xlink:href", function(d) {
@@ -249,7 +258,25 @@
         return d.profile.name;
       });
 
-  }; // createPlayersCircle
+    // Finally, we take the selection of all elements (i.e. entering and
+    // already existing elements) to set the `transform` attribute in order
+    // to move the elements to their intended position.
+    // We check for the current presentation mode to differentiate between
+    // player positions that are fixed on the Cohesion Table.
+    playerElements.attr("transform", function(d, i) {
+      var angle;
+      if (Session.equals("presentationMode", "table")) {
+        angle = d.fixedRotation || d.rotation;
+      } else if (Session.equals("presentationMode", "projector")) {
+        angle = d.rotation;
+      }
+      // We translate each player to the center, then rotate each by
+      // its specific rotation angle, then translate by the radius it along the y-axis.
+      return "translate(" + (config.centerX ) + "," + (config.centerY) + ")" +
+        "rotate(" + angle + ")" +
+        "translate(0," + (-config.radius) + ")";
+    });
+  } // createPlayersCircle
 
 
   // We need to stop observing our live queries when this template is
