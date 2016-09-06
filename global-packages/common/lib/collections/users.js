@@ -10,6 +10,10 @@ Schemas.UserProfile = new SimpleSchema({
     type: String,
     optional: true
   },
+  presentationMode: {
+    type: String,
+    optional: true
+  },
   currentTraining: {
     type: String,
     optional: true
