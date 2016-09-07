@@ -24,10 +24,10 @@
           <li class="{{activeRouteClass 'myIds' }} {{#unless avatar}} disabled {{/unless}}">
             <a id="reflect-link" href="{{pathFor 'myIds'}}">Reflect</a>
           </li>
-          <li class="{{activeRouteClass 'idPool' }} {{#unless avatar}} disabled {{/unless}}">
+          <li class="{{activeRouteClass 'idPool' }} {{#unless rootExists}} disabled {{/unless}}">
             <a id="match-link" href="{{pathFor 'idPool'}}">Match</a>
           </li>
-          <li class="{{activeRouteClass 'idNetwork' }} {{#unless avatar}} disabled {{/unless}}">
+          <li class="{{activeRouteClass 'idNetwork' }} {{#unless rootExists}} disabled {{/unless}}">
             <a id="explore-link" href="{{pathFor 'idNetwork'}}">Explore</a>
           </li>
         </ul>
