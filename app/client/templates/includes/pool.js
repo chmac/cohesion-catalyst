@@ -122,7 +122,10 @@ var pool = function() {
 
   Template.idPool.onDestroyed(function() {
     var templateInstance = this;
-    templateInstance.idsPoolHandle.stop();
+
+    if (templateInstance.idsPoolHandle) {
+      templateInstance.idsPoolHandle.stop();
+    }
 
     // 'onDestroyed' may be triggered because the user was removed by
     // the admin so we need to check if the user still exists.
