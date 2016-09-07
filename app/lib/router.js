@@ -51,7 +51,8 @@ Router.route("/explore", {
     if (Meteor.user() && !Roles.userIsInRole(Meteor.userId(), "view-bullseye")) {
       return [
         Meteor.subscribe("globalMetaIdentifications", Meteor.user().profile.currentTraining),
-        Meteor.subscribe("currentPlayers", Meteor.user().profile.currentTraining)
+        Meteor.subscribe("currentPlayers", Meteor.user().profile.currentTraining),
+        Meteor.subscribe("poolIdentifications", Meteor.user().profile.currentTraining)
       ];
     }
   }
