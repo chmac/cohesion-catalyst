@@ -244,8 +244,14 @@ var network = function() {
   // removed from the DOM.
   Template.idNetwork.onDestroyed(function() {
     var templateInstance = this;
-    templateInstance.networkHandle.stop();
-    templateInstance.playerHandle.stop();
+
+    if (templateInstance.networkHandle) {
+      templateInstance.networkHandle.stop();
+    }
+
+    if (templateInstance.playerHandle) {
+      templateInstance.playerHandle.stop();
+    }
 
     // 'onDestroyed' may be triggered because the user was removed by
     // the admin so we need to check if the user still exists.
