@@ -19,10 +19,15 @@ Template.navigation.helpers({
     return active && "active";
   },
   username: function() {
-    return Meteor.user().profile.name;
+    return Meteor.user() && Meteor.user().profile.name;
   },
   avatar: function() {
-    return Meteor.user().profile.avatar;
+    return Meteor.user() && Meteor.user().profile.avatar;
+  },
+  rootExists: function() {
+    var currentUserId = Meteor.userId();
+    var currentTrainingId = Meteor.user() && Meteor.user().profile.currentTraining;
+    return Identifications.findRoot(currentUserId, currentTrainingId).fetch()[0];
   }
 });
 
@@ -35,7 +40,7 @@ Template.navigation.events({
   },
   "click .disabled": function(event) {
     event.preventDefault();
-    throwError("Please choose your smiley.");
+    throwError("Please start with a smile, then reflect.");
     return false;
   },
   "click #reflect-link": function(event) {
