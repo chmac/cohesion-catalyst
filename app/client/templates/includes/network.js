@@ -929,8 +929,7 @@ var network = function() {
 
   /**
    * Updates the attributes of a D3 selection when data has changed.
-   * @param {Array} bubble - The D3 selection of the bubble the data
-   * of which has changed (i.e. the selection contains only one element).
+   * @param {Array} bubble - The D3 selection the data of which has changed.
    */
   var updateSelection = function(bubble) {
     bubble.select("circle")
