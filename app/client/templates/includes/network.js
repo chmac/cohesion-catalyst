@@ -12,12 +12,15 @@ var network = function() {
     bubbles,
     links,
     bubbleGroup,
+    currentPlayers,
     currentNetworkIds = [],
     dataset = [],
-    bubbleGravity;
+    bubbleGravity,
+    DURATION = 500;
 
 
   Template.idNetwork.onRendered(function() {
+    currentPlayers = [];
     currentNetworkIds = [];
     var templateInstance = this;
 
@@ -62,37 +65,54 @@ var network = function() {
       target: "Template"
     });
 
-    var currentPlayers = Meteor.users.find({"profile.currentTraining": currentTrainingId}).fetch();
-
     var playersConfig =  {
       radius: outerRadius,
       radiusX: clientWidth / 2,
       radiusY: (clientHeight - avatarSize/2) / 2,
       centerX: clientWidth / 2 - margin.left, // We need to adjust the translation of the drawing surface
       centerY: clientHeight / 2 - margin.top,
-      size: avatarSize,
-      count: currentPlayers.length
+      size: avatarSize
     };
 
-    createPlayersCircle(currentPlayers, playersConfig);
-
-    // We want to observe if a user changes his or her avatar
-    // in order to reactively update the SVG icon.
     var playersCursor = Meteor.users.find({
       "profile.currentTraining": currentTrainingId
-    }, {
-      fields: {
-        "profile.avatar": 1
+    });
+
+    var initialPlayerQuery = true;
+    // We observe the query of the current players (i.e. users of this training
+    // session) to reactively update the players on the screen.
+    // For example, a user may be deleted or created at a later time or they change
+    // their avatar. To reflect those changes on the screen, we need to update the positions
+    // and the SVG icon, respectively.
+    templateInstance.playerHandle = playersCursor.observe({
+      added: function(doc) {
+        addPlayer(doc);
+        if (!initialPlayerQuery) {
+          createPlayersCircle(playersConfig);
+          dataset = setupLinksData(currentPlayers, currentNetworkIds);
+          createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+          updateSelection(d3.selectAll(".id-circle"));
+          makeReset();
+        }
+      },
+      changed: function(newDoc, oldDoc) {
+        if (newDoc.profile.avatar !== oldDoc.profile.avatar) {
+          var player = Meteor.users.findOne({_id: newDoc._id});
+          d3.select("#gid" + newDoc._id + " use")
+            .attr("xlink:href", "/svg/avatars.svg" + newDoc.profile.avatar);
+        }
+      },
+      removed: function(doc) {
+        removePlayer(doc);
+        createPlayersCircle(playersConfig);
+        dataset = setupLinksData(currentPlayers, currentNetworkIds);
+        createBubbleCloud(playersConfig, clientWidth, clientHeight, dataset, drawingSurface);
+        updateSelection(d3.selectAll(".id-circle"));
+        makeReset();
       }
     });
-    templateInstance.playerHandle = playersCursor.observeChanges({
-      changed: function(id, profileAvatar) {
-        var player = Meteor.users.findOne({_id: id});
-        d3.select("#gid" + id + " use")
-          .attr("xlink:href", "/svg/avatars.svg" + player.profile.avatar);
-        // console.log(player.profile.name, " changed avatar to ", player.profile.avatar);
-      }
-    });
+    initialPlayerQuery = false;
+    createPlayersCircle(playersConfig);
 
     var currentNetworkCursor = MetaCollection.find({
       $nor: [
@@ -130,13 +150,13 @@ var network = function() {
         // is added and if the newly added ID was also created by the current
         // player. If both of those conditions are true, we call the function to show
         // the links to all of the IDs of the current player.
-        // We wait until the transition of the entering element is halfway through
+        // We wait until the transition of the entering element is almost through
         // in order to prevent flickering of the link.
         var player = d3.select("#gid" + Meteor.userId());
         if (player.classed("self-highlighted") && _.contains(doc.createdBy, Meteor.userId())) {
           Meteor.setTimeout(function() {
             showLinksToCurrentPlayerIds(Meteor.userId());
-          }, 500);
+          }, DURATION * 0.75);
         }
       },
       changed: function(newDoc,oldDoc) {
@@ -241,6 +261,18 @@ var network = function() {
       });
     }
   });
+
+  function addPlayer(newPlayerDoc) {
+    currentPlayers.push(newPlayerDoc);
+  }
+
+  function removePlayer(oldPlayerDoc) {
+    currentPlayers.forEach(function(player, i, list) {
+      if (list[i] && list[i]._id === oldPlayerDoc._id) {
+        currentPlayers.splice(i, 1);
+      }
+    });
+  }
 
   /**
    * Updates the displayed positions of the rendered elements.
@@ -361,7 +393,7 @@ var network = function() {
    *
    * @param {Array} playerData The user documents of the current training.
    * @param {Array} networkData The metaIds documents of the current training.
-   * @return {Array} An array of objects to be used to link source and target nodes.
+   * @return {Array} linksData An array of objects to be used to link source and target nodes.
    */
   var setupLinksData = function(playerData, networkData) {
     var linksData = [];
@@ -389,11 +421,11 @@ var network = function() {
    * angle value retrieved by dividing the size of a full circle by the number of players.
    * cf. [as of 2015-11-3] http://stackoverflow.com/questions/14790702/d3-js-plot-elements-using-polar-coordinates
    */
-  var createPlayersCircle = function(players, config) {
+  var createPlayersCircle = function(config) {
     var spacing = 10;
-    var theta = 2 * Math.PI / players.length;
+    var theta = 2 * Math.PI / currentPlayers.length;
     var radialPlayers = [];
-    players.forEach(function(p, i, players) {
+    currentPlayers.forEach(function(p, i, currentPlayers) {
       var radialPlayer, x, y;
       x = config.centerX + config.radius * Math.cos(i * theta);
       y = config.centerY + config.radius * Math.sin(i * theta);
@@ -431,10 +463,7 @@ var network = function() {
         // So we use the prefix 'gid' ('gid' as in 'group identifier').
         return "gid" + d._id;
       })
-      .attr("class", "player")
-      .attr("transform", function(d, i) {
-        return "translate(" + d.x + "," + d.y + ")";
-      });
+      .attr("class", "player");
 
     playerGroup.append("use")
       .attr("xlink:href", function(d) {
@@ -451,6 +480,20 @@ var network = function() {
 
     playerGroup.append("text")
       .attr("text-anchor", "middle")
+      .style("fill", "currentColor")
+      .text(function(d) {
+        return d.profile.name;
+      });
+
+    // Now, we take the selection of all elements (i.e. entering and
+    // already existing elements) to set the `transform` attribute in order
+    // to move the elements to their intended position.
+    playerElements.attr("transform", function(d,i) {
+      return "translate(" + d.x + "," + d.y + ")";
+    });
+
+    // After all players found their location, we align the text label.
+    drawingSurface.selectAll("text")
       // We position the text below or above the player avatar
       // depending on its vertical position, i.e. above or below the vertical center.
       .attr("transform", function(d) {
@@ -458,12 +501,7 @@ var network = function() {
           return "translate(0," + (-config.size / 2 + spacing) + ")";
         }
         return "translate(0," + (config.size / 2 + spacing) + ")";
-      })
-      .style("fill", "currentColor")
-      .text(function(d) {
-        return d.profile.name;
       });
-
 
     // Call the function to handle touch and mouse events, respectively.
     touchMouseEvents(playerGroup, drawingSurface.node(), {
@@ -502,7 +540,7 @@ var network = function() {
     // use radius values to create circles with areas that correctly
     // corresponds to the data values.
     var mapRadius = d3.scale.sqrt()
-      .domain([0, config.count])
+      .domain([0, currentPlayers.length])
       .range([10, 45]);
 
     bubbles = bubbles.data(currentNetworkIds, function(d) {
@@ -620,7 +658,7 @@ var network = function() {
       // '0' to its specific calculated value.
       bubbleGroup.selectAll("circle")
         .transition()
-        .duration(500)
+        .duration(DURATION)
         .attr("r", function(d) {
           return d.bubbleR;
         });
@@ -630,8 +668,8 @@ var network = function() {
     // with a slight delay.
     bubbleGroup.selectAll(".foreign-object")
       .transition()
-      .delay(250)
-      .duration(500)
+      .delay(DURATION * 0.5)
+      .duration(DURATION)
       .style("opacity", "1");
 
 
@@ -752,12 +790,14 @@ var network = function() {
     idBubble.select("circle")
       .attr("class", d.color)
       .transition()
+      .duration(DURATION)
       .attr("r", function(d) {
         return d.bubbleR * 1.5;
       });
 
     idBubble.select(".foreign-object")
       .transition()
+      .duration(DURATION)
       .attr("transform", function(d) {
         return "scale(1.5) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
       });
@@ -823,6 +863,7 @@ var network = function() {
         return d.color;
       })
       .transition()
+      .duration(DURATION)
       .attr("r", function(d) {
         return d.bubbleR;
       });
@@ -885,76 +926,67 @@ var network = function() {
     otherIds.style("opacity", 0.4);
   }; // showLinksToCurrentPlayerIds
 
-}(); // 'network' module
 
-/**
- * Updates the attributes of a D3 selection when data has changed.
- * @param {Array} bubble - The D3 selection of the bubble the data
- * of which has changed (i.e. the selection contains only one element).
- */
-var updateSelection = function(bubble) {
-  bubble.select("circle")
-    .transition()
-    .duration(1000)
-    .attr("r", function(d) {
-      return d.bubbleR;
-    });
+  /**
+   * Updates the attributes of a D3 selection when data has changed.
+   * @param {Array} bubble - The D3 selection of the bubble the data
+   * of which has changed (i.e. the selection contains only one element).
+   */
+  var updateSelection = function(bubble) {
+    bubble.select("circle")
+      .transition()
+      .duration(DURATION)
+      .attr("r", function(d) {
+        return d.bubbleR;
+      });
 
-  bubble.select(".foreign-object")
-    .attr({
-      "width": function(d) {
-        return d.bubbleR * 2 + "px";
-      },
-      "height": function(d) {
-        return d.bubbleR * 2 + "px";
-      },
-      "transform": function(d) {
-        return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
-      }
-    })
-    .select(".txt-inside-circle")
-      .style({
+    bubble.select(".foreign-object")
+      .attr({
         "width": function(d) {
           return d.bubbleR * 2 + "px";
         },
         "height": function(d) {
           return d.bubbleR * 2 + "px";
         },
-        // We update the font-size based on the calculated text length
-        "font-size": function(d) {
-          d.fontSize = (d.bubbleR * 2 - 5) / d.textLen;
-          return d.fontSize + "em";
+        "transform": function(d) {
+          return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
         }
-      });
-};
+      })
+      .select(".txt-inside-circle")
+        .style({
+          "width": function(d) {
+            return d.bubbleR * 2 + "px";
+          },
+          "height": function(d) {
+            return d.bubbleR * 2 + "px";
+          },
+          // We update the font-size based on the calculated text length
+          "font-size": function(d) {
+            d.fontSize = (d.bubbleR * 2 - 5) / d.textLen;
+            return d.fontSize + "em";
+          }
+        });
+  };
 
 
-/**
- * Reduces the radius for each element in the selection.
- * First, we calculate the ratio between the total of bubble areas
- * and the maximum area available within the players circle.
- * Then, we take the square root of its reciprocal and muliply it with
- * each element's radius and we also set this new value
- * making it available for getting/setting attribute values and style
- * properties.
- * @param {Object} selection - A D3 selection (update or enter).
- * @param {Number} areaSum - The total area of all bubbles currently displayed.
- * @param {Number} maxArea - The maximum available area for the bubbles. Specified in relation
- * to the area spanned by the player ring.
- */
-var reduceBubbleRadius = function(selection, areaSum, maxArea) {
-  var zoomFactor = areaSum / maxArea; // e.g.  a value of 1.2 means 20% too big
-  selection.each(function(d) {
-    d.bubbleR *= Math.sqrt(1.0 / zoomFactor);
-  });
-};
+  /**
+   * Reduces the radius for each element in the selection.
+   * First, we calculate the ratio between the total of bubble areas
+   * and the maximum area available within the players circle.
+   * Then, we take the square root of its reciprocal and muliply it with
+   * each element's radius and we also set this new value
+   * making it available for getting/setting attribute values and style
+   * properties.
+   * @param {Object} selection - A D3 selection (update or enter).
+   * @param {Number} areaSum - The total area of all bubbles currently displayed.
+   * @param {Number} maxArea - The maximum available area for the bubbles. Specified in relation
+   * to the area spanned by the player ring.
+   */
+  var reduceBubbleRadius = function(selection, areaSum, maxArea) {
+    var zoomFactor = areaSum / maxArea; // e.g.  a value of 1.2 means 20% too big
+    selection.each(function(d) {
+      d.bubbleR *= Math.sqrt(1.0 / zoomFactor);
+    });
+  };
 
-// var getCurrentAvatar = function() {
-//
-//     var defaultAvatarURL = "/svg/avatars.svg#smiley-smile";
-//     var currentAvatar = Avatars.findOne({
-//       type: d.profile.avatar
-//     });
-//     return currentAvatar && currentAvatar.url || defaultAvatarURL;
-//
-// };
+}(); // 'network' module
