@@ -18,9 +18,6 @@ Template.navigation.helpers({
     // but 'true && myString' returns 'myString'.
     return active && "active";
   },
-  username: function() {
-    return Meteor.user() && Meteor.user().profile.name;
-  },
   avatar: function() {
     return Meteor.user() && Meteor.user().profile.avatar;
   },
