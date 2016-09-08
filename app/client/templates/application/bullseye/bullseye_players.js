@@ -71,14 +71,14 @@
       },
       removed: function(doc) {
         removeFromPlayers(doc);
-        createPlayersCircle(playersConfig);
+        createPlayersCircle(configPlayers(avatarSize, margin));
       }
     });
 
     // At this point, 'observe' has returned and the initial query results are delivered.
     // So we call '()' with the initial dataset.
     initializing = false;
-    createPlayersCircle(playersConfig);
+    createPlayersCircle(configPlayers(avatarSize, margin));
 
     $(window).resize(function () {
       Session.set("canvasSize", document.documentElement.clientHeight);
@@ -111,7 +111,7 @@
 
       if (bullseyeUser && bullseyeUser.profile) {
         Session.set("presentationMode", bullseyeUser.profile.presentationMode);
-        createPlayersCircle(playersConfig);
+        createPlayersCircle(configPlayers(avatarSize, margin));
       }
     });
   }); // onRendered()
