@@ -195,14 +195,29 @@
 
   function createPlayersCircle(config) {
     var spacing = 15;
+    var players = [];
 
-    // Depending on the number of players, we calculate a rotation
-    // angle to allow for correct radial positioning of each player.
-    var theta = 360 / playerList.length;
-
-    playerList.forEach(function(p, i, players) {
-      p.rotation = i * theta;
-    });
+    // We check for the current presentation mode to differentiate between
+    // player positions that are fixed on the Cohesion Table
+    // before we populate the players array, which is used for data joins.
+    if (Session.equals("presentationMode", "table")) {
+      // We filter for players that have a fixed position around the cohesion table.
+      var tablePlayers = _.filter(playerList, function(p) {
+        return p.fixedRotation;
+      });
+      tablePlayers.forEach(function(p) {
+        p.rotation = p.fixedRotation;
+        players.push(p);
+      });
+    } else if (Session.equals("presentationMode", "projector")) {
+      // Depending on the number of players, we calculate a rotation
+      // angle to allow for correct radial positioning of each player.
+      var theta = 360 / playerList.length;
+      playerList.forEach(function(p, i, list) {
+        p.rotation = i * theta;
+        players.push(p);
+      });
+    }
 
     // =======================================
     // FOR DEBUGGING: big circle in the center
@@ -216,7 +231,7 @@
     //   .style("fill", "rgba(55, 55, 55, 0.3)");
 
     var playerElements = drawingSurface.selectAll(".bullseye-player")
-      .data(playerList, function(d, i) {
+      .data(players, function(d, i) {
         return d._id;
     });
 
@@ -261,19 +276,11 @@
     // Finally, we take the selection of all elements (i.e. entering and
     // already existing elements) to set the `transform` attribute in order
     // to move the elements to their intended position.
-    // We check for the current presentation mode to differentiate between
-    // player positions that are fixed on the Cohesion Table.
     playerElements.attr("transform", function(d, i) {
-      var angle;
-      if (Session.equals("presentationMode", "table")) {
-        angle = d.fixedRotation || d.rotation;
-      } else if (Session.equals("presentationMode", "projector")) {
-        angle = d.rotation;
-      }
       // We translate each player to the center, then rotate each by
-      // its specific rotation angle, then translate by the radius it along the y-axis.
+      // its specific rotation value, then translate by the radius it along the y-axis.
       return "translate(" + (config.centerX ) + "," + (config.centerY) + ")" +
-        "rotate(" + angle + ")" +
+        "rotate(" + d.rotation + ")" +
         "translate(0," + (-config.radius) + ")";
     });
   } // createPlayersCircle
