@@ -18,7 +18,10 @@ Router.route("/", {
 });
 
 Router.route("/smile", {
-  name: "intro"
+  name: "intro",
+  subscriptions: function() {
+    return Meteor.subscribe("poolIdentifications", Meteor.user().profile.currentTraining);
+  }
 });
 
 Router.route("/reflect", {
