@@ -880,6 +880,7 @@ var network = function() {
       // on <foreignObject> elements (e.g. transitions on
       // the opacity style property of incoming bubbles).
       .transition("resetSize")
+      .duration(DURATION)
       .attr("transform", function(d) {
           return "scale(1.0) translate(" + (-d.bubbleR) + ", " + (-d.bubbleR) + ")";
       });
