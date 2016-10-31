@@ -220,7 +220,7 @@ Template.createAccountForm.events({
               m.locus = "CLIENT: DBG_checkCall";
               m.info = " user " + newUser.username + " not found - calling handleUserWasCreated ANYWAY!!!";
               DebugMessages.insert(m);
-              alert("It happened. Continuing when you click OK.");
+              alert("Could not login. Trying again after you closed this dialog.");
               handleUserWasCreated(null,null);
             }
           }
