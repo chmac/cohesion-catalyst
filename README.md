@@ -1,27 +1,26 @@
-# coca-project
+# cohesion-catalyst
 
-Aimed to develop Cohesion Catalyst, a modern web application to discover multicollectivity. _(ToDo: add link to website)_
+Aimed to develop Cohesion Catalyst, a modern web application to discover multicollectivity.  
+For more information about the project and the application 👉 [zollillo.github.io/cohesion-catalyst](https://zollillo.github.io/cohesion-catalyst/)
 
 
 ## Table of Contents
 
 1. [Project structure](#project-structure)  
 2. [Local configuration](#local-configuration)
-3. [Deployment](#deployment)
-4. [Meteor UP X issue](#meteor-up-x-issue) / :monkey: patch
+3. [Some notes on deployment](#some-notes-on-deployment)
 5. [Working with Docker](#working-with-docker)
 
 
 
 ## Project structure
 
-The __coca-project__ consists of two [Meteor](http://guide.meteor.com/#what-is-meteor) apps that share the same [MongoDB](https://docs.mongodb.org/manual/introduction/) database. Furthermore, the two applications use the same private (i.e. unpublished) Meteor package that provides common collections and schema definitions. We use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps to our own server.
+The __cohesion-catalyst__ project consists of two [Meteor](http://guide.meteor.com/#what-is-meteor) apps that share the same [MongoDB](https://docs.mongodb.org/manual/introduction/) database. Furthermore, the two applications use the same private (i.e. unpublished) Meteor package that provides common collections and schema definitions. We use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps to our own server.
 
 The project structure is as follows:
 * `/app` - the _main_ application for normal users
 * `/admin` - an admin app for special users with admin rights who can control the content in the database.
 * `/global-packages` - location of private Meteor packages
-* `/deployment` - all things deploy :nut_and_bolt:
 
 
 ## Local configuration
@@ -55,7 +54,7 @@ So, in another shell, from inside your `/admin` app directory use the following 
 </pre>
 
 
-## Deployment
+## Some notes on deployment
 
 In order to use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps you have to create two separate Meteor Up projects in separate directories, each of which containing the specific `mup.json` file for each app.  
 
@@ -72,52 +71,18 @@ Required environment variables for the admin app:
 * `PACKAGE_DIRS`
 * `MONGO_URL`
 
-### CCAT Deployment Process
-* Log into the server of choice (218, 219, server laptop) as **ccat**
-* Change to the project repository
-  * `cd devel/coca-project`
-* Switch to develop branch if needed
-  * `git checkout develop`
-* Incorporate changes from the remote repository if any
-  * `git pull`
-* View the available tags in order to find the desired version
-  * `git tag`
-* Switch to whatever version you like (for demos, tests, and workshops, always check out a tagged version)
-  * `git checkout <name-of-tag>`
-* Deploy main app
-  * `cd deployment/app-deploy`
-  * `mupx stop`
-  * `mupx deploy`
-* Deploy admin app
-  * `cd ../admin-deploy`
-  * `mupx stop`
-  * `mupx deploy`
-* Troubleshooting
-  * If deploy fails, try `mupx setup` followed by `mupx deploy`
-
-
 #### Note:
 
-* The admin app should not install MongoDB so you set `"setupMongo": false`.
+* The admin app should not install MongoDB, so you set `"setupMongo": false` in the `mup.json` file associated with the admin app.
 * `PACKAGE_DIRS` also needs to be exported in `~/.bashrc` on the server. Otherwise, the following error occurs:  
 `error: unknown package in top-level dependencies: coca:common`  
-_(ToDo: Figure out if it makes any sense to  set it via `mup.json`)_
 
 
-## Meteor UP X issue
+#### Meteor UP X issue
 
-Although setting `MONGO_URL` in the admin app's `mup.json` to point to the main application database it doesn't work. The deployment of the admin app fails because connecting to `mongodb:27017` fails.  
+Although setting `MONGO_URL` in the admin app's `mup.json` to point to the main application database, the deployment of the admin app fails because connecting to `mongodb:27017` fails.  
 
 It seems to be a known [issue](https://github.com/arunoda/meteor-up/issues/758) and a workaround fix can be found in [this comment](https://github.com/arunoda/meteor-up/issues/758#issuecomment-164343450).  
-
-The script `/opt/ccat_admin/config/start.sh` (provided by MUP X) is missing the following two lines within the `else` block:
-```
---link=mongodb:mongodb \
---env=MONGO_URL=mongodb://mongodb:27017/ccat_app \
-```
-
-Mupx generates start.sh from a template file installed in (on Ubuntu) /usr/local/lib/node_modules/mupx/templates/linux.
-Simply replace it by the one in coca-project/deployment/mupx-templates.
 
 
 ## Working with Docker
@@ -135,9 +100,9 @@ $ docker ps
 To get access to the `log` files of the main application that are written to the `$HOME` directory run the following command (logged in as root)
 
 ```
-docker exec -it ccat_app bash
+docker exec -it ccat-app bash
 ```
 
-where `ccat_app` is the name of the running application container (use `docker ps` if you don't know the name). After that, `cd` into the home directory where you will find the `ccat-log` directory.
+where `ccat-app` is the name of the running application container (use `docker ps` if you don't know the name). After that, `cd` into the home directory where you will find the `ccat-log` directory.
 
 See also the information given on the [MUP X project page](https://github.com/arunoda/meteor-up/tree/mupx#accessing-the-database) about accessing  MongoDB.
