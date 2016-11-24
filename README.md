@@ -1,15 +1,18 @@
 # cohesion-catalyst
 
-Aimed to develop Cohesion Catalyst, a modern web application to discover multicollectivity.  
-For more information about the project and the application 👉 [zollillo.github.io/cohesion-catalyst](https://zollillo.github.io/cohesion-catalyst/)
+Cohesion Catalyst is a modern web application to discover multicollectivity.  
+For more information about the project and the application 👉 [zollillo.github.io/cohesion-catalyst](https://zollillo.github.io/cohesion-catalyst/)  
+
+Built with __[Meteor](http://guide.meteor.com/#what-is-meteor) version 1.2.1__.
 
 
 ## Table of Contents
 
-1. [Project structure](#project-structure)  
-2. [Local configuration](#local-configuration)
-3. [Some notes on deployment](#some-notes-on-deployment)
-5. [Working with Docker](#working-with-docker)
+1. [Project structure](#project-structure) :memo:
+2. [Local configuration](#local-configuration) :wrench:
+3. [Initial data](#initial-data) :baby:
+4. [Some notes on deployment](#some-notes-on-deployment) :rocket:
+5. [Working with Docker](#working-with-docker) :whale:
 
 
 
@@ -18,9 +21,9 @@ For more information about the project and the application 👉 [zollillo.github
 The __cohesion-catalyst__ project consists of two [Meteor](http://guide.meteor.com/#what-is-meteor) apps that share the same [MongoDB](https://docs.mongodb.org/manual/introduction/) database. Furthermore, the two applications use the same private (i.e. unpublished) Meteor package that provides common collections and schema definitions. We use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps to our own server.
 
 The project structure is as follows:
-* `/app` - the _main_ application for normal users
-* `/admin` - an admin app for special users with admin rights who can control the content in the database.
-* `/global-packages` - location of private Meteor packages
+* `/app` - the _main_ application for regular users
+* `/admin` - an admin app for users with admin rights who can control the content in the database.  
+* `/global-packages` - location of private Meteor packages  
 
 
 ## Local configuration
@@ -52,6 +55,11 @@ So, in another shell, from inside your `/admin` app directory use the following 
 <pre>
   <code>$ MONGO_URL=mongodb://localhost:3001/meteor meteor --port 3100</code>
 </pre>
+
+
+## Initial data
+On first-time run of the app (or after a reset), the collections in the database are empty, and we create some initial data.
+For example, to access the admin app an admin user is created and stored in the database. Their username is  `admin@example.com`, and the password is `password`.
 
 
 ## Some notes on deployment
