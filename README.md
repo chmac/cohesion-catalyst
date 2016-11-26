@@ -1,10 +1,16 @@
 # cohesion-catalyst
 
-Cohesion Catalyst is a modern web application to discover multicollectivity.  
+Cohesion Catalyst is a web application aimed at visualizing multicollectivity.  
+Developed as part of the [IFAF](http://www.ifaf-berlin.de/projekte/c.cat/)-funded research project [C.Cat - Cohesion Catalyst](http://cohesion-lab.com/).  
 For more information about the project and the application 👉 [zollillo.github.io/cohesion-catalyst](https://zollillo.github.io/cohesion-catalyst/)  
 
-Built with __[Meteor](http://guide.meteor.com/#what-is-meteor) version 1.2.1__.
 
+Requirements:  __[Meteor](http://guide.meteor.com/#what-is-meteor) version 1.2.1__.  
+
+
+
+### License
+This work is released under the [GNU General Publice License, version 3](http://www.gnu.org/licenses/gpl-3.0.txt).
 
 ## Table of Contents
 
