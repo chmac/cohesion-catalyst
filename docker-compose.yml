@@ -12,6 +12,20 @@ services:
       - MONGO_URL=mongodb://mongo:27017/cohesion
       # - ROOT_URL=http://localhost:3000/
       - PORT=3000
+
+  admin:
+    container_name: cohesion-admin
+    build: builds/admin/bundle/
+    ports:
+      - "3100:3100"
+    links:
+      - mongo
+    environment:
+      # - MONGO_URL=mongodb://root:aMTBrcI5GjLAVAqeNbGMZh7ChlfZ5iu@mongo:27017/cohesion
+      - MONGO_URL=mongodb://mongo:27017/cohesion
+      # - ROOT_URL=http://localhost:3000/
+      - PORT=3100
+
   mongo:
     container_name: cohesion-mongo
     image: mongo:2.6
