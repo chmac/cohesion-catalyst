@@ -6,8 +6,23 @@ For more information about the project and the application 👉 [zollillo.github
 
 
 Requirements:  __[Meteor](http://guide.meteor.com/#what-is-meteor) version 1.2.1__.  
+## Deployment 2019
 
+This has been updated for deployment via docker in 2019. On an Ubuntu (or
+probably other linux flavour) machine with docker installed, the following
+should be enough to start the app:
 
+```bash
+curl https://install.meteor.com/ | sh
+./run_docker.sh
+```
+
+This will install meteor, build both the `app/` and `admin/` folders and run
+them inside a docker container. The various scripts are reasonably self
+explanatory. The running apps will be:
+
+- app: http://localhost:3000
+- admin: http://localhost:3100
 
 ### License
 This work is released under the [GNU General Publice License, version 3](http://www.gnu.org/licenses/gpl-3.0.txt).
