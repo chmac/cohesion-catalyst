@@ -4,4 +4,4 @@
 
 ./build_admin.sh
 
-docker-compose up --build
+sudo docker-compose up --build
