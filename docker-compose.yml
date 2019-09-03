@@ -1,5 +1,14 @@
 version: "3"
 services:
+  mongo:
+    container_name: cohesion-mongo
+    image: mongo:2.6
+    ports:
+      - "27017:27017"
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=root
+    #   - MONGO_INITDB_ROOT_PASSWORD=aMTBrcI5GjLAVAqeNbGMZh7ChlfZ5iu
+
   app:
     container_name: cohesion-app
     build: builds/app/bundle/
@@ -25,12 +34,3 @@ services:
       - MONGO_URL=mongodb://mongo:27017/cohesion
       # - ROOT_URL=http://localhost:3000/
       - PORT=3100
-
-  mongo:
-    container_name: cohesion-mongo
-    image: mongo:2.6
-    ports:
-      - "27017:27017"
-    # environment:
-    #   - MONGO_INITDB_ROOT_USERNAME=root
-    #   - MONGO_INITDB_ROOT_PASSWORD=aMTBrcI5GjLAVAqeNbGMZh7ChlfZ5iu
