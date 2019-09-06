@@ -725,7 +725,7 @@ Template.myIds.onRendered(function() {
             // the check for empty nodes operates on up-to-date data.
             d.name = newName;
             Session.set("selectedElement", d);
-            selectNodeElement(d);
+            // selectNodeElement(d);
           }
         }
         // We use 'return' here to abort listening to this event on root level
