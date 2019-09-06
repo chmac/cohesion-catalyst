@@ -122,7 +122,7 @@ Template.myIds.onRendered(function() {
    * Handles the dragging (i.e. re-positioning) of an existing node element (an identification bubble).
    */
   dragNodeToMousePosition = function(d, x, y, dx, dy) {
-    d3.event.preventDefault();
+    d3.event.cancelable && d3.event.preventDefault();
     var rootNodeData,
       mousePos,
       currentActiveNode;
@@ -213,7 +213,7 @@ Template.myIds.onRendered(function() {
    * processed nodes to null.
    */
   deselectCurrentNode = function() {
-    d3.event.preventDefault();
+    d3.event.cancelable && d3.event.preventDefault();
     var currentActiveNode = Session.get("selectedElement");
     if (isEmptyNode(currentActiveNode)) {
       promptEmptyNode(currentActiveNode);
@@ -237,7 +237,7 @@ Template.myIds.onRendered(function() {
    * @param {number} dy
    */
   drawLineToMousePosition = function(d, x, y, dx, dy) {
-    d3.event.preventDefault();
+    d3.event.cancelable && d3.event.preventDefault();
     var rootNodeData,
       currentActiveNode = Session.get("selectedElement");
 
@@ -573,7 +573,7 @@ Template.myIds.onRendered(function() {
         // and we want to prevent the default browser action.
         // Thus, a double-tap does not zoom in or out, and a
         // 'longDown'/'touchhold' won't trigger the magnifier.
-        d3.event.preventDefault();
+        d3.event.cancelable && d3.event.preventDefault();
         var currentActiveNode = Session.get("selectedElement");
 
         if (isEmptyNode(currentActiveNode) && d._id != currentActiveNode._id) {
@@ -632,7 +632,7 @@ Template.myIds.onRendered(function() {
         return false;
       },
       "click": function(d) {
-        d3.event.preventDefault();
+        d3.event.cancelable && d3.event.preventDefault();
         var currentActiveNode = Session.get("selectedElement");
 
         if (!currentActiveNode) {
@@ -685,7 +685,7 @@ Template.myIds.onRendered(function() {
         // For the 'keydown' event we need to prevent that the return character is
         // appended to the input text.
         if (d3.event.keyCode == 13) {
-          d3.event.preventDefault();
+          d3.event.cancelable && d3.event.preventDefault();
         }
       })
       .on("keyup", function(d) {
@@ -763,7 +763,7 @@ Template.myIds.onRendered(function() {
 
     if (d3.event) {
       // Prevent browser's default behavior
-      d3.event.preventDefault();
+      d3.event.cancelable && d3.event.preventDefault();
     }
 
     force.start();
@@ -933,7 +933,7 @@ function promptEmptyNode(currentNode) {
     return;
   }
   if (d3.event) {
-    d3.event.preventDefault();
+    d3.event.cancelable && d3.event.preventDefault();
   }
   var domNode = d3.select("#gid" + currentNode._id);
   domNode.select("p.txt-input").node().focus();
