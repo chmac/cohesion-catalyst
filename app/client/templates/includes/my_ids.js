@@ -482,13 +482,8 @@ Template.myIds.onRendered(function() {
         filledCircle;
 
       if (d.level === 0) {
-        avatarIcon = document.createElementNS(d3.ns.prefix.svg, "use");
-        avatarIcon.setAttributeNS(d3.ns.prefix.xlink, "xlink:href", currentAvatar.url);
-        avatarIcon.setAttribute("width", avatarSize);
-        avatarIcon.setAttribute("height", avatarSize);
-        avatarIcon.setAttribute("transform", "translate(" + (-avatarSize / 2) + "," + (-
-          avatarSize / 2) + ")");
-        return avatarIcon;
+        var avatarName = currentAvatar.type.replace('#smiley-', '');
+        return cohesionAvatars[avatarName]();
       }
 
       filledCircle = document.createElementNS(d3.ns.prefix.svg, "circle");
