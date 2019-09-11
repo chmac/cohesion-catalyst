@@ -337,6 +337,18 @@ Template.myIds.onRendered(function() {
       editCompleted: false
     };
 
+    // We need to focus inside an editable element here to get the soft keyboard
+    // to open on Safari iOS (which is our primary target). Apple only allows
+    // the keyboard to be opened inside a synchronous callback from a click or
+    // touch event. The code below executes inside the callback of the Meteor
+    // method call, which will be invoked asynchronously. By that point, we can
+    // no longer open the soft keyboard. So as a workaround, we focus here
+    // inside a fake input field (which is positioned top right on the screen
+    // and black on black to try and make it invisible to the user). Then below
+    // the callback can switch the focus from our fake input into the SVG
+    // element.
+    $('#fakeinput').focus()
+
     Meteor.call("insertIdentification", node, function(error, result) {
       if (error) {
         return throwError("Error: " + error.reason);

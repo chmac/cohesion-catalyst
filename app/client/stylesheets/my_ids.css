@@ -1,4 +1,18 @@
 /*
+ * This positions an input field in the top right corner of the screen and
+ * tries to make it invisible by making everything black on black. We need this
+ * input field as a hack to open the soft keyboard on the iPad.
+ */
+#fakeinput {
+  position: absolute;
+  top: 41px;
+  right: 50px;
+  font-size: 4px;
+  background-color: black;
+  border-color: black;
+}
+
+/*
 * my_ids.css
 *
 * Layout affecting the 'my_ids.html' template.
