@@ -39,13 +39,6 @@ body {
 }
 
 
-#b-box {
-  pointer-events: all;
-  fill: none;
-  cursor: pointer;
-}
-
-
 /*@media screen and (min-width: 768px) and (max-height: 800px) {
   .ids-container {
       height: 600px;

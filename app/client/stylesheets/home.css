@@ -91,3 +91,8 @@
 .btn-signup-or-login {
   width: 12.125em;
 }
+
+#b-box {
+  pointer-events: all;
+  fill: none;
+}

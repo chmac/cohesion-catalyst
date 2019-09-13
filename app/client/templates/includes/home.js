@@ -116,12 +116,6 @@ Template.home.onRendered(function() {
 
 
 Template.home.events({
-  "click #b-box": function(event, template) {
-    event.preventDefault();
-    if (Meteor.user()) {
-      return;
-    }
-  },
   "click #go-to-create-account": function(event, template) {
     event.preventDefault();
     Modal.show("createAccountForm");
