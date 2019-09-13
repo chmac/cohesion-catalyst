@@ -91,12 +91,3 @@
 .btn-signup-or-login {
   width: 12.125em;
 }
-
-div.signup-or-login {
-  opacity: 0;
-}
-
-div.signup-or-login.expose {
-  opacity: 1;
-  transition: opacity .2s;
-}
