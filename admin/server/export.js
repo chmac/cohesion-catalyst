@@ -37,10 +37,10 @@ WebApp.connectHandlers.use("/files", (req, res, next) => {
     MetaCollection.find().forEach(row => {
         res.write(
             `"${row.createdAtTraining}","${row.name.replace('"', '\\"')}","${row
-                .createdBy[0] || ""},"${row.createdBy[1] || ""}","${row
+                .createdBy[0] || ""}","${row.createdBy[1] || ""}","${row
                 .createdBy[2] || ""}","${row.createdBy[3] || ""}","${row
-                .createdBy[4] || ""},"${row.createdBy[5] || ""}","${row
-                .createdBy[6] || ""}\n`
+                .createdBy[4] || ""}","${row.createdBy[5] || ""}","${row
+                .createdBy[6] || ""}"\n`
         );
     });
 
