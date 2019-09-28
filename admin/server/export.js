@@ -13,8 +13,11 @@ Meteor.methods({
 });
 
 WebApp.connectHandlers.use("/files", (req, res, next) => {
+    const fileDate = moment().format("YYYY-MM-DD");
+
     res.writeHead(200, {
-        "content-type": "text/csv"
+        "Content-Type": "text/csv",
+        "Content-Disposition": `attachment;filename=Cohesion_${fileDate}.csv`
     });
     const key = req.url.substr(1);
 
