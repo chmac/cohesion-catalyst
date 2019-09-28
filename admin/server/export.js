@@ -1,4 +1,4 @@
-const MAXIMUM_INTERVAL_FROM_REQUEST = 60 * 1e3; // 1 minute
+const MAXIMUM_INTERVAL_FROM_REQUEST = Meteor.isProduction ? 60 * 1e3 : 1e9; // 1 minute
 
 const Exports = new Mongo.Collection("exports");
 
@@ -14,7 +14,7 @@ Meteor.methods({
 
 WebApp.connectHandlers.use("/files", (req, res, next) => {
     res.writeHead(200, {
-        "content-type": "text/plain"
+        "content-type": "text/csv"
     });
     const key = req.url.substr(1);
 
@@ -27,5 +27,20 @@ WebApp.connectHandlers.use("/files", (req, res, next) => {
         throw new Error("Fail");
     }
 
-    res.end(`Booya we got you! Key was ${key}`);
+    res.write(
+        `"trainingId","name","userId1","userId2","userId3","userId4","userId5","userId6"\n`
+    );
+
+    MetaCollection.find().forEach(row => {
+        res.write(
+            `"${row.createdAtTraining}","${row.name.replace('"', '\\"')}","${row
+                .createdBy[0] || ""},"${row.createdBy[1] || ""}","${row
+                .createdBy[2] || ""}","${row.createdBy[3] || ""}","${row
+                .createdBy[4] || ""},"${row.createdBy[5] || ""}","${row
+                .createdBy[6] || ""}\n`
+        );
+    });
+
+    res.end();
+    // res.end(`Booya we got you! Key was ${key}`);
 });
