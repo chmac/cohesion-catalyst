@@ -1,25 +1,27 @@
 Meteor.methods({
-
   /**
    * Removes the selected training from the collection.
    * @param {String} id - The _id of the training document being removed.
    */
   "trainings.remove": function(id) {
-
     // Check arguments from client
     check(id, String);
 
     // Only admins have the right to remove a training.
     if (!Roles.userIsInRole(this.userId, "admin")) {
-      throw new Meteor.Error("trainings.remove.not-authorized",
-        "Must be admin to remove a training.");
+      throw new Meteor.Error(
+        "trainings.remove.not-authorized",
+        "Must be admin to remove a training."
+      );
     }
 
     // If this training is the currently active one, we cancel the operation.
-    var training = Trainings.findOne({_id: id});
+    var training = Trainings.findOne({ _id: id });
     if (training && training.isCurrentTraining) {
-      throw new Meteor.Error("trainings.remove.not-allowed",
-        "Cannot delete current active training.");
+      throw new Meteor.Error(
+        "trainings.remove.not-allowed",
+        "Cannot delete current active training."
+      );
     }
 
     return Trainings.remove(id);
@@ -32,7 +34,6 @@ Meteor.methods({
    * @param {String} id - The _id of the training object being updated.
    */
   "training.edit.update.data": function(modifier, id) {
-
     // Check arguments
     check(id, String);
     check(modifier, Object);
@@ -43,11 +44,13 @@ Meteor.methods({
 
     // Only admins have the right to remove a training.
     if (!Roles.userIsInRole(this.userId, "admin")) {
-      throw new Meteor.Error("training.edit.update.data",
-        "Must be admin to edit training data.");
+      throw new Meteor.Error(
+        "training.edit.update.data",
+        "Must be admin to edit training data."
+      );
     }
 
-    return Trainings.update({_id: id}, modifier);
+    return Trainings.update({ _id: id }, modifier);
   },
 
   /**
@@ -59,20 +62,21 @@ Meteor.methods({
    * clicked button where we stored the documents 'isCurrentTraining' value.
    */
   "training.edit.change.current": function(id, isCurrent) {
-
     // Check arguments from client
     check(id, String);
     check(isCurrent, String);
 
     // Only admins have the right to change the training.
     if (!Roles.userIsInRole(this.userId, "admin")) {
-      throw new Meteor.Error("training.edit.change.current.not-authorized",
-        "Must be admin to change current training.");
+      throw new Meteor.Error(
+        "training.edit.change.current.not-authorized",
+        "Must be admin to change current training."
+      );
     }
 
     // We need to convert the string value received
     // from the client to boolean
-    var isCurrentTraining = (isCurrent === "true");
+    var isCurrentTraining = isCurrent === "true";
 
     var otherTraining;
 
@@ -94,13 +98,16 @@ Meteor.methods({
       }
 
       // Otherwise, we found another training and make it current one.
-      Trainings.update({_id: otherTraining._id}, {
-        $set: {
-          isCurrentTraining: true
+      Trainings.update(
+        { _id: otherTraining._id },
+        {
+          $set: {
+            isCurrentTraining: true
+          }
         }
-      });
+      );
 
-    // Is the selected training NOT the current one?
+      // Is the selected training NOT the current one?
     } else {
       // We find the training in the collection
       // that is marked as current.
@@ -111,20 +118,26 @@ Meteor.methods({
       // We only need to update if we found a current training.
       if (otherTraining) {
         // We set the found current training to false
-        Trainings.update({_id: otherTraining._id}, {
-          $set: {
-            isCurrentTraining: false
+        Trainings.update(
+          { _id: otherTraining._id },
+          {
+            $set: {
+              isCurrentTraining: false
+            }
           }
-        });
+        );
       }
     }
 
     // Finally, we change the target training current state.
-    Trainings.update({_id: id}, {
-      $set: {
-        isCurrentTraining: !isCurrentTraining
+    Trainings.update(
+      { _id: id },
+      {
+        $set: {
+          isCurrentTraining: !isCurrentTraining
+        }
       }
-    });
+    );
 
     return "OK";
   },
@@ -138,14 +151,15 @@ Meteor.methods({
    * marked as current and which will be changed.
    */
   "training.create.default": function(currentTrainingId) {
-
     // Check arguments received from client
     check(currentTrainingId, String);
 
     // Only admins have the right to change the training.
     if (!Roles.userIsInRole(this.userId, "admin")) {
-      throw new Meteor.Error("training.create.default.not-authorized",
-        "Must be admin to create default training.");
+      throw new Meteor.Error(
+        "training.create.default.not-authorized",
+        "Must be admin to create default training."
+      );
     }
 
     var newDefaultTraining = {
@@ -156,34 +170,44 @@ Meteor.methods({
 
     // We change the training marked as current training so that
     // there can only be one current training, i.e. the new default training.
-    Trainings.update({_id: currentTrainingId}, {
-      $set: {
-        isCurrentTraining: false
+    Trainings.update(
+      { _id: currentTrainingId },
+      {
+        $set: {
+          isCurrentTraining: false
+        }
       }
-    });
+    );
 
     // We log out all users currently logged in to the training we changed.
     // NOTE This is an intrusive operation! However, it is convenient for quickly
     // starting a fresh session, particularly when working at the Cohesion Table.
-    Meteor.users.update({
-      "profile.currentTraining": currentTrainingId
-    }, {
-      $set: {
-        "services.resume.loginTokens": []
+    Meteor.users.update(
+      {
+        "profile.currentTraining": currentTrainingId
+      },
+      {
+        $set: {
+          "services.resume.loginTokens": []
+        }
+      },
+      {
+        multi: true
       }
-    }, {
-      multi: true
-    });
+    );
 
     // We switch the bullseye current view to the splash screen.
-    Meteor.users.update({
-      username: "BullsEye"
-    }, {
-      $set: {
-        "profile.currentView": "splash",
-        "profile.autoMode": true
+    Meteor.users.update(
+      {
+        username: "BullsEye"
+      },
+      {
+        $set: {
+          "profile.currentView": "splash",
+          "profile.autoMode": true
+        }
       }
-    });
+    );
 
     // Finally, we create the new default training
     return Trainings.insert(newDefaultTraining);
@@ -194,7 +218,6 @@ Meteor.methods({
    * @param {Object} doc - The new training document to be inserted in the collection.
    */
   "training.create": function(doc) {
-
     // Check arguments received from client
     check(doc, Object);
     check(doc.title, String);
@@ -213,15 +236,17 @@ Meteor.methods({
       // We only need to update if we found a current training.
       if (currentTraining) {
         // We set the found current training to false
-        Trainings.update({_id: currentTraining._id}, {
-          $set: {
-            isCurrentTraining: false
+        Trainings.update(
+          { _id: currentTraining._id },
+          {
+            $set: {
+              isCurrentTraining: false
+            }
           }
-        });
+        );
       }
     }
 
     return Trainings.insert(doc);
   }
-
 });
