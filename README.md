@@ -82,56 +82,58 @@ So, in another shell, from inside your `/admin` app directory use the following 
 On first-time run of the app (or after a reset), the collections in the database are empty, and we create some initial data.
 For example, to access the admin app an admin user is created and stored in the database. Their username is  `admin@example.com`, and the password is `password`.
 
+# Outdated
 
-## Some notes on deployment
-
-In order to use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps you have to create two separate Meteor Up projects in separate directories, each of which containing the specific `mup.json` file for each app.  
-
-As is the case locally configuring the environment applies for deployment as well.
-
-Required environment variables for the _main_ app:
-* `PORT`
-* `ROOT_URL`
-* `PACKAGE_DIRS`
-
-Required environment variables for the admin app:
-* `PORT`
-* `ROOT_URL`
-* `PACKAGE_DIRS`
-* `MONGO_URL`
-
-#### Note:
-
-* The admin app should not install MongoDB, so you set `"setupMongo": false` in the `mup.json` file associated with the admin app.
-* `PACKAGE_DIRS` also needs to be exported in `~/.bashrc` on the server. Otherwise, the following error occurs:  
-`error: unknown package in top-level dependencies: coca:common`  
-
-
-#### Meteor UP X issue
-
-Although setting `MONGO_URL` in the admin app's `mup.json` to point to the main application database, the deployment of the admin app fails because connecting to `mongodb:27017` fails.  
-
-It seems to be a known [issue](https://github.com/arunoda/meteor-up/issues/758) and a workaround fix can be found in [this comment](https://github.com/arunoda/meteor-up/issues/758#issuecomment-164343450).  
-
-
-## Working with Docker
-
-
-To get access to the deployed apps you need to work with the [Docker CLI](https://docs.docker.com/engine/reference/commandline/cli/). Therefore, you need to login as root user.  
-
-E.g., for inspecting the running containers use:
-
-```
-$ docker ps
-```
-
-
-To get access to the `log` files of the main application that are written to the `$HOME` directory run the following command (logged in as root)
-
-```
-docker exec -it ccat-app bash
-```
-
-where `ccat-app` is the name of the running application container (use `docker ps` if you don't know the name). After that, `cd` into the home directory where you will find the `ccat-log` directory.
-
-See also the information given on the [MUP X project page](https://github.com/arunoda/meteor-up/tree/mupx#accessing-the-database) about accessing  MongoDB.
+> ## Some notes on deployment
+> 
+> In order to use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps you have to create two separate Meteor Up projects in separate directories, each of which containing the specific `mup.json` file for each app.  
+> 
+> As is the case locally configuring the environment applies for deployment as well.
+> 
+> Required environment variables for the _main_ app:
+> * `PORT`
+> * `ROOT_URL`
+> * `PACKAGE_DIRS`
+> 
+> Required environment variables for the admin app:
+> * `PORT`
+> * `ROOT_URL`
+> * `PACKAGE_DIRS`
+> * `MONGO_URL`
+> 
+> #### Note:
+> 
+> * The admin app should not install MongoDB, so you set `"setupMongo": false` in the `mup.json` file associated with the admin app.
+> * `PACKAGE_DIRS` also needs to be exported in `~/.bashrc` on the server. Otherwise, the following error occurs:  
+> `error: unknown package in top-level dependencies: coca:common`  
+> 
+> 
+> #### Meteor UP X issue
+> 
+> Although setting `MONGO_URL` in the admin app's `mup.json` to point to the main application database, the deployment of the admin app fails because connecting to `mongodb:27017` fails.  
+> 
+> It seems to be a known [issue](https://github.com/arunoda/meteor-up/issues/758) and a workaround fix can be found in [this comment](https://github.com/arunoda/meteor-up/issues/758#issuecomment-164343450).  
+> 
+> 
+> ## Working with Docker
+> 
+> 
+> To get access to the deployed apps you need to work with the [Docker CLI](https://docs.docker.com/engine/reference/commandline/cli/). Therefore, you need to login as root user.  
+> 
+> E.g., for inspecting the running containers use:
+> 
+> ```
+> $ docker ps
+> ```
+> 
+> 
+> To get access to the `log` files of the main application that are written to the `$HOME` directory run the following command (logged in as root)
+> 
+> ```
+> docker exec -it ccat-app bash
+> ```
+> 
+> where `ccat-app` is the name of the running application container (use `docker ps` if you don't know the name). After that, `cd` into the home directory where you will find the `ccat-log` directory.
+> 
+> See also the information given on the [MUP X project page](https://github.com/arunoda/meteor-up/tree/mupx#accessing-the-database) about accessing  MongoDB.
+> 
