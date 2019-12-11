@@ -214,6 +214,36 @@ Meteor.methods({
   },
 
   /**
+   * Replace the current training for all current users.
+   */
+  "training.create.replacement": function() {
+    // Which is the current training?
+    const currentTraining = Trainings.findOne({ isCurrentTraining: true });
+    if (!currentTraining) {
+      throw new Meteor.Error("Cannot replace a non existent training. #spMVbc");
+    }
+
+    // Mark the current training as no longer current
+    Trainings.update(currentTraining._id, {
+      $set: { isCurrentTraining: false }
+    });
+
+    // Create a new training
+    const newTrainingId = Trainings.insert({
+      title: "Replaced training",
+      date: new Date(),
+      isCurrentTraining: true
+    });
+
+    // Update all the users who were current on the old training
+    Meteor.users.update(
+      { "profile.currentTraining": currentTraining._id },
+      { $set: { "profile.currentTraining": newTrainingId } },
+      { multi: true }
+    );
+  },
+
+  /**
    * Creates a new training based on the submitted form data.
    * @param {Object} doc - The new training document to be inserted in the collection.
    */
