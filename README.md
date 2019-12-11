@@ -84,6 +84,8 @@ For example, to access the admin app an admin user is created and stored in the 
 
 # Outdated
 
+These notes on deployment are out of date. They're left here only as a pointer in case they're helpful in the future.
+
 > ## Some notes on deployment
 > 
 > In order to use [Meteor Up X](https://github.com/arunoda/meteor-up/tree/mupx) to deploy both apps you have to create two separate Meteor Up projects in separate directories, each of which containing the specific `mup.json` file for each app.  
